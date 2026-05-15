@@ -55,7 +55,23 @@ synapse_ai/
 
 ---
 
-## Setup
+## Quick setup (recommended)
+
+Three scripts are included — pick the one for your platform. Each one clones the repo, installs dependencies into a virtual environment, and drops a launch shortcut. You only need to run it once.
+
+| Platform | Script | How to run |
+|---|---|---|
+| **Windows** | `setup.bat` | Double-click it |
+| **Mac / Linux** | `setup.sh` | `chmod +x setup.sh && ./setup.sh` |
+| **Any (Python)** | `setup.py` | `python setup.py` |
+
+After setup finishes, use the generated `launch_synapse.bat` / `launch_synapse.sh` to start Synapse from then on.
+
+> The shell and Python scripts automatically create a virtual environment (`.venv`) inside the project folder so nothing pollutes your global Python install.
+
+---
+
+## Manual setup
 
 ### 1. Clone the repo
 
