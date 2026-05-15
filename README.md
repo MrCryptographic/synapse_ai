@@ -76,8 +76,8 @@ After setup finishes, use the generated `launch_synapse.bat` / `launch_synapse.s
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/yourusername/synapse-ai.git
-cd synapse-ai/synapse_ai
+git clone https://github.com/yourusername/synaps_ai.git
+cd synaps_ai/synapse_ai
 ```
 
 ### 2. Install dependencies
