@@ -4,6 +4,8 @@ import hmac
 import os
 import secrets
 import re
+import shutil
+import subprocess
 import uuid
 import requests
 import datetime
@@ -67,6 +69,8 @@ app.config.update(
 )
 socketio = SocketIO(app)
 user_db_lock = threading.Lock()
+vram_cache = {"checked_at": 0.0, "value": None}
+vram_cache_lock = threading.Lock()
 
 
 def csrf_token():
@@ -302,6 +306,49 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+
+@app.route("/api/account/delete", methods=["POST"])
+def delete_account():
+    data = request.get_json()
+    password = data.get("password") if isinstance(data, dict) else None
+    if not isinstance(password, str) or not password or len(password.encode("utf-8")) > 1024:
+        return jsonify({"error": "Enter your current password to delete your account."}), 400
+
+    user_id = session.get("user_id")
+    with user_db_lock:
+        users = load_user_db()
+        if users is None:
+            return jsonify({"error": "Account not found."}), 404
+        username = next(
+            (
+                name
+                for name, user in users.get("users", {}).items()
+                if user.get("id") == user_id
+            ),
+            None,
+        )
+        user = users["users"].get(username) if username is not None else None
+        if user is None:
+            return jsonify({"error": "Account not found."}), 404
+
+        candidate_hash = hash_password(password, bytes.fromhex(user["salt"])).hex()
+        if not hmac.compare_digest(candidate_hash, user["password_hash"]):
+            return jsonify({"error": "The password you entered is incorrect."}), 403
+
+        conversations = load_json_db(CONV_DB_FILE)
+        remaining_conversations = {
+            conversation_id: conversation
+            for conversation_id, conversation in conversations.items()
+            if conversation.get("owner_id") != user_id
+        }
+        save_json_db(remaining_conversations, CONV_DB_FILE)
+        del users["users"][username]
+        save_user_db(users)
+
+    session.clear()
+    return jsonify({"success": True})
+
+
 # --- Data Persistence Functions ---
 def load_json_db(filepath):
     try:
@@ -330,13 +377,109 @@ def send_host_notification(title, message):
 def send_stats():
     with app.app_context():
         while True:
+            vram = get_vram_stats()
             stats = {
                 'cpu': psutil.cpu_percent(),
                 'ram': psutil.virtual_memory().percent,
-                'vram': "N/A"
+                'vram': vram,
             }
             socketio.emit('update_stats', stats)
             time.sleep(2)
+
+
+def parse_vram_value(value):
+    if isinstance(value, (int, float)):
+        return int(value)
+    if isinstance(value, str):
+        match = re.search(r"([\d,]+(?:\.\d+)?)", value)
+        if match:
+            return int(float(match.group(1).replace(",", "")))
+    return None
+
+
+def get_vram_stats():
+    with vram_cache_lock:
+        if vram_cache["value"] is not None and time.monotonic() - vram_cache["checked_at"] < 10:
+            return vram_cache["value"]
+
+        result = {"text": "N/A", "percent": 0, "title": "GPU memory monitoring is unavailable."}
+        nvidia_smi = shutil.which("nvidia-smi")
+        if nvidia_smi:
+            try:
+                completed = subprocess.run(
+                    [
+                        nvidia_smi,
+                        "--query-gpu=memory.used,memory.total",
+                        "--format=csv,noheader,nounits",
+                    ],
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                    timeout=3,
+                )
+                memory = [
+                    [int(value.strip()) for value in line.split(",")]
+                    for line in completed.stdout.splitlines()
+                    if line.strip()
+                ]
+                used_mb = sum(row[0] for row in memory if len(row) >= 2)
+                total_mb = sum(row[1] for row in memory if len(row) >= 2)
+                if total_mb > 0:
+                    result = {
+                        "text": f"{used_mb / 1024:.1f} / {total_mb / 1024:.1f} GB",
+                        "percent": min(100, round(used_mb * 100 / total_mb)),
+                        "title": f"{used_mb} MiB used of {total_mb} MiB across NVIDIA GPUs.",
+                    }
+            except (OSError, subprocess.SubprocessError, ValueError):
+                result["title"] = "nvidia-smi could not report GPU memory."
+
+        if result["text"] == "N/A":
+            rocm_smi = shutil.which("rocm-smi")
+            if rocm_smi:
+                try:
+                    completed = subprocess.run(
+                        [rocm_smi, "--showmeminfo", "vram", "--json"],
+                        capture_output=True,
+                        check=True,
+                        text=True,
+                        timeout=3,
+                    )
+                    data = json.loads(completed.stdout)
+                    totals = []
+                    used_values = []
+
+                    def find_memory_values(value, key=""):
+                        key_lower = key.lower()
+                        if isinstance(value, dict):
+                            for child_key, child_value in value.items():
+                                find_memory_values(child_value, str(child_key))
+                        elif isinstance(value, list):
+                            for child_value in value:
+                                find_memory_values(child_value, key)
+                        elif "vram" in key_lower and "used" in key_lower:
+                            parsed = parse_vram_value(value)
+                            if parsed is not None:
+                                used_values.append(parsed)
+                        elif "vram" in key_lower and "total" in key_lower:
+                            parsed = parse_vram_value(value)
+                            if parsed is not None:
+                                totals.append(parsed)
+
+                    find_memory_values(data)
+                    used_bytes, total_bytes = sum(used_values), sum(totals)
+                    if total_bytes > 0:
+                        result = {
+                            "text": f"{used_bytes / (1024 ** 3):.1f} / {total_bytes / (1024 ** 3):.1f} GB",
+                            "percent": min(100, round(used_bytes * 100 / total_bytes)),
+                            "title": "VRAM usage reported by ROCm SMI.",
+                        }
+                except (OSError, subprocess.SubprocessError, ValueError, json.JSONDecodeError):
+                    result["title"] = "rocm-smi could not report GPU memory."
+
+        vram_cache["checked_at"] = time.monotonic()
+        vram_cache["value"] = result
+        return result
+
 
 stats_thread = threading.Thread(target=send_stats, daemon=True)
 stats_thread.start()
@@ -382,6 +525,7 @@ def get_ai_response(history, model_name, temperature=0.7, top_p=1.0, max_tokens=
         json=body
     )
     response.raise_for_status()
+    response.encoding = "utf-8"
     content = response.json()['choices'][0]['message']['content']
     return re.sub(r'<think>[\s\S]*?<\/think>\s*', '', content, flags=re.DOTALL).strip()
 
@@ -449,11 +593,13 @@ def get_streamed_ai_response(history, model_name, temperature, top_p, max_tokens
     }
     if max_tokens > 0:
         body["max_tokens"] = max_tokens
-    return requests.post(
+    response = requests.post(
         f"{LM_STUDIO_URL_BASE}/chat/completions",
         json=body,
         stream=True,
     )
+    response.encoding = "utf-8"
+    return response
 
 
 @app.route('/api/chat', methods=['POST'])
@@ -669,6 +815,32 @@ def rename_conversation(conv_id):
     conversation['title'] = new_title
     save_json_db(convs, CONV_DB_FILE)
     return jsonify({"success": True, "title": new_title})
+
+
+@app.route('/api/conversations/<conv_id>/messages/<int:message_index>', methods=['PUT'])
+def edit_user_message(conv_id, message_index):
+    data = request.get_json()
+    content = data.get("content") if data else None
+    if not isinstance(content, str) or not content.strip():
+        return jsonify({"error": "Message content cannot be empty."}), 400
+
+    convs = load_json_db(CONV_DB_FILE)
+    conversation = get_owned_conversation(convs, conv_id)
+    if conversation is None:
+        return jsonify({"error": "Conversation not found."}), 404
+    messages = conversation.get("messages", [])
+    if message_index >= len(messages) or messages[message_index].get("role") != "user":
+        return jsonify({"error": "Only your own user messages can be edited."}), 400
+
+    messages[message_index]["content"] = content.strip()
+    conversation["messages"] = messages[:message_index + 1]
+    conversation["title"] = next(
+        (message["content"] for message in conversation["messages"] if message.get("role") == "user"),
+        "New Chat",
+    )
+    save_json_db(convs, CONV_DB_FILE)
+    return jsonify({"messages": conversation["messages"]})
+
 
 if __name__ == '__main__':
     socketio.run(

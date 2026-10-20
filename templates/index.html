@@ -111,6 +111,20 @@
             --user-border: rgba(240, 139, 164, 0.25);
             --ai-bubble: #24191d;
         }
+        :root[data-message-style="clean"] .message {
+            background: transparent !important;
+            border-color: transparent !important;
+            border-radius: 0 !important;
+            padding: 6px 0 !important;
+        }
+        :root[data-message-style="paper"] .message {
+            background: var(--bg-mid) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius-md) !important;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);
+        }
+        :root[data-message-font="serif"] .message { font-family: Georgia, "Times New Roman", serif; font-size: 1em; }
+        :root[data-message-font="mono"] .message { font-family: var(--font-mono); font-size: 0.84em; }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -238,6 +252,7 @@
         }
         .theme-selector:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
         .theme-selector option { background: var(--bg-surface); color: var(--text-primary); }
+        .appearance-select { margin-top: 10px; }
         .streaming-setting { align-items: flex-start; display: flex; gap: 10px; }
         .streaming-setting input { accent-color: var(--accent); margin-top: 3px; }
         .streaming-setting span { color: var(--text-secondary); font-size: 0.82em; line-height: 1.45; }
@@ -276,6 +291,7 @@
         #resource-usage span:first-child { color: var(--text-muted); font-size: 0.9em; font-weight: 500; min-width: 32px; }
         .stat-bar { flex: 1; height: 4px; background: var(--bg-raised); border-radius: 99px; overflow: hidden; }
         .stat-bar-inner { height: 100%; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); width: 0%; transition: width 0.5s ease-out; border-radius: 99px; }
+        #vram-bar { background: linear-gradient(90deg, #39a35a, #63d884); }
 
         .footer-button {
             display: flex; align-items: center; gap: 10px; width: 100%;
@@ -353,7 +369,8 @@
         /* ── Messages ── */
         .message-container {
             display: flex; flex-direction: column; margin-bottom: 22px;
-            animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1) forwards; opacity: 0;
+            animation: slideUp 0.42s cubic-bezier(0.2,0.75,0.25,1) forwards; opacity: 0;
+            will-change: transform, opacity;
         }
         .message-container.user-message { align-items: flex-end; }
         .message-container.ai-message   { align-items: flex-start; }
@@ -365,6 +382,7 @@
         .message {
             max-width: min(80%, 700px); padding: 13px 17px;
             line-height: 1.65; word-wrap: break-word; font-size: 0.94em;
+            transition: background-color 0.24s ease, border-color 0.24s ease;
         }
         .message-container.user-message .message {
             background: var(--user-bubble); border: 1px solid var(--user-border);
@@ -400,6 +418,11 @@
         .ai-message li { margin-bottom: 4px; }
         .ai-message a { color: var(--accent); }
         .ai-message blockquote { border-left: 3px solid var(--border-lit); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
+        .message-container.is-streaming .message { animation: streamReveal 0.22s ease-out; }
+        @keyframes streamReveal {
+            from { opacity: 0.82; transform: translateY(2px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .message-actions { display: flex; gap: 4px; margin-top: 7px; opacity: 0; transition: opacity 0.2s; }
         .message-container:hover .message-actions { opacity: 1; }
@@ -409,6 +432,14 @@
             transition: all var(--transition); display: flex; align-items: center; justify-content: center;
         }
         .action-btn:hover { background: var(--bg-raised); border-color: var(--border-lit); }
+        .action-btn { color: var(--text-secondary); font: 600 0.72em var(--font-body); }
+        .message-editor { width: min(80%, 700px); min-height: 90px; resize: vertical; }
+        .message-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .message-edit-actions button {
+            background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
+            color: var(--text-primary); cursor: pointer; padding: 6px 10px;
+        }
+        .message-edit-actions button:hover { border-color: var(--border-lit); }
         .action-btn img { width: 13px; height: 13px; filter: invert(50%); transition: filter var(--transition); }
         .action-btn:hover img { filter: invert(75%) sepia(30%) saturate(400%) hue-rotate(5deg); }
 
@@ -418,8 +449,17 @@
             padding: 14px 20px 18px; border-top: 1px solid var(--border);
             background: var(--bg-mid); position: relative; z-index: 1;
         }
+        .input-compose { flex: 1; min-width: 0; }
+        #markdown-toolbar { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 7px 5px; }
+        .markdown-tool {
+            min-width: 28px; padding: 4px 7px; color: var(--text-secondary);
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); cursor: pointer; font: 600 0.75em var(--font-body);
+            transition: background var(--transition), border-color var(--transition), color var(--transition);
+        }
+        .markdown-tool:hover { color: var(--text-primary); background: var(--bg-raised); border-color: var(--border-lit); }
         #user-input {
-            flex-grow: 1; border: 1px solid var(--border); padding: 12px 16px;
+            width: 100%; border: 1px solid var(--border); padding: 12px 16px;
             border-radius: var(--radius-xl); background: var(--bg-surface);
             color: var(--text-primary); font-size: 0.93em; font-family: var(--font-body);
             outline: none; resize: none; max-height: 140px;
@@ -427,6 +467,7 @@
         }
         #user-input::placeholder { color: var(--text-muted); }
         #user-input:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
+        #keybind-hint { color: var(--text-muted); display: block; font-size: 0.68em; margin: 5px 8px 0; }
         #send-btn {
             background: var(--accent); color: #0e0f11; border: none;
             padding: 12px 20px; border-radius: var(--radius-xl); cursor: pointer;
@@ -551,6 +592,23 @@
         }
         #apply-settings-btn:hover { background: var(--accent-dim); box-shadow: 0 4px 14px var(--accent-glow); }
         #apply-settings-btn:active { transform: scale(0.98); }
+        #delete-account-password {
+            width: 100%; padding: 9px 12px; margin: 10px 0;
+            color: var(--text-primary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            font: inherit; outline: none;
+        }
+        #delete-account-password:focus { border-color: #d45454; }
+        #delete-account-btn {
+            width: 100%; padding: 10px; color: #fff; background: #9c3434;
+            border: 1px solid #c34b4b; border-radius: var(--radius-md);
+            cursor: pointer; font: 600 0.86em var(--font-body);
+            transition: background var(--transition), transform var(--transition);
+        }
+        #delete-account-btn:hover { background: #b33d3d; }
+        #delete-account-btn:active { transform: scale(0.98); }
+        #delete-account-btn:disabled { cursor: wait; opacity: 0.65; }
+        .account-delete-warning { color: var(--text-secondary); font-size: 0.78em; line-height: 1.5; }
 
         .settings-saved-badge {
             display: none; text-align: center; font-size: 0.78em;
@@ -627,6 +685,15 @@
             transition: border-color var(--transition), box-shadow var(--transition);
         }
         .modal-content input:focus,.modal-content textarea:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
         .modal-content textarea { resize: none; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
         .modal-actions button { padding: 10px 18px; border-radius: var(--radius-md); border: none; cursor: pointer; font-weight: 600; font-family: var(--font-body); font-size: 0.87em; transition: all var(--transition); }
@@ -695,7 +762,10 @@
                 <ul id="resource-usage">
                     <li><span>CPU</span><div class="stat-bar"><div id="cpu-bar" class="stat-bar-inner"></div></div></li>
                     <li><span>RAM</span><div class="stat-bar"><div id="ram-bar" class="stat-bar-inner"></div></div></li>
-                    <li><span>VRAM</span><div id="vram-display" style="font-size:0.82em;color:var(--text-muted);">N/A</div></li>
+                    <li title="VRAM is reported when nvidia-smi or rocm-smi is available on the host.">
+                        <span>VRAM</span><div class="stat-bar"><div id="vram-bar" class="stat-bar-inner"></div></div>
+                        <div id="vram-display" style="font-size:0.72em;color:var(--text-muted);min-width:72px;text-align:right;">Checking…</div>
+                    </li>
                 </ul>
                 <button id="feedback-btn" class="footer-button">
                     <img src="/static/icons/feedback.svg" alt="Feedback"><span>Send Feedback</span>
@@ -744,7 +814,18 @@
             </div>
 
             <div id="input-area">
-                <input type="text" id="user-input" placeholder="Message Synapse…">
+                <div class="input-compose">
+                    <div id="markdown-toolbar" role="toolbar" aria-label="Markdown formatting">
+                        <button class="markdown-tool" type="button" data-markdown-action="bold" title="Bold (Ctrl+B)" aria-label="Bold"><strong>B</strong></button>
+                        <button class="markdown-tool" type="button" data-markdown-action="italic" title="Italic (Ctrl+I)" aria-label="Italic"><em>I</em></button>
+                        <button class="markdown-tool" type="button" data-markdown-action="inline-code" title="Inline code (Ctrl+Shift+C)" aria-label="Inline code">&lt;/&gt;</button>
+                        <button class="markdown-tool" type="button" data-markdown-action="link" title="Link (Ctrl+K)" aria-label="Link">Link</button>
+                        <button class="markdown-tool" type="button" data-markdown-action="list" title="Bullet list (Ctrl+Shift+L)" aria-label="Bullet list">List</button>
+                        <button class="markdown-tool" type="button" data-markdown-action="code-block" title="Code block (Ctrl+Shift+M)" aria-label="Code block">Code block</button>
+                    </div>
+                    <textarea id="user-input" rows="1" placeholder="Message Synapse…" aria-describedby="keybind-hint"></textarea>
+                    <span id="keybind-hint">Markdown supported · Ctrl+B bold · Ctrl+I italic · Ctrl+K link · Ctrl+Shift+C code · Ctrl+Shift+L list · Ctrl+Shift+M code block<br>Enter sends · Ctrl+Enter regenerates · Shift+Enter adds a line</span>
+                </div>
                 <button id="send-btn">Send</button>
             </div>
         </main>
@@ -774,6 +855,18 @@
                             <option value="forest">Forest</option>
                             <option value="violet">Violet</option>
                             <option value="rose">Rose</option>
+                        </select>
+                        <label for="message-style-selector" class="theme-label appearance-select">Message style</label>
+                        <select id="message-style-selector" class="theme-selector">
+                            <option value="bubble">Bubbles</option>
+                            <option value="clean">Clean</option>
+                            <option value="paper">Soft cards</option>
+                        </select>
+                        <label for="message-font-selector" class="theme-label appearance-select">Message font</label>
+                        <select id="message-font-selector" class="theme-selector">
+                            <option value="sans">Sans</option>
+                            <option value="serif">Serif</option>
+                            <option value="mono">Monospace</option>
                         </select>
                     </div>
 
@@ -866,6 +959,14 @@
                         <div class="system-prompt-hint" style="margin-top:8px;">Nicknames are local to your browser session. The real model ID is always sent to LM Studio.</div>
                     </div>
 
+                    <div class="rs-section">
+                        <div class="rs-section-title">Delete Account</div>
+                        <div class="account-delete-warning">Permanently delete your account and all conversations saved under it. This cannot be undone.</div>
+                        <label for="delete-account-password" class="theme-label" style="margin-top:10px;">Current password</label>
+                        <input id="delete-account-password" type="password" autocomplete="current-password" maxlength="1024">
+                        <button id="delete-account-btn" type="button">Delete account and conversations</button>
+                    </div>
+
                     <button id="apply-settings-btn">Apply Settings</button>
                     <div class="settings-saved-badge" id="settings-saved-badge">✓ Settings applied to next message</div>
                 </div>
@@ -899,18 +1000,34 @@
 
     <script>
         const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose'];
+        const AVAILABLE_MESSAGE_STYLES = ['bubble', 'clean', 'paper'];
+        const AVAILABLE_MESSAGE_FONTS = ['sans', 'serif', 'mono'];
         const themeSelector = document.getElementById('theme-selector');
+        const messageStyleSelector = document.getElementById('message-style-selector');
+        const messageFontSelector = document.getElementById('message-font-selector');
         const streamingToggle = document.getElementById('streaming-toggle');
         try {
             const savedTheme = localStorage.getItem('synapse-theme');
             const initialTheme = AVAILABLE_THEMES.includes(savedTheme) ? savedTheme : 'ember';
             document.documentElement.dataset.theme = initialTheme;
             themeSelector.value = initialTheme;
+            const savedStyle = localStorage.getItem('synapse-message-style');
+            const initialStyle = AVAILABLE_MESSAGE_STYLES.includes(savedStyle) ? savedStyle : 'bubble';
+            document.documentElement.dataset.messageStyle = initialStyle;
+            messageStyleSelector.value = initialStyle;
+            const savedFont = localStorage.getItem('synapse-message-font');
+            const initialFont = AVAILABLE_MESSAGE_FONTS.includes(savedFont) ? savedFont : 'sans';
+            document.documentElement.dataset.messageFont = initialFont;
+            messageFontSelector.value = initialFont;
             streamingToggle.checked = localStorage.getItem('synapse-streaming') === 'true';
         } catch (error) {
             console.error('Could not load saved appearance settings:', error);
             document.documentElement.dataset.theme = 'ember';
             themeSelector.value = 'ember';
+            document.documentElement.dataset.messageStyle = 'bubble';
+            messageStyleSelector.value = 'bubble';
+            document.documentElement.dataset.messageFont = 'sans';
+            messageFontSelector.value = 'sans';
             streamingToggle.checked = false;
         }
         themeSelector.addEventListener('change', () => {
@@ -920,6 +1037,24 @@
                 localStorage.setItem('synapse-theme', selectedTheme);
             } catch (error) {
                 console.error('Could not save color theme:', error);
+            }
+        });
+        messageStyleSelector.addEventListener('change', () => {
+            const style = AVAILABLE_MESSAGE_STYLES.includes(messageStyleSelector.value) ? messageStyleSelector.value : 'bubble';
+            document.documentElement.dataset.messageStyle = style;
+            try {
+                localStorage.setItem('synapse-message-style', style);
+            } catch (error) {
+                console.error('Could not save message style:', error);
+            }
+        });
+        messageFontSelector.addEventListener('change', () => {
+            const font = AVAILABLE_MESSAGE_FONTS.includes(messageFontSelector.value) ? messageFontSelector.value : 'sans';
+            document.documentElement.dataset.messageFont = font;
+            try {
+                localStorage.setItem('synapse-message-font', font);
+            } catch (error) {
+                console.error('Could not save message font:', error);
             }
         });
         streamingToggle.addEventListener('change', () => {
@@ -949,6 +1084,7 @@
         const modelSelector      = document.getElementById('model-selector');
         const cpuBar             = document.getElementById('cpu-bar');
         const ramBar             = document.getElementById('ram-bar');
+        const vramBar            = document.getElementById('vram-bar');
         const vramDisplay        = document.getElementById('vram-display');
         const boopBtn            = document.getElementById('boop-btn');
         const slowNotice         = document.getElementById('slow-notice');
@@ -1043,7 +1179,9 @@
         socket.on('update_stats', stats => {
             cpuBar.style.width      = stats.cpu + '%';
             ramBar.style.width      = stats.ram + '%';
-            vramDisplay.textContent = stats.vram;
+            vramDisplay.textContent = stats.vram.text;
+            vramBar.style.width = `${stats.vram.percent}%`;
+            vramDisplay.title = stats.vram.title;
         });
 
         // ── Slow notice
@@ -1098,6 +1236,8 @@
             let buffer = '';
             let content = '';
             let completed = false;
+            let renderFrame = null;
+            messageElement.classList.add('is-streaming');
 
             function processFrame(frame) {
                 const dataLine = frame.split('\n').find(line => line.startsWith('data:'));
@@ -1106,7 +1246,12 @@
                 if (event.error) throw new Error(event.error);
                 if (event.content) {
                     content += event.content;
-                    updateStreamingMessage(messageElement, content);
+                    if (renderFrame === null) {
+                        renderFrame = requestAnimationFrame(() => {
+                            updateStreamingMessage(messageElement, content);
+                            renderFrame = null;
+                        });
+                    }
                 }
                 if (event.done) completed = true;
             }
@@ -1123,20 +1268,26 @@
             }
             if (buffer.trim()) processFrame(buffer);
             if (!completed) throw new Error('The response stream ended unexpectedly.');
+            if (renderFrame !== null) cancelAnimationFrame(renderFrame);
+            updateStreamingMessage(messageElement, content);
             return content;
         }
 
         function updateStreamingMessage(container, content) {
             const message = container.querySelector('.message');
+            message.dataset.rawMarkdown = content;
             message.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
             scrollToBottom();
         }
 
         function setWelcomeVisible(v) { welcomeScreen.style.display = v ? 'flex' : 'none'; }
 
-        function createMessageContainer(role, content) {
+        function createMessageContainer(role, content, messageIndex) {
             const c = document.createElement('div');
             c.className = `message-container ${role}-message`;
+            if (messageIndex !== undefined && messageIndex !== null) {
+                c.dataset.messageIndex = messageIndex;
+            }
             const label = document.createElement('div');
             label.className = 'message-role-label';
             label.textContent = role === 'user' ? 'You' : 'Synapse';
@@ -1145,25 +1296,140 @@
             m.className = 'message';
             if (content === '__loading__') {
                 m.innerHTML = `<div class="loading-dots"><span></span><span></span><span></span></div>`;
-            } else if (role === 'assistant') {
-                m.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
             } else {
-                m.innerText = content;
+                m.dataset.rawMarkdown = content;
+                m.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
             }
             c.appendChild(m);
-            if (role === 'assistant' && content !== '__loading__') {
+            if (content !== '__loading__') {
                 const a = document.createElement('div');
                 a.className = 'message-actions';
-                a.innerHTML = `<button class="action-btn" title="Regenerate" onclick="regenerateResponse(this)"><img src="/static/icons/regenerate.svg" alt="Regenerate"></button>`;
+                const copyButton = document.createElement('button');
+                copyButton.className = 'action-btn';
+                copyButton.type = 'button';
+                copyButton.textContent = 'Copy';
+                copyButton.title = 'Copy message text';
+                copyButton.addEventListener('click', async () => {
+                    try {
+                        if (navigator.clipboard && window.isSecureContext) {
+                            await navigator.clipboard.writeText(content);
+                        } else {
+                            const temporaryInput = document.createElement('textarea');
+                            temporaryInput.value = content;
+                            temporaryInput.setAttribute('readonly', '');
+                            temporaryInput.style.position = 'fixed';
+                            temporaryInput.style.opacity = '0';
+                            document.body.appendChild(temporaryInput);
+                            temporaryInput.select();
+                            let copied;
+                            try {
+                                copied = document.execCommand('copy');
+                            } finally {
+                                temporaryInput.remove();
+                            }
+                            if (!copied) throw new Error('Clipboard access is unavailable.');
+                        }
+                        copyButton.textContent = 'Copied';
+                        setTimeout(() => { copyButton.textContent = 'Copy'; }, 1200);
+                    } catch (error) {
+                        console.error('Could not copy message:', error);
+                        alert('Could not copy message. Check clipboard permissions for this site.');
+                    }
+                });
+                a.appendChild(copyButton);
+                const action = document.createElement('button');
+                action.className = 'action-btn';
+                action.type = 'button';
+                if (role === 'assistant') {
+                    action.title = 'Regenerate response';
+                    action.setAttribute('aria-label', 'Regenerate response');
+                    action.innerHTML = '<img src="/static/icons/regenerate.svg" alt="">';
+                    action.addEventListener('click', () => regenerateResponse(action));
+                } else {
+                    action.textContent = 'Edit';
+                    action.title = 'Edit your message and regenerate from it';
+                    action.addEventListener('click', () => editUserMessage(c, messageIndex));
+                }
+                a.appendChild(action);
                 c.appendChild(a);
             }
             return c;
         }
 
-        function addMessageToChat(role, content) {
+        function addMessageToChat(role, content, messageIndex) {
             setWelcomeVisible(false);
-            chatWindow.appendChild(createMessageContainer(role, content));
+            const container = createMessageContainer(role, content, messageIndex);
+            chatWindow.appendChild(container);
             scrollToBottom();
+            return container;
+        }
+
+        function renderConversationMessages(messages) {
+            chatWindow.replaceChildren(welcomeScreen);
+            setWelcomeVisible(messages.length === 0);
+            messages.forEach((message, index) => addMessageToChat(message.role, message.content, index));
+        }
+
+        async function editUserMessage(container, messageIndex) {
+            const message = container.querySelector('.message');
+            const originalContent = message.dataset.rawMarkdown || '';
+            const editor = document.createElement('textarea');
+            editor.className = 'message param-number-input message-editor';
+            editor.value = originalContent;
+            editor.setAttribute('aria-label', 'Edit your message');
+            message.replaceWith(editor);
+
+            const actions = container.querySelector('.message-actions');
+            actions.replaceChildren();
+            const saveButton = document.createElement('button');
+            saveButton.className = 'action-btn';
+            saveButton.type = 'button';
+            saveButton.textContent = 'Save and regenerate';
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'action-btn';
+            cancelButton.type = 'button';
+            cancelButton.textContent = 'Cancel';
+            const editActions = document.createElement('div');
+            editActions.className = 'message-edit-actions';
+            editActions.append(saveButton, cancelButton);
+            actions.appendChild(editActions);
+
+            cancelButton.addEventListener('click', () => {
+                container.replaceWith(createMessageContainer('user', originalContent, messageIndex));
+            });
+            const save = async () => {
+                const content = editor.value.trim();
+                if (!content) return alert('Message cannot be empty.');
+                saveButton.disabled = true;
+                try {
+                    const updated = await fetchAPI(
+                        `/conversations/${activeConversationId}/messages/${messageIndex}`,
+                        {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content })
+                        }
+                    );
+                    renderConversationMessages(updated.messages);
+                    await refreshTabs();
+                    await regenerateResponse(null);
+                } catch (error) {
+                    alert(`Could not edit message: ${error.message}`);
+                    saveButton.disabled = false;
+                }
+            };
+            saveButton.addEventListener('click', save);
+            editor.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cancelButton.click();
+                } else if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                    event.preventDefault();
+                    save();
+                }
+            });
+            editor.focus();
+            editor.setSelectionRange(editor.value.length, editor.value.length);
         }
 
         // ── Nickname map: modelId -> display string (empty = use default label)
@@ -1311,7 +1577,7 @@
             try {
                 const msgs = await fetchAPI(`/conversations/${id}`);
                 if (msgs.length === 0) setWelcomeVisible(true);
-                msgs.forEach(m => addMessageToChat(m.role, m.content));
+                renderConversationMessages(msgs);
                 await refreshTabs();
             } catch(e) { addMessageToChat('assistant', `Failed to load: ${e.message}`); }
         }
@@ -1344,46 +1610,69 @@
             const m = modelSelector.value;
             if (!p || !activeConversationId) return;
             if (!m) return alert('Please select a model first.');
-            addMessageToChat('user', p);
+            const messageIndex = chatWindow.querySelectorAll('.message-container[data-message-index]').length;
+            const userMessage = addMessageToChat('user', p, messageIndex);
             userInput.value = '';
+            userInput.style.height = 'auto';
             const loadingEl = createMessageContainer('assistant', '__loading__');
             chatWindow.appendChild(loadingEl); scrollToBottom();
             try {
                 const payload = { conversation_id: activeConversationId, prompt: p, model: m, params: genParams };
                 if (streamingToggle.checked) {
                     const content = await streamAPI('/chat/stream', payload, loadingEl);
-                    loadingEl.replaceWith(createMessageContainer('assistant', content));
+                    loadingEl.replaceWith(createMessageContainer('assistant', content, messageIndex + 1));
                 } else {
                     const r = await fetchAPI('/chat', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    loadingEl.remove(); addMessageToChat(r.role, r.content);
+                    loadingEl.remove(); addMessageToChat(r.role, r.content, messageIndex + 1);
                 }
                 await refreshTabs();
-            } catch(e) { loadingEl.remove(); addMessageToChat('assistant', `Error: ${e.message}`); }
+            } catch(e) {
+                loadingEl.remove();
+                userMessage.remove();
+                addMessageToChat('assistant', `Error: ${e.message}`);
+            }
         }
 
         async function regenerateResponse(btn) {
             const m = modelSelector.value;
             if (!m) return alert('Please select a model.');
-            const original = btn.closest('.message-container');
+            const original = btn ? btn.closest('.message-container') : null;
+            if (!original && !chatWindow.querySelector('.message-container.user-message')) return;
+            const assistantIndex = original && original.dataset.messageIndex
+                ? original.dataset.messageIndex
+                : chatWindow.querySelectorAll('.message-container[data-message-index]').length;
             const loadingEl = createMessageContainer('assistant', '__loading__');
-            original.replaceWith(loadingEl); scrollToBottom();
+            if (original) original.replaceWith(loadingEl);
+            else chatWindow.appendChild(loadingEl);
+            scrollToBottom();
             try {
                 if (streamingToggle.checked) {
                     const content = await streamAPI('/chat/stream', {
                         conversation_id: activeConversationId, model: m, params: genParams, regenerate: true
                     }, loadingEl);
-                    loadingEl.replaceWith(createMessageContainer('assistant', content));
+                    loadingEl.replaceWith(createMessageContainer('assistant', content, assistantIndex));
                 } else {
                     const r = await fetchAPI('/regenerate', {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ conversation_id: activeConversationId, model: m, params: genParams })
                     });
-                    loadingEl.replaceWith(createMessageContainer(r.role, r.content));
+                    loadingEl.replaceWith(createMessageContainer(r.role, r.content, assistantIndex));
                 }
             } catch(e) { loadingEl.replaceWith(createMessageContainer('assistant', `Error: ${e.message}`)); }
+        }
+
+        function regenerateLastResponse() {
+            const assistantMessages = chatWindow.querySelectorAll('.message-container.ai-message');
+            if (!assistantMessages.length) {
+                regenerateResponse(null);
+                return;
+            }
+            const latestAssistant = assistantMessages[assistantMessages.length - 1];
+            const button = latestAssistant.querySelector('.message-actions button');
+            regenerateResponse(button);
         }
 
         async function deleteConversation() {
@@ -1413,7 +1702,126 @@
         menuBtn.addEventListener('click', showSidebar);
         backdrop.addEventListener('click', hideSidebar);
         sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+        function applyMarkdownFormatting(action) {
+            const text = userInput.value;
+            const start = userInput.selectionStart;
+            const end = userInput.selectionEnd;
+            const selected = text.slice(start, end);
+            let replacement;
+            let selectionStart;
+            let selectionEnd;
+
+            if (action === 'list') {
+                if (!selected) {
+                    const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                    replacement = `${text.slice(0, lineStart)}- ${text.slice(lineStart)}`;
+                    selectionStart = selectionEnd = start + 2;
+                } else {
+                    const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+                    const lineEndIndex = text.indexOf('\n', end);
+                    const lineEnd = lineEndIndex === -1 ? text.length : lineEndIndex;
+                    const selectedBlock = text.slice(lineStart, lineEnd);
+                    const formatted = selectedBlock.split('\n')
+                        .map(line => /^\s*[-*+]\s/.test(line) ? line : `- ${line}`)
+                        .join('\n');
+                    replacement = text.slice(0, lineStart) + formatted + text.slice(lineEnd);
+                    selectionStart = lineStart;
+                    selectionEnd = lineStart + formatted.length;
+                }
+            } else if (action === 'link') {
+                const label = selected || 'link text';
+                const formatted = `[${label}](url)`;
+                replacement = text.slice(0, start) + formatted + text.slice(end);
+                if (selected) {
+                    selectionStart = start + label.length + 3;
+                    selectionEnd = selectionStart + 3;
+                } else {
+                    selectionStart = start + 1;
+                    selectionEnd = selectionStart + label.length;
+                }
+            } else {
+                const formats = {
+                    bold: ['**', '**'],
+                    italic: ['*', '*'],
+                    'inline-code': ['`', '`'],
+                    'code-block': ['```\n', '\n```']
+                };
+                const [prefix, suffix] = formats[action] || [];
+                if (!prefix) return;
+                const placeholder = action === 'code-block' ? 'code' : '';
+                const value = selected || placeholder;
+                replacement = text.slice(0, start) + prefix + value + suffix + text.slice(end);
+                selectionStart = start + prefix.length;
+                selectionEnd = selectionStart + value.length;
+            }
+
+            userInput.value = replacement;
+            userInput.focus();
+            userInput.setSelectionRange(selectionStart, selectionEnd);
+            userInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        const markdownToolbar = document.getElementById('markdown-toolbar');
+        markdownToolbar.addEventListener('mousedown', event => event.preventDefault());
+        markdownToolbar.addEventListener('click', event => {
+            const button = event.target.closest('[data-markdown-action]');
+            if (button) applyMarkdownFormatting(button.dataset.markdownAction);
+        });
+        userInput.addEventListener('keydown', event => {
+            if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+            const key = event.key.toLowerCase();
+            const action = key === 'b' && !event.shiftKey ? 'bold'
+                : key === 'i' && !event.shiftKey ? 'italic'
+                : key === 'k' && !event.shiftKey ? 'link'
+                : key === 'c' && event.shiftKey ? 'inline-code'
+                : key === 'l' && event.shiftKey ? 'list'
+                : key === 'm' && event.shiftKey ? 'code-block'
+                : null;
+            if (action) {
+                event.preventDefault();
+                applyMarkdownFormatting(action);
+            }
+        });
+        const deleteAccountBtn = document.getElementById('delete-account-btn');
+        const deleteAccountPassword = document.getElementById('delete-account-password');
+        const deleteAccount = async () => {
+            if (!confirm('Permanently delete your account and every conversation saved under it? This cannot be undone.')) return;
+            deleteAccountBtn.disabled = true;
+            try {
+                await fetchAPI('/account/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: deleteAccountPassword.value })
+                });
+                window.location.assign('/login');
+            } catch (error) {
+                alert(`Could not delete account: ${error.message}`);
+                deleteAccountPassword.value = '';
+                deleteAccountPassword.focus();
+                deleteAccountBtn.disabled = false;
+            }
+        };
+        deleteAccountBtn.addEventListener('click', deleteAccount);
+        deleteAccountPassword.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                deleteAccount();
+            }
+        });
+        userInput.addEventListener('keydown', event => {
+            if (event.key !== 'Enter') return;
+            if (event.ctrlKey || event.metaKey) {
+                event.preventDefault();
+                regenerateLastResponse();
+            } else if (!event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+        userInput.addEventListener('input', () => {
+            userInput.style.height = 'auto';
+            userInput.style.height = `${Math.min(userInput.scrollHeight, 140)}px`;
+        });
         newChatBtn.addEventListener('click', () => { createNewConversation(); hideSidebar(); });
         document.getElementById('rename-btn').addEventListener('click', renameConversation);
         document.getElementById('delete-btn').addEventListener('click', deleteConversation);

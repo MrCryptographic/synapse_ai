@@ -13,14 +13,20 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 ## What it does
 
 - **Individual accounts** — each account has its own private conversation list and history
+- **Account deletion** — permanently remove your account and its conversations after confirming your current password
 - **Chat history** — conversations are saved server-side in a JSON file, so they survive browser refreshes and cookie clears
 - **Model switching** — swap between any model you have downloaded in LM Studio without touching the app
 - **Color themes** — choose Ember, Ocean, Forest, Violet, or Rose from Settings; your choice is saved in your browser
 - **Response streaming** — optionally display model responses token by token from Settings; the preference is saved in your browser
+- **Editable prompts** — edit a user message to discard later turns and regenerate from the revised prompt
+- **Message copying** — copy user prompts or assistant responses from the message actions
+- **Message appearance** — choose bubble, clean, or soft-card layouts and sans, serif, or monospace text
+- **Keyboard controls** — Enter sends, Ctrl+Enter regenerates the latest response, and Shift+Enter adds a line; Markdown shortcuts format selected text
+- **GPU memory monitoring** — reports VRAM when `nvidia-smi` or `rocm-smi` is available on the host
 - **Model nicknames** — give your models friendly names (e.g. rename `gemma-4-e4b-Q4_K_M` to `Basically Gemini`) — nicknames are per-browser and never leave your device
 - **System prompt & generation params** — tweak temperature, top-p, top-k, repeat penalty, max tokens, and seed from a dedicated settings panel
 - **Quick presets** — one-click Precise / Balanced / Creative configurations
-- **Markdown rendering** — AI responses render with full markdown including code blocks
+- **Markdown rendering** — user prompts and AI responses render with sanitized Markdown, including code blocks
 - **Live resource usage** — CPU and RAM displayed in the sidebar, updated in real time over WebSocket
 - **Host notifications** — desktop alerts on your machine whenever a generation starts, showing the model name and time
 - **Boop button** — lets any network user send a notification ping to the host machine
@@ -123,6 +129,12 @@ Open `http://localhost:6767`, create an account with a unique password of at lea
 
 Sign-in and account creation are separate pages (`/login` and `/register`). In the app, choose a color theme in **Settings → Appearance**; it is saved per browser.
 
+In Settings, you can also choose message layout and font. Hover over one of your messages and choose **Edit** to revise it; later conversation turns are discarded and a new answer is generated. `Enter` sends a message, `Ctrl+Enter` regenerates the latest answer, and `Shift+Enter` inserts a line break. VRAM reporting uses the host's `nvidia-smi` or `rocm-smi` command-line utility; it displays `N/A` when neither tool can report GPU memory.
+
+The composer supports Markdown. Select text and use `Ctrl+B` for bold, `Ctrl+I` for italic, `Ctrl+K` for a link, `Ctrl+Shift+C` for inline code, `Ctrl+Shift+L` for a bullet list, or `Ctrl+Shift+M` for a fenced code block. The formatting toolbar has the same actions.
+
+To permanently delete an account, open **Settings → Delete Account**, enter the current password, and confirm. This also removes all conversations belonging to that account; the deletion cannot be undone.
+
 If web signup fails, stop Synapse and run `python makeaccount.py` from the project directory. Follow the terminal prompts, then restart Synapse and sign in with that account. The script uses the same account format and password hashing as the app; stop the server first to avoid simultaneous account-file updates.
 
 By default, Synapse listens only on this computer (`127.0.0.1:6767`). It creates a local `.synapse_secret_key` file on first run and reuses it across restarts so browser sessions remain valid. Keep this file private and do not delete it during normal operation. If you deploy multiple app workers, set `SYNAPSE_SECRET_KEY` to the same long random secret for all workers.
@@ -217,7 +229,7 @@ sudo systemctl start synapse
 - **Accounts and conversations** are stored in `users.json` and `conversations.json` in the project folder. Back up both; losing `users.json` prevents existing users from signing in.
 - **Model nicknames** are per-browser and session-only — they reset on page refresh by design, so nothing sensitive gets stored.
 - **First response slowness** is normal — LM Studio loads the model into RAM/VRAM on demand. Subsequent messages in the same session are much faster.
-- **VRAM stats** display as `N/A` by default. LM Studio doesn't currently expose VRAM usage through its API.
+- **VRAM stats** use the host's `nvidia-smi` or `rocm-smi` command-line utility; they display as `N/A` if neither utility can report GPU memory.
 - The app runs in production mode (`debug=False`). For any remote access, use HTTPS and set `SYNAPSE_COOKIE_SECURE=1`.
 
 ---
