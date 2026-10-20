@@ -238,6 +238,9 @@
         }
         .theme-selector:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
         .theme-selector option { background: var(--bg-surface); color: var(--text-primary); }
+        .streaming-setting { align-items: flex-start; display: flex; gap: 10px; }
+        .streaming-setting input { accent-color: var(--accent); margin-top: 3px; }
+        .streaming-setting span { color: var(--text-secondary); font-size: 0.82em; line-height: 1.45; }
 
         #chat-tabs {
             flex-grow: 1; overflow-y: auto; border-top: 1px solid var(--border);
@@ -775,6 +778,14 @@
                     </div>
 
                     <div class="rs-section">
+                        <div class="rs-section-title">Response</div>
+                        <label class="streaming-setting" for="streaming-toggle">
+                            <input id="streaming-toggle" type="checkbox">
+                            <span>Stream responses as the model generates them</span>
+                        </label>
+                    </div>
+
+                    <div class="rs-section">
                         <div class="rs-section-title">System Prompt</div>
                         <textarea id="system-prompt" rows="6" placeholder="You are a helpful assistant…"></textarea>
                         <div class="system-prompt-hint">Sets the AI's persona and behavior. Applied to every new message sent.</div>
@@ -889,15 +900,18 @@
     <script>
         const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose'];
         const themeSelector = document.getElementById('theme-selector');
+        const streamingToggle = document.getElementById('streaming-toggle');
         try {
             const savedTheme = localStorage.getItem('synapse-theme');
             const initialTheme = AVAILABLE_THEMES.includes(savedTheme) ? savedTheme : 'ember';
             document.documentElement.dataset.theme = initialTheme;
             themeSelector.value = initialTheme;
+            streamingToggle.checked = localStorage.getItem('synapse-streaming') === 'true';
         } catch (error) {
-            console.error('Could not load saved color theme:', error);
+            console.error('Could not load saved appearance settings:', error);
             document.documentElement.dataset.theme = 'ember';
             themeSelector.value = 'ember';
+            streamingToggle.checked = false;
         }
         themeSelector.addEventListener('change', () => {
             const selectedTheme = AVAILABLE_THEMES.includes(themeSelector.value) ? themeSelector.value : 'ember';
@@ -906,6 +920,13 @@
                 localStorage.setItem('synapse-theme', selectedTheme);
             } catch (error) {
                 console.error('Could not save color theme:', error);
+            }
+        });
+        streamingToggle.addEventListener('change', () => {
+            try {
+                localStorage.setItem('synapse-streaming', String(streamingToggle.checked));
+            } catch (error) {
+                console.error('Could not save response streaming setting:', error);
             }
         });
 
@@ -1055,6 +1076,60 @@
                 if (!r.ok) { const e = await r.json(); throw new Error(e.error || `HTTP ${r.status}`); }
                 return r.json();
             } catch(e) { console.error('API Error:', e); throw e; }
+        }
+
+        async function streamAPI(endpoint, payload, messageElement) {
+            const response = await fetch(`/api${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || `HTTP ${response.status}`);
+            }
+            if (!response.body) throw new Error('This browser does not support streamed responses.');
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let content = '';
+            let completed = false;
+
+            function processFrame(frame) {
+                const dataLine = frame.split('\n').find(line => line.startsWith('data:'));
+                if (!dataLine) return;
+                const event = JSON.parse(dataLine.slice(5).trim());
+                if (event.error) throw new Error(event.error);
+                if (event.content) {
+                    content += event.content;
+                    updateStreamingMessage(messageElement, content);
+                }
+                if (event.done) completed = true;
+            }
+
+            while (true) {
+                const { value, done } = await reader.read();
+                buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+                let frameEnd;
+                while ((frameEnd = buffer.indexOf('\n\n')) !== -1) {
+                    processFrame(buffer.slice(0, frameEnd));
+                    buffer = buffer.slice(frameEnd + 2);
+                }
+                if (done) break;
+            }
+            if (buffer.trim()) processFrame(buffer);
+            if (!completed) throw new Error('The response stream ended unexpectedly.');
+            return content;
+        }
+
+        function updateStreamingMessage(container, content) {
+            const message = container.querySelector('.message');
+            message.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
+            scrollToBottom();
         }
 
         function setWelcomeVisible(v) { welcomeScreen.style.display = v ? 'flex' : 'none'; }
@@ -1274,11 +1349,18 @@
             const loadingEl = createMessageContainer('assistant', '__loading__');
             chatWindow.appendChild(loadingEl); scrollToBottom();
             try {
-                const r = await fetchAPI('/chat', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ conversation_id: activeConversationId, prompt: p, model: m, params: genParams })
-                });
-                loadingEl.remove(); addMessageToChat(r.role, r.content); await refreshTabs();
+                const payload = { conversation_id: activeConversationId, prompt: p, model: m, params: genParams };
+                if (streamingToggle.checked) {
+                    const content = await streamAPI('/chat/stream', payload, loadingEl);
+                    loadingEl.replaceWith(createMessageContainer('assistant', content));
+                } else {
+                    const r = await fetchAPI('/chat', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    loadingEl.remove(); addMessageToChat(r.role, r.content);
+                }
+                await refreshTabs();
             } catch(e) { loadingEl.remove(); addMessageToChat('assistant', `Error: ${e.message}`); }
         }
 
@@ -1289,11 +1371,18 @@
             const loadingEl = createMessageContainer('assistant', '__loading__');
             original.replaceWith(loadingEl); scrollToBottom();
             try {
-                const r = await fetchAPI('/regenerate', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ conversation_id: activeConversationId, model: m, params: genParams })
-                });
-                loadingEl.replaceWith(createMessageContainer(r.role, r.content));
+                if (streamingToggle.checked) {
+                    const content = await streamAPI('/chat/stream', {
+                        conversation_id: activeConversationId, model: m, params: genParams, regenerate: true
+                    }, loadingEl);
+                    loadingEl.replaceWith(createMessageContainer('assistant', content));
+                } else {
+                    const r = await fetchAPI('/regenerate', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ conversation_id: activeConversationId, model: m, params: genParams })
+                    });
+                    loadingEl.replaceWith(createMessageContainer(r.role, r.content));
+                }
             } catch(e) { loadingEl.replaceWith(createMessageContainer('assistant', `Error: ${e.message}`)); }
         }
 

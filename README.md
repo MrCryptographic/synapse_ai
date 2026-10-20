@@ -16,6 +16,7 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 - **Chat history** — conversations are saved server-side in a JSON file, so they survive browser refreshes and cookie clears
 - **Model switching** — swap between any model you have downloaded in LM Studio without touching the app
 - **Color themes** — choose Ember, Ocean, Forest, Violet, or Rose from Settings; your choice is saved in your browser
+- **Response streaming** — optionally display model responses token by token from Settings; the preference is saved in your browser
 - **Model nicknames** — give your models friendly names (e.g. rename `gemma-4-e4b-Q4_K_M` to `Basically Gemini`) — nicknames are per-browser and never leave your device
 - **System prompt & generation params** — tweak temperature, top-p, top-k, repeat penalty, max tokens, and seed from a dedicated settings panel
 - **Quick presets** — one-click Precise / Balanced / Creative configurations

@@ -10,7 +10,7 @@ import datetime
 import time
 import threading
 from pathlib import Path
-from flask import Flask, request, jsonify, render_template, redirect, session, url_for
+from flask import Flask, Response, request, jsonify, render_template, redirect, session, stream_with_context, url_for
 from flask_socketio import SocketIO
 from plyer import notification
 import psutil
@@ -385,6 +385,77 @@ def get_ai_response(history, model_name, temperature=0.7, top_p=1.0, max_tokens=
     content = response.json()['choices'][0]['message']['content']
     return re.sub(r'<think>[\s\S]*?<\/think>\s*', '', content, flags=re.DOTALL).strip()
 
+
+def filter_think_chunk(chunk, state):
+    open_tag, close_tag = "<think>", "</think>"
+    buffer = state["buffer"] + chunk
+    output = []
+    while buffer:
+        if state["thinking"]:
+            closing_index = buffer.find(close_tag)
+            if closing_index >= 0:
+                buffer = buffer[closing_index + len(close_tag):]
+                state["thinking"] = False
+                continue
+            retained = 0
+            for size in range(min(len(close_tag) - 1, len(buffer)), 0, -1):
+                if buffer.endswith(close_tag[:size]):
+                    retained = size
+                    break
+            buffer = buffer[-retained:] if retained else ""
+            break
+
+        opening_index = buffer.find(open_tag)
+        if opening_index >= 0:
+            output.append(buffer[:opening_index])
+            buffer = buffer[opening_index + len(open_tag):]
+            state["thinking"] = True
+            continue
+        retained = 0
+        for size in range(min(len(open_tag) - 1, len(buffer)), 0, -1):
+            if buffer.endswith(open_tag[:size]):
+                retained = size
+                break
+        if retained:
+            output.append(buffer[:-retained])
+            state["buffer"] = buffer[-retained:]
+        else:
+            output.append(buffer)
+            state["buffer"] = ""
+        return "".join(output)
+
+    state["buffer"] = buffer
+    return "".join(output)
+
+
+def stream_event(data):
+    return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+def get_streamed_ai_response(history, model_name, temperature, top_p, max_tokens, frequency_penalty, presence_penalty):
+    current_time = datetime.datetime.now().strftime("%I:%M:%S %p")
+    send_host_notification(
+        title="Synapse: AI Generation Started",
+        message=f"Model: {model_name.split('/')[-1]}\nTime: {current_time}"
+    )
+    body = {
+        "model": model_name,
+        "messages": history,
+        "temperature": temperature,
+        "top_p": top_p,
+        "frequency_penalty": frequency_penalty,
+        "presence_penalty": presence_penalty,
+        "stream": True,
+    }
+    if max_tokens > 0:
+        body["max_tokens"] = max_tokens
+    return requests.post(
+        f"{LM_STUDIO_URL_BASE}/chat/completions",
+        json=body,
+        stream=True,
+    )
+
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     data = request.json
@@ -411,6 +482,106 @@ def chat():
         history.pop()
         save_json_db(convs, CONV_DB_FILE)
         return jsonify({"error": f"Error contacting LM Studio: {e}"}), 500
+
+
+@app.route('/api/chat/stream', methods=['POST'])
+def chat_stream():
+    data = request.get_json()
+    conv_id, model = data.get('conversation_id'), data.get('model')
+    convs = load_json_db(CONV_DB_FILE)
+    conversation = get_owned_conversation(convs, conv_id)
+    if conversation is None:
+        return jsonify({"error": "Conversation not found."}), 404
+
+    history = conversation['messages']
+    is_regenerate = data.get("regenerate", False)
+    removed_assistant = None
+    if is_regenerate:
+        if history and history[-1]['role'] == 'assistant':
+            removed_assistant = history.pop()
+    else:
+        prompt = data.get('prompt')
+        if not isinstance(prompt, str) or not prompt.strip():
+            return jsonify({"error": "A message is required."}), 400
+        history.append({"role": "user", "content": prompt})
+
+    params = data.get("params") or {}
+    try:
+        upstream = get_streamed_ai_response(
+            history,
+            model,
+            params.get("temperature", 0.7),
+            params.get("top_p", 1.0),
+            params.get("max_tokens", -1),
+            params.get("frequency_penalty", 0.0),
+            params.get("presence_penalty", 0.0),
+        )
+        upstream.raise_for_status()
+    except requests.RequestException as error:
+        if not is_regenerate:
+            history.pop()
+        elif removed_assistant is not None:
+            history.append(removed_assistant)
+        upstream_response = getattr(error, "response", None)
+        if upstream_response is not None:
+            upstream_response.close()
+        return jsonify({"error": f"Error contacting LM Studio: {error}"}), 500
+
+    def generate():
+        response_text = []
+        filter_state = {"buffer": "", "thinking": False}
+        try:
+            for line in upstream.iter_lines(decode_unicode=True):
+                if not line:
+                    continue
+                if isinstance(line, bytes):
+                    line = line.decode("utf-8")
+                if not line.startswith("data:"):
+                    continue
+                payload = line[5:].strip()
+                if payload == "[DONE]":
+                    break
+                try:
+                    event = json.loads(payload)
+                except json.JSONDecodeError:
+                    continue
+                choices = event.get("choices") or []
+                if not choices:
+                    continue
+                delta = choices[0].get("delta", {}).get("content", "")
+                if not isinstance(delta, str) or not delta:
+                    continue
+                visible = filter_think_chunk(delta, filter_state)
+                if visible:
+                    response_text.append(visible)
+                    yield stream_event({"content": visible})
+
+            tail = filter_state["buffer"] if not filter_state["thinking"] else ""
+            if tail:
+                response_text.append(tail)
+                yield stream_event({"content": tail})
+
+            answer = "".join(response_text).strip()
+            history.append({"role": "assistant", "content": answer})
+            if not is_regenerate and len([message for message in history if message["role"] == "user"]) == 1:
+                conversation["title"] = data["prompt"]
+            save_json_db(convs, CONV_DB_FILE)
+            yield stream_event({"done": True})
+        except requests.RequestException as error:
+            if not is_regenerate and history and history[-1].get("role") == "user":
+                history.pop()
+            elif is_regenerate and removed_assistant is not None:
+                history.append(removed_assistant)
+            yield stream_event({"error": f"Error reading LM Studio response: {error}"})
+        finally:
+            upstream.close()
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
 
 @app.route('/api/regenerate', methods=['POST'])
 def regenerate():
