@@ -82,8 +82,8 @@ cd ..
     echo cd /d "%%~dp0synapse_ai"
     echo echo.
     echo echo  Starting Synapse AI...
-    echo echo  Open your browser and go to: http://localhost:5000
-    echo echo  Share this address on your network: use your local IP instead of localhost
+    echo echo  Open your browser and go to: http://localhost:6767
+    echo echo  Create an individual account on first visit.
     echo echo  Press Ctrl+C to stop the server.
     echo echo.
     echo python app.py
@@ -99,9 +99,10 @@ echo  ==========================================
 echo.
 echo  BEFORE LAUNCHING, make sure LM Studio is:
 echo    1. Open and running the Local Server
-echo    2. Host is set to 0.0.0.0 (not localhost)
+echo    2. Host is set to localhost if LM Studio runs on this computer
 echo    3. Port is 1234 (default)
 echo.
 echo  Then double-click "launch_synapse.bat" to start.
+echo  Network access is disabled by default; see README.md before enabling it.
 echo.
 pause

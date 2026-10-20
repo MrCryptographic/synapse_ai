@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>Synapse</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -37,6 +38,78 @@
             --left-sidebar-w:  275px;
             --right-sidebar-w: 300px;
             --transition:   0.22s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        :root[data-theme="ocean"] {
+            --bg-deep: #0b1218;
+            --bg-mid: #101b24;
+            --bg-surface: #172632;
+            --bg-raised: #203644;
+            --accent: #56c7d9;
+            --accent-dim: #2596aa;
+            --accent-glow: rgba(86, 199, 217, 0.15);
+            --accent-glow2: rgba(86, 199, 217, 0.06);
+            --text-primary: #e7f3f6;
+            --text-secondary: #9eb5bd;
+            --text-muted: #657e87;
+            --border: rgba(210, 240, 246, 0.08);
+            --border-lit: rgba(86, 199, 217, 0.32);
+            --user-bubble: #192d38;
+            --user-border: rgba(86, 199, 217, 0.25);
+            --ai-bubble: #131f27;
+        }
+        :root[data-theme="forest"] {
+            --bg-deep: #0d1410;
+            --bg-mid: #131d16;
+            --bg-surface: #1b2a20;
+            --bg-raised: #26382b;
+            --accent: #83cf8d;
+            --accent-dim: #54a962;
+            --accent-glow: rgba(131, 207, 141, 0.15);
+            --accent-glow2: rgba(131, 207, 141, 0.06);
+            --text-primary: #edf4ed;
+            --text-secondary: #a7b8a8;
+            --text-muted: #708372;
+            --border: rgba(225, 245, 225, 0.08);
+            --border-lit: rgba(131, 207, 141, 0.32);
+            --user-bubble: #1e3023;
+            --user-border: rgba(131, 207, 141, 0.25);
+            --ai-bubble: #17221a;
+        }
+        :root[data-theme="violet"] {
+            --bg-deep: #12101a;
+            --bg-mid: #1a1725;
+            --bg-surface: #242033;
+            --bg-raised: #322c45;
+            --accent: #b69aff;
+            --accent-dim: #8d6fd5;
+            --accent-glow: rgba(182, 154, 255, 0.15);
+            --accent-glow2: rgba(182, 154, 255, 0.06);
+            --text-primary: #f0edfa;
+            --text-secondary: #b1aac8;
+            --text-muted: #79718e;
+            --border: rgba(235, 225, 255, 0.08);
+            --border-lit: rgba(182, 154, 255, 0.32);
+            --user-bubble: #2a2340;
+            --user-border: rgba(182, 154, 255, 0.25);
+            --ai-bubble: #1d1929;
+        }
+        :root[data-theme="rose"] {
+            --bg-deep: #181012;
+            --bg-mid: #211619;
+            --bg-surface: #2e1e23;
+            --bg-raised: #402a31;
+            --accent: #f08ba4;
+            --accent-dim: #c65e7a;
+            --accent-glow: rgba(240, 139, 164, 0.15);
+            --accent-glow2: rgba(240, 139, 164, 0.06);
+            --text-primary: #f8edf0;
+            --text-secondary: #c4aab1;
+            --text-muted: #8c737b;
+            --border: rgba(255, 230, 238, 0.08);
+            --border-lit: rgba(240, 139, 164, 0.32);
+            --user-bubble: #39232b;
+            --user-border: rgba(240, 139, 164, 0.25);
+            --ai-bubble: #24191d;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -134,7 +207,7 @@
         }
         #new-chat-btn::before {
             content: ''; position: absolute; inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(232,168,56,0.08), transparent);
+            background: linear-gradient(90deg, transparent, var(--accent-glow2), transparent);
             transform: translateX(-100%); transition: transform 0.4s ease;
         }
         #new-chat-btn:hover::before { transform: translateX(100%); }
@@ -157,6 +230,14 @@
         }
         #model-selector:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
         #model-selector option { background: var(--bg-surface); }
+        .theme-label { color: var(--text-secondary); display: block; font-size: 0.82em; margin-bottom: 7px; }
+        .theme-selector {
+            width: 100%; padding: 9px 12px; background: var(--bg-surface); color: var(--text-primary);
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            font: inherit; outline: none;
+        }
+        .theme-selector:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
+        .theme-selector option { background: var(--bg-surface); color: var(--text-primary); }
 
         #chat-tabs {
             flex-grow: 1; overflow-y: auto; border-top: 1px solid var(--border);
@@ -203,6 +284,7 @@
         .footer-button:hover { background: var(--bg-surface); color: var(--text-primary); }
         .footer-button img { width: 15px; height: 15px; filter: invert(50%); transition: filter var(--transition); }
         .footer-button:hover img { filter: invert(80%) sepia(20%) saturate(400%) hue-rotate(5deg); }
+        #logout-form { margin: 0; }
 
         /* ── Main content ── */
         #main-content {
@@ -347,9 +429,9 @@
             padding: 12px 20px; border-radius: var(--radius-xl); cursor: pointer;
             font-size: 0.9em; font-weight: 700; font-family: var(--font-display);
             transition: all var(--transition); flex-shrink: 0;
-            box-shadow: 0 2px 10px rgba(232,168,56,0.2);
+            box-shadow: 0 2px 10px var(--accent-glow);
         }
-        #send-btn:hover { background: var(--accent-dim); transform: translateY(-1px); box-shadow: 0 5px 16px rgba(232,168,56,0.3); }
+        #send-btn:hover { background: var(--accent-dim); transform: translateY(-1px); box-shadow: 0 5px 16px var(--accent-glow); }
         #send-btn:active { transform: translateY(1px); }
 
         /* ── RIGHT sidebar ── */
@@ -462,9 +544,9 @@
             width: 100%; padding: 11px; background: var(--accent); color: #0e0f11;
             border: none; border-radius: var(--radius-md); cursor: pointer;
             font-family: var(--font-display); font-weight: 700; font-size: 0.88em;
-            transition: all var(--transition); box-shadow: 0 2px 10px rgba(232,168,56,0.15);
+            transition: all var(--transition); box-shadow: 0 2px 10px var(--accent-glow);
         }
-        #apply-settings-btn:hover { background: var(--accent-dim); box-shadow: 0 4px 14px rgba(232,168,56,0.3); }
+        #apply-settings-btn:hover { background: var(--accent-dim); box-shadow: 0 4px 14px var(--accent-glow); }
         #apply-settings-btn:active { transform: scale(0.98); }
 
         .settings-saved-badge {
@@ -618,6 +700,10 @@
                 <button id="boop-btn" class="footer-button">
                     <img src="/static/icons/boop.svg" alt="Boop"><span>Boop the Host</span>
                 </button>
+                <form id="logout-form" method="post" action="{{ url_for('logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="footer-button">Sign out</button>
+                </form>
             </div>
         </aside>
 
@@ -675,6 +761,18 @@
                 </div>
 
                 <div class="rs-body">
+
+                    <div class="rs-section">
+                        <div class="rs-section-title">Appearance</div>
+                        <label for="theme-selector" class="theme-label">Color theme</label>
+                        <select id="theme-selector" class="theme-selector">
+                            <option value="ember">Ember</option>
+                            <option value="ocean">Ocean</option>
+                            <option value="forest">Forest</option>
+                            <option value="violet">Violet</option>
+                            <option value="rose">Rose</option>
+                        </select>
+                    </div>
 
                     <div class="rs-section">
                         <div class="rs-section-title">System Prompt</div>
@@ -789,6 +887,28 @@
     </div>
 
     <script>
+        const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose'];
+        const themeSelector = document.getElementById('theme-selector');
+        try {
+            const savedTheme = localStorage.getItem('synapse-theme');
+            const initialTheme = AVAILABLE_THEMES.includes(savedTheme) ? savedTheme : 'ember';
+            document.documentElement.dataset.theme = initialTheme;
+            themeSelector.value = initialTheme;
+        } catch (error) {
+            console.error('Could not load saved color theme:', error);
+            document.documentElement.dataset.theme = 'ember';
+            themeSelector.value = 'ember';
+        }
+        themeSelector.addEventListener('change', () => {
+            const selectedTheme = AVAILABLE_THEMES.includes(themeSelector.value) ? themeSelector.value : 'ember';
+            document.documentElement.dataset.theme = selectedTheme;
+            try {
+                localStorage.setItem('synapse-theme', selectedTheme);
+            } catch (error) {
+                console.error('Could not save color theme:', error);
+            }
+        });
+
         const sidebar            = document.getElementById('sidebar');
         const backdrop           = document.getElementById('sidebar-backdrop');
         const menuBtn            = document.getElementById('menu-btn');
@@ -927,6 +1047,10 @@
 
         async function fetchAPI(endpoint, options = {}) {
             try {
+                options.headers = {
+                    ...options.headers,
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                };
                 const r = await fetch(`/api${endpoint}`, options);
                 if (!r.ok) { const e = await r.json(); throw new Error(e.error || `HTTP ${r.status}`); }
                 return r.json();

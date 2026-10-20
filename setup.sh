@@ -108,19 +108,10 @@ if [ -d ".venv" ]; then
     source .venv/bin/activate
 fi
 
-# Detect local IP for display
-if command -v ipconfig &>/dev/null; then
-    LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "unknown")
-elif command -v hostname &>/dev/null; then
-    LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "unknown")
-else
-    LOCAL_IP="your-local-ip"
-fi
-
 echo ""
 echo " Starting Synapse AI..."
-echo " Local:   http://localhost:5000"
-echo " Network: http://${LOCAL_IP}:5000"
+echo " Local:   http://localhost:6767"
+echo " Create an individual account on first visit."
 echo " Press Ctrl+C to stop."
 echo ""
 
@@ -132,15 +123,6 @@ ok "Created launch_synapse.sh"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 
-# Detect local IP for the summary
-if command -v ipconfig &>/dev/null; then
-    LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "your-local-ip")
-elif command -v hostname &>/dev/null; then
-    LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "your-local-ip")
-else
-    LOCAL_IP="your-local-ip"
-fi
-
 echo ""
 echo -e "${CYAN}${BOLD} =========================================="
 echo -e "   Setup complete!"
@@ -148,13 +130,13 @@ echo -e " ==========================================${RESET}"
 echo ""
 echo -e " ${BOLD}Before launching, make sure LM Studio is:${RESET}"
 echo "   1. Open with the Local Server running"
-echo "   2. Host set to 0.0.0.0  (not localhost)"
+echo "   2. Host set to localhost if LM Studio runs on this computer"
 echo "   3. Port set to 1234  (default)"
 echo ""
 echo -e " ${BOLD}To start Synapse:${RESET}"
 echo "   ./launch_synapse.sh"
 echo ""
 echo -e " ${BOLD}Then open:${RESET}"
-echo "   Local:   http://localhost:5000"
-echo "   Network: http://${LOCAL_IP}:5000"
+echo "   Local:   http://localhost:6767"
+echo "   Network access is disabled by default; see README.md before enabling it."
 echo ""

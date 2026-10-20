@@ -163,7 +163,8 @@ if IS_WINDOWS:
         {activate}
         echo.
         echo  Starting Synapse AI...
-        echo  Open your browser at: http://localhost:5000
+        echo  Open your browser at: http://localhost:6767
+        echo  Create an individual account on first visit.
         echo  Press Ctrl+C to stop.
         echo.
         {python_cmd} app.py
@@ -185,18 +186,10 @@ else:
         cd "$(dirname "$0")/synapse_ai"
         {activate_line}
 
-        if command -v ipconfig &>/dev/null; then
-            LOCAL_IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "your-local-ip")
-        elif command -v hostname &>/dev/null; then
-            LOCAL_IP=$(hostname -I 2>/dev/null | awk '{{print $1}}' || echo "your-local-ip")
-        else
-            LOCAL_IP="your-local-ip"
-        fi
-
         echo ""
         echo " Starting Synapse AI..."
-        echo " Local:   http://localhost:5000"
-        echo " Network: http://${{LOCAL_IP}}:5000"
+        echo " Local:   http://localhost:6767"
+        echo " Create an individual account on first visit."
         echo " Press Ctrl+C to stop."
         echo ""
         python3 app.py
@@ -211,7 +204,7 @@ banner("Setup complete!")
 
 print(f"  {bold('Before launching, make sure LM Studio is:')}")
 print("    1. Open with the Local Server tab running")
-print("    2. Host set to  0.0.0.0  (not localhost!)")
+print("    2. Host set to localhost if LM Studio runs on this computer")
 print("    3. Port set to  1234  (default)\n")
 
 if IS_WINDOWS:
@@ -219,5 +212,5 @@ if IS_WINDOWS:
 else:
     print(f"  {bold('To start:')}  ./launch_synapse.sh\n")
 
-print(f"  {bold('Then open:')}  http://localhost:5000")
-print( "  Share your local IP with others on the same Wi-Fi.\n")
+print(f"  {bold('Then open:')}  http://localhost:6767")
+print( "  Network access is disabled by default; see README.md before enabling it.\n")
