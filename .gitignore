@@ -3,3 +3,4 @@ users.json
 conversations.json
 feedback.json
 __pycache__/
+/.vscode
