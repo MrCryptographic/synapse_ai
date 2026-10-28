@@ -15,9 +15,17 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 - **Individual accounts** — each account has its own private conversation list and history
 - **Account deletion** — permanently remove your account and its conversations after confirming your current password
 - **Chat history** — conversations are saved server-side in a JSON file, so they survive browser refreshes and cookie clears
+- **Conversation organization** — search conversations, pin important chats, and sort chats into named folders
+- **Conversation backups** — import and export conversations as Synapse JSON files; imports are assigned to the signed-in account
 - **Model switching** — swap between any model you have downloaded in LM Studio without touching the app
+- **Saved model profiles** — save a model together with its generation settings for quick reuse in this browser
+- **Prompt library** — save reusable prompt templates and insert them into the composer with one click
 - **Color themes** — choose Ember, Ocean, Forest, Violet, or Rose from Settings; your choice is saved in your browser
-- **Response streaming** — optionally display model responses token by token from Settings; the preference is saved in your browser
+- **Smooth response streaming** — responses stream with a paced reveal by default; click Stop to cancel a generation
+- **File attachments** — attach PNG/JPEG/WebP images, PDFs, or UTF-8 text files (up to five files per message; PDFs are limited to 30 pages)
+- **Optional web search** — search the web with Tavily and include cited result URLs in the model's context; the app reports free-credit usage and exhaustion
+- **Model comparison** — stream responses from two different models side by side and keep both answers in the conversation
+- **Read aloud** — use your browser's speech synthesis to listen to assistant responses; no microphone or dictation is used
 - **Editable prompts** — edit a user message to discard later turns and regenerate from the revised prompt
 - **Message copying** — copy user prompts or assistant responses from the message actions
 - **Message appearance** — choose bubble, clean, or soft-card layouts and sans, serif, or monospace text
@@ -104,6 +112,7 @@ requests
 plyer
 psutil
 Flask-SocketIO
+pypdf
 ```
 
 > **Note for Linux users:** `plyer` desktop notifications may require additional setup depending on your desktop environment. On headless servers, notifications will silently fail — everything else still works.
@@ -117,6 +126,26 @@ Open LM Studio and do the following:
 3. Keep the **Host** dropdown at `localhost` when LM Studio and Synapse run on the same computer. Only use `0.0.0.0` when Synapse is on a different trusted computer.
 4. Leave the port at `1234` (default)
 
+### Optional: enable web search
+
+Web search is off unless enabled in the composer. To configure it, create a Tavily API key and set `TAVILY_API_KEY` in the environment used to launch Synapse:
+
+```powershell
+# PowerShell
+$env:TAVILY_API_KEY = "your-tavily-api-key"
+python app.py
+```
+
+```bash
+# macOS / Linux
+export TAVILY_API_KEY="your-tavily-api-key"
+python app.py
+```
+
+Keep the key on the server and out of source control. Synapse checks Tavily usage before searching and displays the returned credit balance; availability and plan limits are controlled by Tavily. When the allowance is exhausted, search is disabled for that request and Synapse reports the quota state.
+
+When web search is enabled, the user's query is sent to Tavily and the returned source snippets and URLs are added to the prompt sent to the configured LM Studio server. Chat prompts and attachments are sent to LM Studio as part of normal inference. PDF text is extracted by Synapse before being sent; image data and extracted attachment text are saved with the account's conversation history in the local conversations file. Read-aloud uses browser speech synthesis.
+
 ### 4. Run Synapse
 
 Run the app:
@@ -129,7 +158,9 @@ Open `http://localhost:6767`, create an account with a unique password of at lea
 
 Sign-in and account creation are separate pages (`/login` and `/register`). In the app, choose a color theme in **Settings → Appearance**; it is saved per browser.
 
-In Settings, you can also choose message layout and font. Hover over one of your messages and choose **Edit** to revise it; later conversation turns are discarded and a new answer is generated. `Enter` sends a message, `Ctrl+Enter` regenerates the latest answer, and `Shift+Enter` inserts a line break. VRAM reporting uses the host's `nvidia-smi` or `rocm-smi` command-line utility; it displays `N/A` when neither tool can report GPU memory.
+On sign-in, Synapse opens a welcome page with starter prompts instead of selecting a previous chat. Use the sidebar search and folder filter to find conversations; right-click a chat or open its **•••** menu to rename, pin, move, or delete it. The sidebar's **Export chats** button downloads a JSON backup of your conversations, and **Import chats** restores a Synapse JSON export (up to 50 MB and 100 conversations). Imported chats belong to the currently signed-in account.
+
+In Settings, you can choose message layout and font, save reusable prompts in **Prompt Library**, or save the active model and generation controls as a **Saved Model Profile**. These libraries and profiles are stored in browser storage and scoped to the signed-in account on that browser. The composer accepts up to five attachments per message; each file can be up to 5 MB and the combined image size is limited to 10 MB. PDFs are text-extracted on the Synapse server (30-page and 50,000-character limits); scanned PDFs without selectable text are not supported. Enable **Web search** or **Compare models** in the composer when needed. Hover over a text-only user message and choose **Edit** to revise it; later conversation turns are discarded and a new answer is generated. `Enter` sends a message, `Ctrl+Enter` regenerates the latest answer, and `Shift+Enter` inserts a line break. VRAM reporting uses the host's `nvidia-smi` or `rocm-smi` command-line utility; it displays `N/A` when neither tool can report GPU memory.
 
 The composer supports Markdown. Select text and use `Ctrl+B` for bold, `Ctrl+I` for italic, `Ctrl+K` for a link, `Ctrl+Shift+C` for inline code, `Ctrl+Shift+L` for a bullet list, or `Ctrl+Shift+M` for a fenced code block. The formatting toolbar has the same actions.
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
+    <meta name="account-id" content="{{ session['user_id'] }}">
     <title>Synapse</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -261,17 +262,41 @@
             flex-grow: 1; overflow-y: auto; border-top: 1px solid var(--border);
             padding: 8px; position: relative; z-index: 1;
         }
+        #conversation-filters { display: grid; gap: 7px; padding: 0 12px 10px; }
+        #conversation-search, #folder-filter, .library-input, .profile-input {
+            width: 100%; padding: 8px 10px; color: var(--text-primary);
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); font: 0.8em var(--font-body); outline: none;
+        }
+        #conversation-search:focus, #folder-filter:focus, .library-input:focus, .profile-input:focus {
+            border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2);
+        }
+        #folder-filter option { background: var(--bg-surface); color: var(--text-primary); }
+        .conversation-data-actions { display: flex; gap: 7px; margin-top: 10px; }
+        .conversation-data-actions button, .library-actions button, .profile-actions button {
+            flex: 1; padding: 7px 8px; color: var(--text-secondary);
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); cursor: pointer; font: 600 0.75em var(--font-body);
+            transition: color var(--transition), border-color var(--transition), background var(--transition);
+        }
+        .conversation-data-actions button:hover, .library-actions button:hover, .profile-actions button:hover {
+            color: var(--accent); border-color: var(--border-lit); background: var(--accent-glow2);
+        }
+        #import-conversations-file { display: none; }
         .tabs-label {
             font-size: 0.67em; color: var(--text-muted); font-weight: 600;
             letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 6px 6px;
         }
         .chat-tab {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 9px 10px; cursor: pointer; border-radius: var(--radius-md);
+            gap: 6px; padding: 9px 10px; cursor: pointer; border-radius: var(--radius-md);
             margin-bottom: 2px; transition: background var(--transition), color var(--transition);
             animation: tabIn 0.25s ease forwards; position: relative;
         }
-        .chat-tab-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.87em; flex: 1; }
+        .chat-tab-details { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .chat-tab-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.87em; }
+        .chat-tab-folder { color: var(--text-muted); font-size: 0.68em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .chat-tab-pin { color: var(--accent); font-size: 0.85em; flex-shrink: 0; }
         .chat-tab:hover { background: var(--bg-surface); }
         .chat-tab.active { background: var(--accent-glow); color: var(--accent); }
         .chat-tab.active::before {
@@ -354,7 +379,7 @@
 
         #welcome-screen {
             display: none; flex-direction: column; align-items: center;
-            justify-content: center; height: 100%; gap: 14px; text-align: center;
+            justify-content: center; min-height: 100%; gap: 14px; text-align: center;
             animation: fadeIn 0.5s ease forwards;
         }
         .welcome-icon {
@@ -365,6 +390,14 @@
         .welcome-icon svg { width: 26px; height: 26px; stroke: #000; }
         #welcome-screen h2 { font-family: var(--font-display); font-size: 1.7em; font-weight: 800; letter-spacing: -0.02em; }
         #welcome-screen p { color: var(--text-secondary); font-size: 0.92em; max-width: 300px; line-height: 1.6; }
+        .welcome-prompts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 560px; margin-top: 8px; }
+        .welcome-prompt {
+            padding: 9px 12px; color: var(--text-secondary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            cursor: pointer; font: 500 0.8em var(--font-body);
+            transition: color var(--transition), border-color var(--transition), background var(--transition);
+        }
+        .welcome-prompt:hover { color: var(--accent); border-color: var(--border-lit); background: var(--accent-glow2); }
 
         /* ── Messages ── */
         .message-container {
@@ -374,6 +407,12 @@
         }
         .message-container.user-message { align-items: flex-end; }
         .message-container.ai-message   { align-items: flex-start; }
+        .comparison-grid {
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px; margin-bottom: 22px;
+        }
+        .comparison-grid .message-container { min-width: 0; margin-bottom: 0; }
+        .comparison-grid .message { width: 100%; max-width: 100%; }
         .message-role-label {
             font-size: 0.7em; font-weight: 600; letter-spacing: 0.06em;
             text-transform: uppercase; margin-bottom: 5px; color: var(--text-muted); padding: 0 4px;
@@ -418,12 +457,7 @@
         .ai-message li { margin-bottom: 4px; }
         .ai-message a { color: var(--accent); }
         .ai-message blockquote { border-left: 3px solid var(--border-lit); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
-        .message-container.is-streaming .message { animation: streamReveal 0.22s ease-out; }
-        @keyframes streamReveal {
-            from { opacity: 0.82; transform: translateY(2px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        .message-attachment-image { display: block; max-width: min(100%, 480px); max-height: 360px; margin-top: 8px; border-radius: var(--radius-md); object-fit: contain; }
         .message-actions { display: flex; gap: 4px; margin-top: 7px; opacity: 0; transition: opacity 0.2s; }
         .message-container:hover .message-actions { opacity: 1; }
         .action-btn {
@@ -445,38 +479,54 @@
 
         /* ── Input area ── */
         #input-area {
-            display: flex; align-items: flex-end; gap: 10px;
-            padding: 14px 20px 18px; border-top: 1px solid var(--border);
+            display: flex; align-items: flex-end; gap: 12px;
+            padding: 13px 20px 16px; border-top: 1px solid var(--border);
             background: var(--bg-mid); position: relative; z-index: 1;
         }
         .input-compose { flex: 1; min-width: 0; }
-        #markdown-toolbar { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 7px 5px; }
+        #markdown-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px 2px; }
         .markdown-tool {
-            min-width: 28px; padding: 4px 7px; color: var(--text-secondary);
+            min-width: 32px; height: 28px; padding: 0 9px; color: var(--text-secondary);
             background: var(--bg-surface); border: 1px solid var(--border);
             border-radius: var(--radius-sm); cursor: pointer; font: 600 0.75em var(--font-body);
-            transition: background var(--transition), border-color var(--transition), color var(--transition);
+            transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
         }
-        .markdown-tool:hover { color: var(--text-primary); background: var(--bg-raised); border-color: var(--border-lit); }
+        .markdown-tool:hover { color: var(--text-primary); background: var(--bg-raised); border-color: var(--border-lit); transform: translateY(-1px); }
         #user-input {
-            width: 100%; border: 1px solid var(--border); padding: 12px 16px;
-            border-radius: var(--radius-xl); background: var(--bg-surface);
+            display: block; width: 100%; min-height: 48px; border: 1px solid var(--border); padding: 13px 16px;
+            border-radius: 16px; background: var(--bg-surface);
             color: var(--text-primary); font-size: 0.93em; font-family: var(--font-body);
-            outline: none; resize: none; max-height: 140px;
-            transition: border-color var(--transition), box-shadow var(--transition); line-height: 1.5;
+            outline: none; resize: none; max-height: 160px; overflow-y: auto;
+            transition: border-color var(--transition), box-shadow var(--transition), background var(--transition); line-height: 1.45;
         }
         #user-input::placeholder { color: var(--text-muted); }
         #user-input:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
-        #keybind-hint { color: var(--text-muted); display: block; font-size: 0.68em; margin: 5px 8px 0; }
+        #keybind-hint { color: var(--text-muted); display: block; font-size: 0.68em; line-height: 1.55; margin: 7px 5px 0; }
         #send-btn {
+            width: 76px; height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
             background: var(--accent); color: #0e0f11; border: none;
-            padding: 12px 20px; border-radius: var(--radius-xl); cursor: pointer;
-            font-size: 0.9em; font-weight: 700; font-family: var(--font-display);
-            transition: all var(--transition); flex-shrink: 0;
+            padding: 0 14px; border-radius: 16px; cursor: pointer;
+            font-size: 0.88em; font-weight: 700; font-family: var(--font-display);
+            transition: width var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+            flex-shrink: 0;
             box-shadow: 0 2px 10px var(--accent-glow);
         }
         #send-btn:hover { background: var(--accent-dim); transform: translateY(-1px); box-shadow: 0 5px 16px var(--accent-glow); }
         #send-btn:active { transform: translateY(1px); }
+        #send-btn:focus-visible, .markdown-tool:focus-visible, .welcome-prompt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        #send-btn .send-icon { display: none; width: 14px; height: 14px; fill: currentColor; }
+        #send-btn.is-stopping { width: 48px; padding: 0; background: #d65b5b; color: #fff; }
+        #send-btn.is-stopping:hover { background: #e16a6a; }
+        #send-btn.is-stopping .send-label { display: none; }
+        #send-btn.is-stopping .send-icon { display: block; }
+
+        @media (max-width: 640px) {
+            #input-area { gap: 8px; padding: 10px 12px 12px; }
+            #send-btn { width: 54px; }
+            #send-btn.is-stopping { width: 48px; }
+            #keybind-hint { font-size: 0.64em; }
+            .comparison-grid { grid-template-columns: 1fr; }
+        }
 
         /* ── RIGHT sidebar ── */
         #right-sidebar {
@@ -545,6 +595,39 @@
         }
         .preset-btn:hover { border-color: var(--border-lit); color: var(--accent); background: var(--accent-glow2); }
         .preset-btn.active { border-color: var(--border-lit); color: var(--accent); background: var(--accent-glow); }
+
+        .library-form, .profile-form { display: grid; gap: 7px; }
+        .library-textarea {
+            width: 100%; min-height: 78px; padding: 9px 10px; resize: vertical;
+            color: var(--text-primary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            font: 0.8em/1.45 var(--font-body); outline: none;
+        }
+        .library-textarea:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
+        .library-actions, .profile-actions { display: flex; gap: 7px; }
+        .prompt-library-item { display: flex; align-items: center; gap: 6px; margin-top: 7px; }
+        .prompt-library-item span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); font-size: 0.78em; }
+        .prompt-library-item button {
+            padding: 5px 7px; color: var(--text-secondary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font: 0.72em var(--font-body);
+        }
+        .prompt-library-item button:hover { color: var(--accent); border-color: var(--border-lit); }
+        .profile-hint { color: var(--text-muted); font-size: 0.72em; line-height: 1.4; }
+        #attachment-input { display: none; }
+        #attachment-tray { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 8px; }
+        .attachment-chip {
+            display: flex; align-items: center; gap: 7px; max-width: 100%;
+            padding: 5px 8px; color: var(--text-secondary);
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); font-size: 0.74em;
+        }
+        .attachment-chip img { width: 30px; height: 30px; border-radius: 4px; object-fit: cover; }
+        .attachment-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .attachment-chip button {
+            padding: 2px 5px; color: var(--text-muted); background: transparent;
+            border: 0; cursor: pointer; font: inherit;
+        }
+        .attachment-chip button:hover { color: #f87171; }
 
         /* Param rows */
         .param-row { margin-bottom: 16px; }
@@ -756,6 +839,18 @@
                     <label for="model-selector">Active Model</label>
                     <select id="model-selector"><option>Loading models...</option></select>
                 </div>
+                <div class="conversation-data-actions">
+                    <button id="export-conversations-btn" type="button">Export chats</button>
+                    <button id="import-conversations-btn" type="button">Import chats</button>
+                    <input id="import-conversations-file" type="file" accept="application/json,.json">
+                </div>
+            </div>
+            <div id="conversation-filters">
+                <input id="conversation-search" type="search" placeholder="Search conversations…" aria-label="Search conversations">
+                <select id="folder-filter" aria-label="Filter by folder">
+                    <option value="">All folders</option>
+                    <option value="__unfiled__">Unfiled</option>
+                </select>
             </div>
             <div id="chat-tabs"><div class="tabs-label">Conversations</div></div>
             <div id="sidebar-footer">
@@ -808,8 +903,13 @@
                             <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
                         </svg>
                     </div>
-                    <h2>Good to see you.</h2>
-                    <p>Select a model, tune the settings panel, and start a conversation.</p>
+                    <h2>Welcome to Synapse</h2>
+                    <p>Your local AI workspace. Start a conversation, explore an idea, or ask for help with a task.</p>
+                    <div class="welcome-prompts" aria-label="Conversation starters">
+                        <button class="welcome-prompt" type="button" data-starter-prompt="Explain a difficult concept in simple terms.">Explain a concept</button>
+                        <button class="welcome-prompt" type="button" data-starter-prompt="Help me brainstorm ideas for a project.">Brainstorm ideas</button>
+                        <button class="welcome-prompt" type="button" data-starter-prompt="Help me understand or improve some code.">Get coding help</button>
+                    </div>
                 </div>
             </div>
 
@@ -822,11 +922,17 @@
                         <button class="markdown-tool" type="button" data-markdown-action="link" title="Link (Ctrl+K)" aria-label="Link">Link</button>
                         <button class="markdown-tool" type="button" data-markdown-action="list" title="Bullet list (Ctrl+Shift+L)" aria-label="Bullet list">List</button>
                         <button class="markdown-tool" type="button" data-markdown-action="code-block" title="Code block (Ctrl+Shift+M)" aria-label="Code block">Code block</button>
+                        <button class="markdown-tool" id="attach-files-btn" type="button" title="Attach images, text, or PDF files">Attach</button>
                     </div>
+                    <input id="attachment-input" type="file" accept="image/png,image/jpeg,image/webp,.txt,.md,.csv,.json,application/pdf" multiple>
+                    <div id="attachment-tray" aria-live="polite"></div>
                     <textarea id="user-input" rows="1" placeholder="Message Synapse…" aria-describedby="keybind-hint"></textarea>
                     <span id="keybind-hint">Markdown supported · Ctrl+B bold · Ctrl+I italic · Ctrl+K link · Ctrl+Shift+C code · Ctrl+Shift+L list · Ctrl+Shift+M code block<br>Enter sends · Ctrl+Enter regenerates · Shift+Enter adds a line</span>
                 </div>
-                <button id="send-btn">Send</button>
+                <button id="send-btn" type="button" aria-label="Send message" title="Send message">
+                    <span class="send-label">Send</span>
+                    <svg class="send-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
+                </button>
             </div>
         </main>
 
@@ -876,6 +982,23 @@
                             <input id="streaming-toggle" type="checkbox">
                             <span>Stream responses as the model generates them</span>
                         </label>
+                        <label class="streaming-setting" for="web-search-toggle" style="margin-top:10px;">
+                            <input id="web-search-toggle" type="checkbox">
+                            <span>Search the web before answering (query sent to Tavily)</span>
+                        </label>
+                        <div id="web-search-status" class="profile-hint" role="status" aria-live="polite">Web search is off.</div>
+                    </div>
+
+                    <div class="rs-section">
+                        <div class="rs-section-title">Model Comparison</div>
+                        <label class="streaming-setting" for="compare-model-toggle">
+                            <input id="compare-model-toggle" type="checkbox">
+                            <span>Compare two models on the same prompt and save both answers</span>
+                        </label>
+                        <label for="compare-model-selector" class="theme-label" style="margin-top:8px;">Second model</label>
+                        <select id="compare-model-selector" class="theme-selector">
+                            <option value="">Load models first</option>
+                        </select>
                     </div>
 
                     <div class="rs-section">
@@ -885,11 +1008,39 @@
                     </div>
 
                     <div class="rs-section">
+                        <div class="rs-section-title">Prompt Library</div>
+                        <div class="library-form">
+                            <input id="prompt-template-name" class="library-input" type="text" maxlength="60" placeholder="Template name" aria-label="Prompt template name">
+                            <textarea id="prompt-template-content" class="library-textarea" maxlength="10000" placeholder="Write a reusable prompt…" aria-label="Prompt template content"></textarea>
+                            <div class="library-actions">
+                                <button id="save-prompt-template" type="button">Save prompt</button>
+                            </div>
+                        </div>
+                        <div id="prompt-library-list"></div>
+                    </div>
+
+                    <div class="rs-section">
                         <div class="rs-section-title">Quick Presets</div>
                         <div class="preset-row">
                             <button class="preset-btn" data-preset="precise">Precise</button>
                             <button class="preset-btn" data-preset="balanced">Balanced</button>
                             <button class="preset-btn" data-preset="creative">Creative</button>
+                        </div>
+                    </div>
+
+                    <div class="rs-section">
+                        <div class="rs-section-title">Saved Model Profiles</div>
+                        <div class="profile-form">
+                            <input id="profile-name" class="profile-input" type="text" maxlength="60" placeholder="Profile name" aria-label="Profile name">
+                            <select id="profile-selector" class="theme-selector" aria-label="Saved profiles">
+                                <option value="">Choose a profile</option>
+                            </select>
+                            <div class="profile-actions">
+                                <button id="save-profile-btn" type="button">Save current</button>
+                                <button id="load-profile-btn" type="button">Load</button>
+                                <button id="delete-profile-btn" type="button">Delete</button>
+                            </div>
+                            <div class="profile-hint">Profiles save the selected model and generation settings in this browser.</div>
                         </div>
                     </div>
 
@@ -977,6 +1128,8 @@
     <!-- Context menu -->
     <div id="context-menu">
         <div class="context-menu-item" id="rename-btn">Rename</div>
+        <div class="context-menu-item" id="pin-btn">Pin</div>
+        <div class="context-menu-item" id="folder-btn">Move to folder</div>
         <div class="context-menu-item danger" id="delete-btn">Delete</div>
     </div>
 
@@ -1006,6 +1159,12 @@
         const messageStyleSelector = document.getElementById('message-style-selector');
         const messageFontSelector = document.getElementById('message-font-selector');
         const streamingToggle = document.getElementById('streaming-toggle');
+        const webSearchToggle = document.getElementById('web-search-toggle');
+        const webSearchStatus = document.getElementById('web-search-status');
+        const compareModelToggle = document.getElementById('compare-model-toggle');
+        const compareModelSelector = document.getElementById('compare-model-selector');
+        const attachmentInput = document.getElementById('attachment-input');
+        const attachmentTray = document.getElementById('attachment-tray');
         try {
             const savedTheme = localStorage.getItem('synapse-theme');
             const initialTheme = AVAILABLE_THEMES.includes(savedTheme) ? savedTheme : 'ember';
@@ -1019,7 +1178,7 @@
             const initialFont = AVAILABLE_MESSAGE_FONTS.includes(savedFont) ? savedFont : 'sans';
             document.documentElement.dataset.messageFont = initialFont;
             messageFontSelector.value = initialFont;
-            streamingToggle.checked = localStorage.getItem('synapse-streaming') === 'true';
+            streamingToggle.checked = localStorage.getItem('synapse-streaming') !== 'false';
         } catch (error) {
             console.error('Could not load saved appearance settings:', error);
             document.documentElement.dataset.theme = 'ember';
@@ -1028,7 +1187,7 @@
             messageStyleSelector.value = 'bubble';
             document.documentElement.dataset.messageFont = 'sans';
             messageFontSelector.value = 'sans';
-            streamingToggle.checked = false;
+            streamingToggle.checked = true;
         }
         themeSelector.addEventListener('change', () => {
             const selectedTheme = AVAILABLE_THEMES.includes(themeSelector.value) ? themeSelector.value : 'ember';
@@ -1038,6 +1197,9 @@
             } catch (error) {
                 console.error('Could not save color theme:', error);
             }
+        });
+        webSearchToggle.addEventListener('change', () => {
+            if (!webSearchToggle.checked) webSearchStatus.textContent = 'Web search is off.';
         });
         messageStyleSelector.addEventListener('change', () => {
             const style = AVAILABLE_MESSAGE_STYLES.includes(messageStyleSelector.value) ? messageStyleSelector.value : 'bubble';
@@ -1075,6 +1237,8 @@
         const sendBtn            = document.getElementById('send-btn');
         const newChatBtn         = document.getElementById('new-chat-btn');
         const chatTabsContainer  = document.getElementById('chat-tabs');
+        const conversationSearch = document.getElementById('conversation-search');
+        const folderFilter       = document.getElementById('folder-filter');
         const contextMenu        = document.getElementById('context-menu');
         const feedbackBtn        = document.getElementById('feedback-btn');
         const feedbackModal      = document.getElementById('feedback-modal');
@@ -1102,9 +1266,25 @@
         const repSlider          = document.getElementById('rep-penalty');
         const seedInput          = document.getElementById('seed');
         const systemPrompt       = document.getElementById('system-prompt');
+        const profileNameInput   = document.getElementById('profile-name');
+        const profileSelector    = document.getElementById('profile-selector');
+        const promptNameInput    = document.getElementById('prompt-template-name');
+        const promptContentInput = document.getElementById('prompt-template-content');
+        const promptLibraryList  = document.getElementById('prompt-library-list');
 
         let activeConversationId = null;
+        let activeGenerationController = null;
+        let activeSpeechButton = null;
+        let selectedAttachments = [];
         let contextMenuConvId    = null;
+        let allConversations     = [];
+        let conversationListRequest = 0;
+        let conversationSearchTimer = null;
+        const accountScope = document.querySelector('meta[name="account-id"]').content;
+        const promptStorageKey = `synapse:${accountScope}:prompt-library`;
+        const profileStorageKey = `synapse:${accountScope}:generation-profiles`;
+        let promptLibrary = [];
+        let generationProfiles = [];
 
         // Live params applied on next send
         let genParams = {
@@ -1149,17 +1329,207 @@
             });
         });
 
+        function readGenerationSettings() {
+            const seed = Number.parseInt(seedInput.value, 10);
+            return {
+                temperature: Number(tempSlider.value),
+                max_tokens: Number.parseInt(maxTokenSlider.value, 10),
+                top_p: Number(topPSlider.value),
+                top_k: Number.parseInt(topKSlider.value, 10),
+                repeat_penalty: Number(repSlider.value),
+                seed: Number.isInteger(seed) && seed >= -1 ? seed : -1,
+                system_prompt: systemPrompt.value.trim()
+            };
+        }
+
+        function applyGenerationSettings(settings) {
+            function bounded(value, slider, fallback) {
+                const number = Number(value);
+                if (!Number.isFinite(number)) return fallback;
+                return Math.min(Number(slider.max), Math.max(Number(slider.min), number));
+            }
+            tempSlider.value = bounded(settings.temperature, tempSlider, 0.7);
+            maxTokenSlider.value = bounded(settings.max_tokens, maxTokenSlider, 2048);
+            topPSlider.value = bounded(settings.top_p, topPSlider, 0.9);
+            topKSlider.value = bounded(settings.top_k, topKSlider, 40);
+            repSlider.value = bounded(settings.repeat_penalty, repSlider, 1.1);
+            const seed = Number.parseInt(settings.seed, 10);
+            seedInput.value = Number.isInteger(seed) && seed >= -1 ? seed : -1;
+            systemPrompt.value = typeof settings.system_prompt === 'string' ? settings.system_prompt : '';
+            document.getElementById('temp-val').textContent = Number(tempSlider.value).toFixed(2);
+            document.getElementById('max-tokens-val').textContent = maxTokenSlider.value;
+            document.getElementById('top-p-val').textContent = Number(topPSlider.value).toFixed(2);
+            document.getElementById('top-k-val').textContent = topKSlider.value;
+            document.getElementById('rep-penalty-val').textContent = Number(repSlider.value).toFixed(2);
+            genParams = readGenerationSettings();
+        }
+
+        function loadLocalCollection(storageKey, validateEntry) {
+            try {
+                const collection = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                if (!Array.isArray(collection)) throw new Error('Stored data is not a list.');
+                return collection.filter(validateEntry);
+            } catch (error) {
+                console.error('Could not load saved Synapse data:', error);
+                return [];
+            }
+        }
+
+        function saveLocalCollection(storageKey, collection, label) {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(collection));
+                return true;
+            } catch (error) {
+                console.error(`Could not save ${label}:`, error);
+                alert(`Could not save ${label}. Check available browser storage.`);
+                return false;
+            }
+        }
+
+        function createLocalId() {
+            return window.crypto && typeof window.crypto.randomUUID === 'function'
+                ? window.crypto.randomUUID()
+                : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        }
+
+        function renderPromptLibrary() {
+            promptLibraryList.innerHTML = '';
+            promptLibrary.forEach(prompt => {
+                const row = document.createElement('div');
+                row.className = 'prompt-library-item';
+                const name = document.createElement('span');
+                name.textContent = prompt.name;
+                name.title = prompt.name;
+                const useButton = document.createElement('button');
+                useButton.type = 'button';
+                useButton.textContent = 'Use';
+                useButton.addEventListener('click', () => {
+                    userInput.value = prompt.content;
+                    userInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    userInput.focus();
+                });
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.textContent = 'Delete';
+                deleteButton.setAttribute('aria-label', `Delete ${prompt.name}`);
+                deleteButton.addEventListener('click', () => {
+                    const previousPrompts = promptLibrary;
+                    promptLibrary = promptLibrary.filter(item => item.id !== prompt.id);
+                    if (saveLocalCollection(promptStorageKey, promptLibrary, 'the prompt library')) {
+                        renderPromptLibrary();
+                    } else {
+                        promptLibrary = previousPrompts;
+                    }
+                });
+                row.append(name, useButton, deleteButton);
+                promptLibraryList.appendChild(row);
+            });
+        }
+
+        promptLibrary = loadLocalCollection(
+            promptStorageKey,
+            item => item && typeof item.id === 'string' && typeof item.name === 'string'
+                && typeof item.content === 'string'
+        );
+        renderPromptLibrary();
+        document.getElementById('save-prompt-template').addEventListener('click', () => {
+            const name = promptNameInput.value.trim();
+            const content = promptContentInput.value.trim();
+            if (!name || !content) {
+                alert('Enter both a template name and prompt text.');
+                return;
+            }
+            if (promptLibrary.length >= 100) {
+                alert('The prompt library is limited to 100 templates.');
+                return;
+            }
+            promptLibrary.push({ id: createLocalId(), name, content });
+            if (saveLocalCollection(promptStorageKey, promptLibrary, 'the prompt library')) {
+                promptNameInput.value = '';
+                promptContentInput.value = '';
+                renderPromptLibrary();
+            } else {
+                promptLibrary.pop();
+            }
+        });
+
+        function renderGenerationProfiles() {
+            const selected = profileSelector.value;
+            profileSelector.innerHTML = '<option value="">Choose a profile</option>';
+            generationProfiles.forEach(profile => {
+                const option = document.createElement('option');
+                option.value = profile.id;
+                option.textContent = profile.name;
+                profileSelector.appendChild(option);
+            });
+            if (generationProfiles.some(profile => profile.id === selected)) profileSelector.value = selected;
+        }
+
+        generationProfiles = loadLocalCollection(
+            profileStorageKey,
+            item => item && typeof item.id === 'string' && typeof item.name === 'string'
+                && typeof item.model === 'string' && item.params && typeof item.params === 'object'
+        );
+        renderGenerationProfiles();
+        document.getElementById('save-profile-btn').addEventListener('click', () => {
+            const name = profileNameInput.value.trim();
+            if (!name || !modelSelector.value) {
+                alert('Enter a profile name and select a model first.');
+                return;
+            }
+            if (generationProfiles.length >= 50) {
+                alert('Saved profiles are limited to 50.');
+                return;
+            }
+            const profile = {
+                id: createLocalId(),
+                name,
+                model: modelSelector.value,
+                params: readGenerationSettings()
+            };
+            generationProfiles.push(profile);
+            if (saveLocalCollection(profileStorageKey, generationProfiles, 'generation profiles')) {
+                profileNameInput.value = '';
+                renderGenerationProfiles();
+                profileSelector.value = profile.id;
+            } else {
+                generationProfiles.pop();
+            }
+        });
+        document.getElementById('load-profile-btn').addEventListener('click', () => {
+            const profile = generationProfiles.find(item => item.id === profileSelector.value);
+            if (!profile) {
+                alert('Choose a saved profile to load.');
+                return;
+            }
+            if (![...modelSelector.options].some(option => option.value === profile.model)) {
+                alert('This profile’s model is not currently available.');
+                return;
+            }
+            modelSelector.value = profile.model;
+            applyGenerationSettings(profile.params);
+            settingsSavedBadge.textContent = '✓ Profile loaded';
+            settingsSavedBadge.style.display = 'block';
+            setTimeout(() => { settingsSavedBadge.style.display = 'none'; }, 2400);
+        });
+        document.getElementById('delete-profile-btn').addEventListener('click', () => {
+            const profileId = profileSelector.value;
+            if (!profileId) {
+                alert('Choose a saved profile to delete.');
+                return;
+            }
+            const previousProfiles = generationProfiles;
+            generationProfiles = generationProfiles.filter(profile => profile.id !== profileId);
+            if (saveLocalCollection(profileStorageKey, generationProfiles, 'generation profiles')) {
+                renderGenerationProfiles();
+            } else {
+                generationProfiles = previousProfiles;
+            }
+        });
+
         // ── Apply settings
         applySettingsBtn.addEventListener('click', () => {
-            genParams = {
-                temperature:    parseFloat(tempSlider.value),
-                max_tokens:     parseInt(maxTokenSlider.value),
-                top_p:          parseFloat(topPSlider.value),
-                top_k:          parseInt(topKSlider.value),
-                repeat_penalty: parseFloat(repSlider.value),
-                seed:           parseInt(seedInput.value) || -1,
-                system_prompt:  systemPrompt.value.trim()
-            };
+            genParams = readGenerationSettings();
             settingsSavedBadge.style.display = 'block';
             setTimeout(() => { settingsSavedBadge.style.display = 'none'; }, 2400);
         });
@@ -1216,14 +1586,15 @@
             } catch(e) { console.error('API Error:', e); throw e; }
         }
 
-        async function streamAPI(endpoint, payload, messageElement) {
+        async function streamAPI(endpoint, payload, messageElement, controller, renderUpdates) {
             const response = await fetch(`/api${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                signal: controller.signal
             });
             if (!response.ok) {
                 const error = await response.json();
@@ -1236,8 +1607,23 @@
             let buffer = '';
             let content = '';
             let completed = false;
-            let renderFrame = null;
+            let renderTimer = null;
+            let renderedCharacters = 0;
             messageElement.classList.add('is-streaming');
+
+            function scheduleRender() {
+                if (!renderUpdates || renderTimer !== null) return;
+                renderTimer = window.setInterval(() => {
+                    const characters = Array.from(content);
+                    if (renderedCharacters >= characters.length) {
+                        clearInterval(renderTimer);
+                        renderTimer = null;
+                        return;
+                    }
+                    renderedCharacters = Math.min(characters.length, renderedCharacters + 4);
+                    updateStreamingMessage(messageElement, characters.slice(0, renderedCharacters).join(''));
+                }, 24);
+            }
 
             function processFrame(frame) {
                 const dataLine = frame.split('\n').find(line => line.startsWith('data:'));
@@ -1246,59 +1632,177 @@
                 if (event.error) throw new Error(event.error);
                 if (event.content) {
                     content += event.content;
-                    if (renderFrame === null) {
-                        renderFrame = requestAnimationFrame(() => {
-                            updateStreamingMessage(messageElement, content);
-                            renderFrame = null;
-                        });
-                    }
+                    messageElement.dataset.partialContent = content;
+                    scheduleRender();
                 }
                 if (event.done) completed = true;
             }
 
-            while (true) {
-                const { value, done } = await reader.read();
-                buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-                let frameEnd;
-                while ((frameEnd = buffer.indexOf('\n\n')) !== -1) {
-                    processFrame(buffer.slice(0, frameEnd));
-                    buffer = buffer.slice(frameEnd + 2);
+            try {
+                while (true) {
+                    const { value, done } = await reader.read();
+                    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+                    let frameEnd;
+                    while ((frameEnd = buffer.indexOf('\n\n')) !== -1) {
+                        processFrame(buffer.slice(0, frameEnd));
+                        buffer = buffer.slice(frameEnd + 2);
+                    }
+                    if (done) break;
                 }
-                if (done) break;
+                if (buffer.trim()) processFrame(buffer);
+                if (!completed) throw new Error('The response stream ended unexpectedly.');
+                updateStreamingMessage(messageElement, content);
+                return content;
+            } finally {
+                if (renderTimer !== null) clearInterval(renderTimer);
             }
-            if (buffer.trim()) processFrame(buffer);
-            if (!completed) throw new Error('The response stream ended unexpectedly.');
-            if (renderFrame !== null) cancelAnimationFrame(renderFrame);
-            updateStreamingMessage(messageElement, content);
-            return content;
+        }
+
+        async function compareStreamAPI(payload, grid, cards, models, controller) {
+            const response = await fetch('/api/chat/compare/stream', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || `HTTP ${response.status}`);
+            }
+            if (!response.body) throw new Error('This browser does not support streamed responses.');
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            const contentByModel = new Map(models.map(model => [model, '']));
+            const renderedByModel = new Map(models.map(model => [model, 0]));
+            const timers = new Map();
+            let buffer = '';
+            let completed = false;
+            grid.classList.add('is-streaming');
+
+            function scheduleRender(model) {
+                if (!streamingToggle.checked || timers.has(model)) return;
+                const card = cards[models.indexOf(model)];
+                const timer = window.setInterval(() => {
+                    const content = contentByModel.get(model) || '';
+                    const characters = Array.from(content);
+                    const rendered = renderedByModel.get(model) || 0;
+                    if (rendered >= characters.length) {
+                        clearInterval(timer);
+                        timers.delete(model);
+                        return;
+                    }
+                    const next = Math.min(characters.length, rendered + 4);
+                    renderedByModel.set(model, next);
+                    const visible = characters.slice(0, next).join('');
+                    card.dataset.partialContent = content;
+                    updateStreamingMessage(card, visible);
+                }, 24);
+                timers.set(model, timer);
+            }
+
+            function processFrame(frame) {
+                const dataLine = frame.split('\n').find(line => line.startsWith('data:'));
+                if (!dataLine) return;
+                const event = JSON.parse(dataLine.slice(5).trim());
+                if (event.comparison_id) grid.dataset.comparisonId = event.comparison_id;
+                if (event.error) throw new Error(event.error);
+                if (event.content && contentByModel.has(event.model)) {
+                    contentByModel.set(event.model, (contentByModel.get(event.model) || '') + event.content);
+                    const card = cards[models.indexOf(event.model)];
+                    card.dataset.partialContent = contentByModel.get(event.model);
+                    scheduleRender(event.model);
+                }
+                if (event.done) completed = true;
+            }
+
+            try {
+                while (true) {
+                    const { value, done } = await reader.read();
+                    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+                    let frameEnd;
+                    while ((frameEnd = buffer.indexOf('\n\n')) !== -1) {
+                        processFrame(buffer.slice(0, frameEnd));
+                        buffer = buffer.slice(frameEnd + 2);
+                    }
+                    if (done) break;
+                }
+                if (buffer.trim()) processFrame(buffer);
+                if (!completed) throw new Error('The comparison stream ended unexpectedly.');
+                models.forEach((model, index) => updateStreamingMessage(cards[index], contentByModel.get(model) || ''));
+                return {
+                    contents: models.map(model => contentByModel.get(model) || ''),
+                    comparisonId: grid.dataset.comparisonId
+                };
+            } finally {
+                timers.forEach(timer => clearInterval(timer));
+            }
         }
 
         function updateStreamingMessage(container, content) {
             const message = container.querySelector('.message');
             message.dataset.rawMarkdown = content;
             message.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
-            scrollToBottom();
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
         function setWelcomeVisible(v) { welcomeScreen.style.display = v ? 'flex' : 'none'; }
 
-        function createMessageContainer(role, content, messageIndex) {
+        function getPlainMessageText(content) {
+            if (typeof content === 'string') return content;
+            if (!Array.isArray(content)) return '';
+            return content
+                .filter(part => part && part.type === 'text' && typeof part.text === 'string')
+                .map(part => part.text)
+                .join('\n');
+        }
+
+        function renderMessageContent(element, content) {
+            if (typeof content === 'string') {
+                element.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
+                return;
+            }
+            if (!Array.isArray(content)) return;
+            content.forEach(part => {
+                if (part && part.type === 'text' && typeof part.text === 'string') {
+                    const text = document.createElement('div');
+                    text.innerHTML = DOMPurify.sanitize(marked.parse(part.text));
+                    element.appendChild(text);
+                } else if (
+                    part && part.type === 'image_url' && part.image_url
+                    && typeof part.image_url.url === 'string'
+                    && /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(part.image_url.url)
+                ) {
+                    const image = document.createElement('img');
+                    image.className = 'message-attachment-image';
+                    image.src = part.image_url.url;
+                    image.alt = 'Attached image';
+                    element.appendChild(image);
+                }
+            });
+        }
+
+        function createMessageContainer(role, content, messageIndex, modelName, comparisonId) {
             const c = document.createElement('div');
             c.className = `message-container ${role}-message`;
+            if (comparisonId) c.dataset.comparisonId = comparisonId;
             if (messageIndex !== undefined && messageIndex !== null) {
                 c.dataset.messageIndex = messageIndex;
             }
             const label = document.createElement('div');
             label.className = 'message-role-label';
-            label.textContent = role === 'user' ? 'You' : 'Synapse';
+            label.textContent = role === 'user' ? 'You' : modelName ? displayName(modelName) : 'Synapse';
             c.appendChild(label);
             const m = document.createElement('div');
             m.className = 'message';
             if (content === '__loading__') {
                 m.innerHTML = `<div class="loading-dots"><span></span><span></span><span></span></div>`;
             } else {
-                m.dataset.rawMarkdown = content;
-                m.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
+                m.dataset.rawMarkdown = getPlainMessageText(content);
+                renderMessageContent(m, content);
             }
             c.appendChild(m);
             if (content !== '__loading__') {
@@ -1311,11 +1815,12 @@
                 copyButton.title = 'Copy message text';
                 copyButton.addEventListener('click', async () => {
                     try {
+                        const copyText = getPlainMessageText(content);
                         if (navigator.clipboard && window.isSecureContext) {
-                            await navigator.clipboard.writeText(content);
+                            await navigator.clipboard.writeText(copyText);
                         } else {
                             const temporaryInput = document.createElement('textarea');
-                            temporaryInput.value = content;
+                            temporaryInput.value = copyText;
                             temporaryInput.setAttribute('readonly', '');
                             temporaryInput.style.position = 'fixed';
                             temporaryInput.style.opacity = '0';
@@ -1341,17 +1846,47 @@
                 action.className = 'action-btn';
                 action.type = 'button';
                 if (role === 'assistant') {
-                    action.title = 'Regenerate response';
-                    action.setAttribute('aria-label', 'Regenerate response');
-                    action.innerHTML = '<img src="/static/icons/regenerate.svg" alt="">';
-                    action.addEventListener('click', () => regenerateResponse(action));
-                } else {
+                    const speakButton = document.createElement('button');
+                    speakButton.className = 'action-btn';
+                    speakButton.type = 'button';
+                    speakButton.textContent = 'Read aloud';
+                    speakButton.addEventListener('click', () => {
+                        if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+                            alert('Read aloud is not supported by this browser.');
+                            return;
+                        }
+                        if (activeSpeechButton === speakButton) {
+                            window.speechSynthesis.cancel();
+                            speakButton.textContent = 'Read aloud';
+                            activeSpeechButton = null;
+                            return;
+                        }
+                        if (activeSpeechButton) activeSpeechButton.textContent = 'Read aloud';
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(m.textContent);
+                        activeSpeechButton = speakButton;
+                        speakButton.textContent = 'Stop speaking';
+                        utterance.onend = utterance.onerror = () => {
+                            speakButton.textContent = 'Read aloud';
+                            if (activeSpeechButton === speakButton) activeSpeechButton = null;
+                        };
+                        window.speechSynthesis.speak(utterance);
+                    });
+                    a.appendChild(speakButton);
+                    if (!comparisonId) {
+                        action.title = 'Regenerate response';
+                        action.setAttribute('aria-label', 'Regenerate response');
+                        action.innerHTML = '<img src="/static/icons/regenerate.svg" alt="">';
+                        action.addEventListener('click', () => regenerateResponse(action));
+                        a.appendChild(action);
+                    }
+                } else if (typeof content === 'string') {
                     action.textContent = 'Edit';
                     action.title = 'Edit your message and regenerate from it';
                     action.addEventListener('click', () => editUserMessage(c, messageIndex));
+                    a.appendChild(action);
                 }
-                a.appendChild(action);
-                c.appendChild(a);
+                if (a.childElementCount) c.appendChild(a);
             }
             return c;
         }
@@ -1367,7 +1902,108 @@
         function renderConversationMessages(messages) {
             chatWindow.replaceChildren(welcomeScreen);
             setWelcomeVisible(messages.length === 0);
-            messages.forEach((message, index) => addMessageToChat(message.role, message.content, index));
+            for (let index = 0; index < messages.length; index += 1) {
+                const message = messages[index];
+                if (message.comparison_id) {
+                    const group = [];
+                    while (index < messages.length && messages[index].comparison_id === message.comparison_id) {
+                        group.push({ ...messages[index], index });
+                        index += 1;
+                    }
+                    index -= 1;
+                    const grid = document.createElement('div');
+                    grid.className = 'comparison-grid';
+                    grid.dataset.comparisonId = message.comparison_id;
+                    group.forEach(item => {
+                        grid.appendChild(createMessageContainer(
+                            item.role,
+                            item.content,
+                            item.index,
+                            item.model,
+                            item.comparison_id
+                        ));
+                    });
+                    chatWindow.appendChild(grid);
+                } else {
+                    chatWindow.appendChild(createMessageContainer(message.role, message.content, index, message.model));
+                }
+            }
+            scrollToBottom();
+        }
+
+        function renderAttachmentTray() {
+            attachmentTray.replaceChildren();
+            selectedAttachments.forEach((attachment, index) => {
+                const chip = document.createElement('div');
+                chip.className = 'attachment-chip';
+                if (attachment.kind === 'image') {
+                    const preview = document.createElement('img');
+                    preview.src = attachment.data_url;
+                    preview.alt = '';
+                    chip.appendChild(preview);
+                }
+                const name = document.createElement('span');
+                name.textContent = attachment.name;
+                chip.appendChild(name);
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.textContent = '×';
+                remove.setAttribute('aria-label', `Remove ${attachment.name}`);
+                remove.addEventListener('click', () => {
+                    selectedAttachments.splice(index, 1);
+                    renderAttachmentTray();
+                });
+                chip.appendChild(remove);
+                attachmentTray.appendChild(chip);
+            });
+        }
+
+        function displayUserContent(prompt, attachments) {
+            if (!attachments.length) return prompt;
+            const parts = [{ type: 'text', text: prompt }];
+            attachments.forEach(attachment => {
+                if (attachment.kind === 'text') {
+                    parts.push({
+                        type: 'text',
+                        text: `\n\n[Attachment: ${attachment.name}]\n${attachment.text}`
+                    });
+                } else if (attachment.kind === 'image') {
+                    parts.push({ type: 'text', text: `\n\n[Image attachment: ${attachment.name}]` });
+                    parts.push({ type: 'image_url', image_url: { url: attachment.data_url } });
+                }
+            });
+            return parts;
+        }
+
+        async function uploadAttachments(files) {
+            const incoming = Array.from(files);
+            if (selectedAttachments.length + incoming.length > 5) {
+                alert('Attach up to five files to a message.');
+                return;
+            }
+            const currentSize = selectedAttachments.reduce((total, item) => total + item.size_bytes, 0);
+            if (currentSize + incoming.reduce((total, file) => total + file.size, 0) > 10 * 1024 * 1024) {
+                alert('Attachments in a single message must total 10 MB or less.');
+                return;
+            }
+            for (const file of incoming) {
+                const formData = new FormData();
+                formData.append('file', file);
+                try {
+                    const response = await fetch('/api/attachments', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
+                        body: formData
+                    });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+                    selectedAttachments.push(result);
+                    renderAttachmentTray();
+                } catch (error) {
+                    alert(`Could not attach ${file.name}: ${error.message}`);
+                    break;
+                }
+            }
         }
 
         async function editUserMessage(container, messageIndex) {
@@ -1445,15 +2081,19 @@
 
         function refreshModelSelector() {
             const current = modelSelector.value;
+            const comparisonCurrent = compareModelSelector.value;
             const ids = JSON.parse(modelSelector.dataset.modelIds || '[]');
-            modelSelector.innerHTML = '';
-            ids.forEach(id => {
-                const o = document.createElement('option');
-                o.value = id;
-                o.textContent = displayName(id);
-                modelSelector.appendChild(o);
+            [modelSelector, compareModelSelector].forEach((selector, index) => {
+                selector.innerHTML = '';
+                ids.forEach(id => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = displayName(id);
+                    selector.appendChild(option);
+                });
+                const selected = index === 0 ? current : comparisonCurrent;
+                if (ids.includes(selected)) selector.value = selected;
             });
-            if (ids.includes(current)) modelSelector.value = current;
         }
 
         function buildNicknameEditor(modelIds) {
@@ -1509,21 +2149,27 @@
             try {
                 const models = await fetchAPI('/models');
                 modelSelector.innerHTML = '';
+                compareModelSelector.innerHTML = '';
                 if (!models.length || models.error) {
                     modelSelector.innerHTML = '<option value="">No models found</option>';
+                    compareModelSelector.innerHTML = '<option value="">No models found</option>';
                     buildNicknameEditor([]);
                 } else {
                     modelSelector.dataset.modelIds = JSON.stringify(models);
                     models.forEach(id => {
-                        const o = document.createElement('option');
-                        o.value = id;
-                        o.textContent = displayName(id);
-                        modelSelector.appendChild(o);
+                        [modelSelector, compareModelSelector].forEach(selector => {
+                            const option = document.createElement('option');
+                            option.value = id;
+                            option.textContent = displayName(id);
+                            selector.appendChild(option);
+                        });
                     });
+                    if (models.length > 1) compareModelSelector.selectedIndex = 1;
                     buildNicknameEditor(models);
                 }
             } catch {
                 modelSelector.innerHTML = '<option value="">Error loading models</option>';
+                compareModelSelector.innerHTML = '<option value="">Error loading models</option>';
                 buildNicknameEditor([]);
             }
         }
@@ -1545,15 +2191,54 @@
         }
 
         function renderTabs(conversations) {
+            allConversations = conversations;
             const label = chatTabsContainer.querySelector('.tabs-label');
             chatTabsContainer.innerHTML = '';
             if (label) chatTabsContainer.appendChild(label);
-            conversations.forEach((c, i) => {
+            const currentFolder = folderFilter.value;
+            const folders = [...new Set(conversations.map(conversation => conversation.folder).filter(Boolean))]
+                .sort((left, right) => left.localeCompare(right));
+            folderFilter.innerHTML = '<option value="">All folders</option><option value="__unfiled__">Unfiled</option>';
+            folders.forEach(folder => {
+                const option = document.createElement('option');
+                option.value = folder;
+                option.textContent = folder;
+                folderFilter.appendChild(option);
+            });
+            if ([...folderFilter.options].some(option => option.value === currentFolder)) {
+                folderFilter.value = currentFolder;
+            }
+
+            const visibleConversations = conversations.filter(conversation => {
+                const matchesFolder = !folderFilter.value
+                    || (folderFilter.value === '__unfiled__' ? !conversation.folder : conversation.folder === folderFilter.value);
+                return matchesFolder;
+            });
+            visibleConversations.forEach((c, i) => {
                 const t = document.createElement('div');
                 t.className = 'chat-tab'; t.dataset.id = c.id; t.style.animationDelay = `${i * 0.03}s`;
-                const s = document.createElement('span'); s.className = 'chat-tab-title'; s.textContent = c.title;
-                t.appendChild(s);
+                const details = document.createElement('div');
+                details.className = 'chat-tab-details';
+                const title = document.createElement('span');
+                title.className = 'chat-tab-title';
+                title.textContent = c.title;
+                details.appendChild(title);
+                if (c.folder) {
+                    const folder = document.createElement('span');
+                    folder.className = 'chat-tab-folder';
+                    folder.textContent = c.folder;
+                    details.appendChild(folder);
+                }
+                t.appendChild(details);
+                if (c.pinned) {
+                    const pin = document.createElement('span');
+                    pin.className = 'chat-tab-pin';
+                    pin.textContent = '★';
+                    pin.setAttribute('aria-label', 'Pinned');
+                    t.appendChild(pin);
+                }
                 const b = document.createElement('button'); b.className = 'more-options-btn'; b.textContent = '•••';
+                b.type = 'button';
                 b.addEventListener('click', e => { e.stopPropagation(); showContextMenu(e, c.id); });
                 t.appendChild(b);
                 if (c.id === activeConversationId) { t.classList.add('active'); headerTitle.textContent = c.title; }
@@ -1561,17 +2246,28 @@
                 t.addEventListener('contextmenu', e => showContextMenu(e, c.id));
                 chatTabsContainer.appendChild(t);
             });
+            if (!visibleConversations.length) {
+                const empty = document.createElement('div');
+                empty.className = 'nickname-empty';
+                empty.textContent = conversations.length
+                    ? 'No conversations match this folder.'
+                    : conversationSearch.value.trim() ? 'No conversations match your search.' : 'No conversations yet.';
+                chatTabsContainer.appendChild(empty);
+            }
         }
 
         function showContextMenu(e, id) {
             e.preventDefault(); contextMenuConvId = id;
+            const conversation = allConversations.find(item => item.id === id);
+            document.getElementById('pin-btn').textContent = conversation && conversation.pinned ? 'Unpin' : 'Pin';
             contextMenu.style.display = 'block';
             contextMenu.style.left = `${Math.min(e.pageX, window.innerWidth - 160)}px`;
-            contextMenu.style.top  = `${Math.min(e.pageY, window.innerHeight - 90)}px`;
+            contextMenu.style.top = `${Math.min(e.pageY, window.innerHeight - contextMenu.offsetHeight)}px`;
         }
 
         async function loadConversation(id) {
             if (activeConversationId === id) return;
+            if (activeGenerationController) activeGenerationController.abort();
             activeConversationId = id;
             chatWindow.innerHTML = ''; chatWindow.appendChild(welcomeScreen); setWelcomeVisible(false);
             try {
@@ -1591,52 +2287,231 @@
         }
 
         async function refreshTabs() {
-            try { renderTabs(await fetchAPI('/conversations')); }
-            catch(e) { console.error('Refresh failed:', e); }
+            const requestId = ++conversationListRequest;
+            const search = conversationSearch.value.trim();
+            try {
+                const endpoint = search
+                    ? `/conversations?search=${encodeURIComponent(search)}`
+                    : '/conversations';
+                const conversations = await fetchAPI(endpoint);
+                if (requestId === conversationListRequest) renderTabs(conversations);
+            } catch (error) {
+                if (requestId !== conversationListRequest) return;
+                console.error('Conversation search failed:', error);
+                const label = chatTabsContainer.querySelector('.tabs-label');
+                chatTabsContainer.innerHTML = '';
+                if (label) chatTabsContainer.appendChild(label);
+                const message = document.createElement('div');
+                message.className = 'nickname-empty';
+                message.textContent = `Could not load conversations: ${error.message}`;
+                chatTabsContainer.appendChild(message);
+            }
         }
 
         async function initialize() {
             await populateModels();
             try {
                 const c = await fetchAPI('/conversations');
-                if (c.length === 0) { await createNewConversation(); } else { await loadConversation(c[0].id); }
+                activeConversationId = null;
+                chatWindow.innerHTML = '';
+                chatWindow.appendChild(welcomeScreen);
+                setWelcomeVisible(true);
+                headerTitle.textContent = 'New conversation';
+                renderTabs(c);
             } catch { addMessageToChat('assistant', 'Initialization failed. Is the server running?'); }
         }
 
         function scrollToBottom() { setTimeout(() => chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' }), 50); }
 
+        function setGenerationActive(active) {
+            sendBtn.classList.toggle('is-stopping', active);
+            sendBtn.setAttribute('aria-label', active ? 'Stop generating response' : 'Send message');
+            sendBtn.title = active ? 'Stop generating response' : 'Send message';
+        }
+
         async function sendMessage() {
+            if (activeGenerationController) return;
             const p = userInput.value.trim();
             const m = modelSelector.value;
-            if (!p || !activeConversationId) return;
+            if (!p) return;
             if (!m) return alert('Please select a model first.');
+            const comparisonModel = compareModelSelector.value;
+            if (compareModelToggle.checked && (!comparisonModel || comparisonModel === m)) {
+                return alert('Choose a second model that is different from the active model.');
+            }
+            if (!activeConversationId) await createNewConversation();
+            if (!activeConversationId) return;
+            const conversationId = activeConversationId;
+            const attachmentsForSend = selectedAttachments.slice();
             const messageIndex = chatWindow.querySelectorAll('.message-container[data-message-index]').length;
-            const userMessage = addMessageToChat('user', p, messageIndex);
+            const userMessage = addMessageToChat('user', displayUserContent(p, attachmentsForSend), messageIndex);
+            selectedAttachments = [];
+            renderAttachmentTray();
             userInput.value = '';
             userInput.style.height = 'auto';
-            const loadingEl = createMessageContainer('assistant', '__loading__');
+            let loadingEl;
+            let comparisonGrid = null;
+            let comparisonCards = [];
+            const comparisonModels = [m, comparisonModel];
+            if (compareModelToggle.checked) {
+                comparisonGrid = document.createElement('div');
+                comparisonGrid.className = 'comparison-grid';
+                comparisonCards = comparisonModels.map((model, index) =>
+                    createMessageContainer('assistant', '__loading__', messageIndex + index + 1, model)
+                );
+                comparisonCards.forEach(card => comparisonGrid.appendChild(card));
+                loadingEl = comparisonGrid;
+            } else {
+                loadingEl = createMessageContainer('assistant', '__loading__');
+            }
             chatWindow.appendChild(loadingEl); scrollToBottom();
+            const controller = new AbortController();
+            activeGenerationController = controller;
+            setGenerationActive(true);
+            let chatRequestStarted = false;
             try {
-                const payload = { conversation_id: activeConversationId, prompt: p, model: m, params: genParams };
-                if (streamingToggle.checked) {
-                    const content = await streamAPI('/chat/stream', payload, loadingEl);
-                    loadingEl.replaceWith(createMessageContainer('assistant', content, messageIndex + 1));
-                } else {
-                    const r = await fetchAPI('/chat', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                let webContext = '';
+                if (webSearchToggle.checked) {
+                    webSearchStatus.textContent = 'Searching Tavily…';
+                    const searchResponse = await fetch('/api/web-search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify({ query: p }),
+                        signal: controller.signal
                     });
-                    loadingEl.remove(); addMessageToChat(r.role, r.content, messageIndex + 1);
+                    const searchResult = await searchResponse.json();
+                    if (!searchResponse.ok) {
+                        if (searchResult.quota_exhausted) {
+                            webSearchStatus.textContent = `Free search credits exhausted (${searchResult.used}/${searchResult.limit}). ${searchResult.usage_warning || ''}`;
+                            webSearchToggle.checked = false;
+                        } else {
+                            webSearchStatus.textContent = [searchResult.error, searchResult.usage_warning]
+                                .filter(Boolean)
+                                .join(' ') || 'Web search failed.';
+                        }
+                        throw new Error(searchResult.error || `HTTP ${searchResponse.status}`);
+                    }
+                    webSearchStatus.textContent = searchResult.usage_warning
+                        ? searchResult.usage_warning
+                        : searchResult.remaining === null
+                        ? 'Search complete. Tavily usage is currently unavailable.'
+                        : `Tavily credits: ${searchResult.used}/${searchResult.limit} used · ${searchResult.remaining} remaining this month.`;
+                    webContext = (searchResult.results || []).map((result, index) =>
+                        `[${index + 1}] ${result.title}\n${result.url}\n${result.content}`
+                    ).join('\n\n');
+                }
+                const payload = {
+                    conversation_id: conversationId,
+                    prompt: p,
+                    model: m,
+                    models: comparisonModels,
+                    params: genParams,
+                    web_context: webContext,
+                    attachments: attachmentsForSend
+                };
+                chatRequestStarted = true;
+                if (compareModelToggle.checked) {
+                    const result = await compareStreamAPI(payload, comparisonGrid, comparisonCards, comparisonModels, controller);
+                    comparisonCards.forEach((card, index) => {
+                        card.replaceWith(createMessageContainer(
+                            'assistant',
+                            result.contents[index],
+                            messageIndex + index + 1,
+                            comparisonModels[index],
+                            result.comparisonId
+                        ));
+                    });
+                } else {
+                    const content = await streamAPI('/chat/stream', payload, loadingEl, controller, streamingToggle.checked);
+                    loadingEl.replaceWith(createMessageContainer('assistant', content, messageIndex + 1));
                 }
                 await refreshTabs();
-            } catch(e) {
-                loadingEl.remove();
-                userMessage.remove();
-                addMessageToChat('assistant', `Error: ${e.message}`);
+            } catch (error) {
+                if (activeConversationId !== conversationId) return;
+                if (controller.signal.aborted) {
+                    if (chatRequestStarted) {
+                        if (compareModelToggle.checked) {
+                            let keptResponse = false;
+                            comparisonCards.forEach((card, index) => {
+                                const partial = card.dataset.partialContent || '';
+                                if (partial) {
+                                    card.replaceWith(createMessageContainer(
+                                        'assistant',
+                                        partial,
+                                        messageIndex + index + 1,
+                                        comparisonModels[index],
+                                        comparisonGrid.dataset.comparisonId
+                                    ));
+                                    keptResponse = true;
+                                } else {
+                                    card.remove();
+                                }
+                            });
+                            if (!keptResponse) comparisonGrid.remove();
+                        } else {
+                            const partial = loadingEl.dataset.partialContent || '';
+                            if (partial) loadingEl.replaceWith(createMessageContainer('assistant', partial, messageIndex + 1));
+                            else loadingEl.remove();
+                        }
+                        await refreshTabs();
+                    } else {
+                        userMessage.remove();
+                        loadingEl.remove();
+                        userInput.value = p;
+                        selectedAttachments = attachmentsForSend;
+                        renderAttachmentTray();
+                        userInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        webSearchStatus.textContent = 'Web search canceled.';
+                    }
+                } else {
+                    if (compareModelToggle.checked && chatRequestStarted) {
+                        let keptResponse = false;
+                        comparisonCards.forEach((card, index) => {
+                            const partial = card.dataset.partialContent || '';
+                            if (partial) {
+                                card.replaceWith(createMessageContainer(
+                                    'assistant',
+                                    partial,
+                                    messageIndex + index + 1,
+                                    comparisonModels[index],
+                                    comparisonGrid.dataset.comparisonId
+                                ));
+                                keptResponse = true;
+                            } else {
+                                card.remove();
+                            }
+                        });
+                        if (keptResponse) {
+                            addMessageToChat('assistant', `Comparison ended early: ${error.message}`);
+                            await refreshTabs();
+                        } else {
+                            comparisonGrid.remove();
+                            userMessage.remove();
+                            addMessageToChat('assistant', `Error: ${error.message}`);
+                        }
+                    } else {
+                        loadingEl.remove();
+                        userMessage.remove();
+                        userInput.value = p;
+                        selectedAttachments = attachmentsForSend;
+                        renderAttachmentTray();
+                        userInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        addMessageToChat('assistant', `Error: ${error.message}`);
+                    }
+                }
+            } finally {
+                if (activeGenerationController === controller) {
+                    activeGenerationController = null;
+                    setGenerationActive(false);
+                }
             }
         }
 
         async function regenerateResponse(btn) {
+            if (activeGenerationController) return;
             const m = modelSelector.value;
             if (!m) return alert('Please select a model.');
             const original = btn ? btn.closest('.message-container') : null;
@@ -1648,20 +2523,31 @@
             if (original) original.replaceWith(loadingEl);
             else chatWindow.appendChild(loadingEl);
             scrollToBottom();
+            const controller = new AbortController();
+            const conversationId = activeConversationId;
+            activeGenerationController = controller;
+            setGenerationActive(true);
             try {
-                if (streamingToggle.checked) {
-                    const content = await streamAPI('/chat/stream', {
-                        conversation_id: activeConversationId, model: m, params: genParams, regenerate: true
-                    }, loadingEl);
-                    loadingEl.replaceWith(createMessageContainer('assistant', content, assistantIndex));
+                const content = await streamAPI('/chat/stream', {
+                    conversation_id: conversationId, model: m, params: genParams, regenerate: true
+                }, loadingEl, controller, streamingToggle.checked);
+                loadingEl.replaceWith(createMessageContainer('assistant', content, assistantIndex));
+            } catch (error) {
+                if (activeConversationId !== conversationId) return;
+                if (controller.signal.aborted) {
+                    const partial = loadingEl.dataset.partialContent || '';
+                    if (partial) loadingEl.replaceWith(createMessageContainer('assistant', partial, assistantIndex));
+                    else if (original) loadingEl.replaceWith(original);
+                    else loadingEl.remove();
                 } else {
-                    const r = await fetchAPI('/regenerate', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ conversation_id: activeConversationId, model: m, params: genParams })
-                    });
-                    loadingEl.replaceWith(createMessageContainer(r.role, r.content, assistantIndex));
+                    loadingEl.replaceWith(createMessageContainer('assistant', `Error: ${error.message}`));
                 }
-            } catch(e) { loadingEl.replaceWith(createMessageContainer('assistant', `Error: ${e.message}`)); }
+            } finally {
+                if (activeGenerationController === controller) {
+                    activeGenerationController = null;
+                    setGenerationActive(false);
+                }
+            }
         }
 
         function regenerateLastResponse() {
@@ -1699,9 +2585,75 @@
             }
         }
 
+        async function updateConversationMetadata(updates) {
+            try {
+                await fetchAPI(`/conversations/${contextMenuConvId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+                contextMenu.style.display = 'none';
+                await refreshTabs();
+            } catch (error) {
+                alert(`Could not update conversation: ${error.message}`);
+            }
+        }
+
+        async function exportConversations() {
+            try {
+                const data = await fetchAPI('/conversations/export');
+                const file = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(file);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `synapse-conversations-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (error) {
+                alert(`Could not export conversations: ${error.message}`);
+            }
+        }
+
+        async function importConversations(file) {
+            if (!file) return;
+            if (file.size > 50 * 1024 * 1024) {
+                alert('Import file must be 50 MB or smaller.');
+                return;
+            }
+            try {
+                const data = JSON.parse(await file.text());
+                const result = await fetchAPI('/conversations/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                await refreshTabs();
+                alert(`Imported ${result.imported} conversation${result.imported === 1 ? '' : 's'}.`);
+            } catch (error) {
+                alert(`Could not import conversations: ${error.message}`);
+            }
+        }
+
         menuBtn.addEventListener('click', showSidebar);
         backdrop.addEventListener('click', hideSidebar);
-        sendBtn.addEventListener('click', sendMessage);
+        sendBtn.addEventListener('click', () => {
+            if (activeGenerationController) activeGenerationController.abort();
+            else sendMessage();
+        });
+        document.getElementById('attach-files-btn').addEventListener('click', () => attachmentInput.click());
+        attachmentInput.addEventListener('change', async () => {
+            await uploadAttachments(attachmentInput.files);
+            attachmentInput.value = '';
+        });
+        document.querySelectorAll('[data-starter-prompt]').forEach(button => {
+            button.addEventListener('click', () => {
+                userInput.value = button.dataset.starterPrompt;
+                userInput.dispatchEvent(new Event('input', { bubbles: true }));
+                userInput.focus();
+            });
+        });
         function applyMarkdownFormatting(action) {
             const text = userInput.value;
             const start = userInput.selectionStart;
@@ -1820,9 +2772,30 @@
         });
         userInput.addEventListener('input', () => {
             userInput.style.height = 'auto';
-            userInput.style.height = `${Math.min(userInput.scrollHeight, 140)}px`;
+            userInput.style.height = `${Math.min(userInput.scrollHeight, 160)}px`;
         });
         newChatBtn.addEventListener('click', () => { createNewConversation(); hideSidebar(); });
+        conversationSearch.addEventListener('input', () => {
+            clearTimeout(conversationSearchTimer);
+            conversationSearchTimer = setTimeout(refreshTabs, 180);
+        });
+        folderFilter.addEventListener('change', () => renderTabs(allConversations));
+        document.getElementById('pin-btn').addEventListener('click', () => {
+            const conversation = allConversations.find(item => item.id === contextMenuConvId);
+            updateConversationMetadata({ pinned: !(conversation && conversation.pinned) });
+        });
+        document.getElementById('folder-btn').addEventListener('click', () => {
+            const conversation = allConversations.find(item => item.id === contextMenuConvId);
+            const folder = prompt('Folder name (leave blank to remove it):', conversation ? conversation.folder || '' : '');
+            if (folder !== null) updateConversationMetadata({ folder: folder.trim() });
+        });
+        document.getElementById('export-conversations-btn').addEventListener('click', exportConversations);
+        const importConversationsFile = document.getElementById('import-conversations-file');
+        document.getElementById('import-conversations-btn').addEventListener('click', () => importConversationsFile.click());
+        importConversationsFile.addEventListener('change', async () => {
+            await importConversations(importConversationsFile.files[0]);
+            importConversationsFile.value = '';
+        });
         document.getElementById('rename-btn').addEventListener('click', renameConversation);
         document.getElementById('delete-btn').addEventListener('click', deleteConversation);
         window.addEventListener('click', e => {
