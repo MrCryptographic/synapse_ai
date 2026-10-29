@@ -233,18 +233,54 @@
             font-size: 0.68em; color: var(--text-muted); margin-bottom: 6px;
             display: block; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
         }
-        #model-selector {
-            width: 100%; padding: 9px 30px 9px 12px;
-            background: var(--bg-surface); color: var(--text-primary);
-            border: 1px solid var(--border); border-radius: var(--radius-md);
-            outline: none; font-family: var(--font-body); font-size: 0.87em;
-            transition: border-color var(--transition), box-shadow var(--transition);
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a5d6e' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 12px center;
+        #model-selector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+        .model-picker-wrap { position: relative; }
+        #model-picker-trigger {
+            width: 100%; min-height: 42px; padding: 8px 11px; display: flex; align-items: center; gap: 9px;
+            color: var(--text-primary); background: linear-gradient(135deg, var(--bg-surface), var(--bg-raised));
+            border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; text-align: left;
+            font: 500 0.84em var(--font-body); transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
         }
-        #model-selector:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
-        #model-selector option { background: var(--bg-surface); }
+        #model-picker-trigger:hover, #model-picker-trigger[aria-expanded="true"] { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
+        #model-picker-trigger[aria-expanded="true"] { transform: translateY(-1px); }
+        .model-picker-orb { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+        #model-picker-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .model-picker-chevron { color: var(--text-muted); font-size: 0.8em; transition: transform var(--transition); }
+        #model-picker-trigger[aria-expanded="true"] .model-picker-chevron { transform: rotate(180deg); }
+        .nsfw-tag {
+            display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 99px;
+            color: #ffb1b1; background: rgba(210, 68, 68, 0.15); border: 1px solid rgba(240, 110, 110, 0.28);
+            font-size: 0.66em; font-weight: 700; letter-spacing: 0.04em; flex-shrink: 0;
+        }
+        #model-picker-menu {
+            display: none; position: fixed; z-index: 500; width: min(360px, calc(100vw - 24px));
+            max-height: min(440px, calc(100vh - 24px)); padding: 10px; overflow: hidden;
+            background: color-mix(in srgb, var(--bg-surface) 94%, transparent); backdrop-filter: blur(18px);
+            border: 1px solid var(--border-lit); border-radius: 16px;
+            box-shadow: 0 18px 55px rgba(0, 0, 0, 0.48), 0 0 32px var(--accent-glow2);
+            transform-origin: top left; animation: modelMenuIn 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        #model-picker-menu.open { display: flex; flex-direction: column; }
+        @keyframes modelMenuIn { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        #model-picker-search {
+            width: 100%; flex: 0 0 auto; padding: 9px 11px; color: var(--text-primary);
+            background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-md);
+            outline: none; font: 0.82em var(--font-body); margin-bottom: 8px;
+        }
+        #model-picker-search:focus { border-color: var(--border-lit); }
+        #model-picker-options { overflow-y: auto; min-height: 0; }
+        .model-picker-option {
+            display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px;
+            color: var(--text-secondary); background: transparent; border: 1px solid transparent;
+            border-radius: var(--radius-md); cursor: pointer; text-align: left; font: inherit;
+        }
+        .model-picker-option:hover, .model-picker-option[aria-selected="true"] {
+            color: var(--text-primary); background: var(--accent-glow2); border-color: var(--border-lit);
+        }
+        .model-picker-option-copy { min-width: 0; flex: 1; }
+        .model-picker-option-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.83em; font-weight: 600; }
+        .model-picker-option-id { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; color: var(--text-muted); font: 0.68em var(--font-mono); }
+        .model-picker-empty { padding: 12px 8px; color: var(--text-muted); font-size: 0.8em; text-align: center; }
         .theme-label { color: var(--text-secondary); display: block; font-size: 0.82em; margin-bottom: 7px; }
         .theme-selector {
             width: 100%; padding: 9px 12px; background: var(--bg-surface); color: var(--text-primary);
@@ -468,6 +504,9 @@
         .action-btn:hover { background: var(--bg-raised); border-color: var(--border-lit); }
         .action-btn { color: var(--text-secondary); font: 600 0.72em var(--font-body); }
         .message-editor { width: min(80%, 700px); min-height: 90px; resize: vertical; }
+        .message-edit-panel { width: min(100%, 700px); }
+        .message-edit-panel .message-editor { width: 100%; }
+        .message-edit-attachments { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0; }
         .message-edit-actions { display: flex; gap: 8px; margin-top: 8px; }
         .message-edit-actions button {
             background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -479,12 +518,13 @@
 
         /* ── Input area ── */
         #input-area {
-            display: flex; align-items: flex-end; gap: 12px;
+            display: flex; align-items: flex-end;
             padding: 13px 20px 16px; border-top: 1px solid var(--border);
             background: var(--bg-mid); position: relative; z-index: 1;
         }
-        .input-compose { flex: 1; min-width: 0; }
+        .input-compose { width: 100%; min-width: 0; }
         #markdown-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px 2px; }
+        #markdown-toolbar[hidden] { display: none; }
         .markdown-tool {
             min-width: 32px; height: 28px; padding: 0 9px; color: var(--text-secondary);
             background: var(--bg-surface); border: 1px solid var(--border);
@@ -492,20 +532,31 @@
             transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
         }
         .markdown-tool:hover { color: var(--text-primary); background: var(--bg-raised); border-color: var(--border-lit); transform: translateY(-1px); }
+        .composer-shell {
+            padding: 8px; background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: 18px; transition: border-color var(--transition), box-shadow var(--transition);
+        }
+        .composer-shell:focus-within { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
+        .composer-row { display: flex; align-items: flex-end; gap: 8px; }
         #user-input {
-            display: block; width: 100%; min-height: 48px; border: 1px solid var(--border); padding: 13px 16px;
-            border-radius: 16px; background: var(--bg-surface);
+            display: block; flex: 1; min-width: 0; width: 100%; min-height: 44px; border: 0; padding: 11px 8px;
+            border-radius: 10px; background: transparent;
             color: var(--text-primary); font-size: 0.93em; font-family: var(--font-body);
             outline: none; resize: none; max-height: 160px; overflow-y: auto;
-            transition: border-color var(--transition), box-shadow var(--transition), background var(--transition); line-height: 1.45;
+            line-height: 1.45;
         }
         #user-input::placeholder { color: var(--text-muted); }
-        #user-input:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
-        #keybind-hint { color: var(--text-muted); display: block; font-size: 0.68em; line-height: 1.55; margin: 7px 5px 0; }
+        #keybind-hint { color: var(--text-muted); display: block; font-size: 0.68em; line-height: 1.55; margin: 5px 5px 0; }
+        #attach-files-btn {
+            width: 36px; height: 36px; flex: 0 0 36px; color: var(--text-secondary);
+            background: transparent; border: 1px solid transparent; border-radius: 11px; cursor: pointer;
+            font: 1.15em var(--font-body); transition: all var(--transition);
+        }
+        #attach-files-btn:hover { color: var(--accent); background: var(--accent-glow2); border-color: var(--border-lit); }
         #send-btn {
-            width: 76px; height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+            width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
             background: var(--accent); color: #0e0f11; border: none;
-            padding: 0 14px; border-radius: 16px; cursor: pointer;
+            padding: 0; border-radius: 12px; cursor: pointer;
             font-size: 0.88em; font-weight: 700; font-family: var(--font-display);
             transition: width var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
             flex-shrink: 0;
@@ -514,16 +565,15 @@
         #send-btn:hover { background: var(--accent-dim); transform: translateY(-1px); box-shadow: 0 5px 16px var(--accent-glow); }
         #send-btn:active { transform: translateY(1px); }
         #send-btn:focus-visible, .markdown-tool:focus-visible, .welcome-prompt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-        #send-btn .send-icon { display: none; width: 14px; height: 14px; fill: currentColor; }
-        #send-btn.is-stopping { width: 48px; padding: 0; background: #d65b5b; color: #fff; }
+        #send-btn .send-icon { display: block; width: 17px; height: 17px; fill: currentColor; }
+        #send-btn .send-label { display: none; }
+        #send-btn.is-stopping { width: 38px; padding: 0; background: #d65b5b; color: #fff; }
         #send-btn.is-stopping:hover { background: #e16a6a; }
-        #send-btn.is-stopping .send-label { display: none; }
-        #send-btn.is-stopping .send-icon { display: block; }
+        #send-btn.is-stopping .send-icon { display: none; }
+        #send-btn.is-stopping .send-label { display: block; font-size: 0.68em; }
 
         @media (max-width: 640px) {
-            #input-area { gap: 8px; padding: 10px 12px 12px; }
-            #send-btn { width: 54px; }
-            #send-btn.is-stopping { width: 48px; }
+            #input-area { padding: 10px 12px 12px; }
             #keybind-hint { font-size: 0.64em; }
             .comparison-grid { grid-template-columns: 1fr; }
         }
@@ -836,8 +886,20 @@
                     New Chat
                 </button>
                 <div id="model-selector-container">
-                    <label for="model-selector">Active Model</label>
-                    <select id="model-selector"><option>Loading models...</option></select>
+                    <label id="active-model-label">Active Model</label>
+                    <div class="model-picker-wrap">
+                        <select id="model-selector" aria-hidden="true" tabindex="-1"><option>Loading models...</option></select>
+                        <button id="model-picker-trigger" type="button" aria-labelledby="active-model-label model-picker-name" aria-haspopup="dialog" aria-expanded="false">
+                            <span class="model-picker-orb" aria-hidden="true"></span>
+                            <span id="model-picker-name">Loading models…</span>
+                            <span id="model-picker-nsfw"></span>
+                            <span class="model-picker-chevron" aria-hidden="true">⌄</span>
+                        </button>
+                        <div id="model-picker-menu" role="dialog" aria-label="Choose a model">
+                            <input id="model-picker-search" type="search" placeholder="Search models…" aria-label="Search models">
+                            <div id="model-picker-options" role="listbox" aria-label="Available models"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="conversation-data-actions">
                     <button id="export-conversations-btn" type="button">Export chats</button>
@@ -915,24 +977,28 @@
 
             <div id="input-area">
                 <div class="input-compose">
-                    <div id="markdown-toolbar" role="toolbar" aria-label="Markdown formatting">
+                    <div id="markdown-toolbar" role="toolbar" aria-label="Markdown formatting" hidden>
                         <button class="markdown-tool" type="button" data-markdown-action="bold" title="Bold (Ctrl+B)" aria-label="Bold"><strong>B</strong></button>
                         <button class="markdown-tool" type="button" data-markdown-action="italic" title="Italic (Ctrl+I)" aria-label="Italic"><em>I</em></button>
                         <button class="markdown-tool" type="button" data-markdown-action="inline-code" title="Inline code (Ctrl+Shift+C)" aria-label="Inline code">&lt;/&gt;</button>
                         <button class="markdown-tool" type="button" data-markdown-action="link" title="Link (Ctrl+K)" aria-label="Link">Link</button>
                         <button class="markdown-tool" type="button" data-markdown-action="list" title="Bullet list (Ctrl+Shift+L)" aria-label="Bullet list">List</button>
                         <button class="markdown-tool" type="button" data-markdown-action="code-block" title="Code block (Ctrl+Shift+M)" aria-label="Code block">Code block</button>
-                        <button class="markdown-tool" id="attach-files-btn" type="button" title="Attach images, text, or PDF files">Attach</button>
                     </div>
                     <input id="attachment-input" type="file" accept="image/png,image/jpeg,image/webp,.txt,.md,.csv,.json,application/pdf" multiple>
                     <div id="attachment-tray" aria-live="polite"></div>
-                    <textarea id="user-input" rows="1" placeholder="Message Synapse…" aria-describedby="keybind-hint"></textarea>
-                    <span id="keybind-hint">Markdown supported · Ctrl+B bold · Ctrl+I italic · Ctrl+K link · Ctrl+Shift+C code · Ctrl+Shift+L list · Ctrl+Shift+M code block<br>Enter sends · Ctrl+Enter regenerates · Shift+Enter adds a line</span>
+                    <div class="composer-shell">
+                        <div class="composer-row">
+                            <button id="attach-files-btn" type="button" title="Attach images, text, or PDF files" aria-label="Attach files">＋</button>
+                            <textarea id="user-input" rows="1" placeholder="Message Synapse…" aria-describedby="keybind-hint"></textarea>
+                            <button id="send-btn" type="button" aria-label="Send message" title="Send message">
+                                <span class="send-label">Stop</span>
+                                <svg class="send-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 7.4 14 2l-4.9 12-1.6-5.3L2 7.4Z"/></svg>
+                            </button>
+                        </div>
+                        <span id="keybind-hint">Enter sends · Ctrl+Enter regenerates · Shift+Enter adds a line · Markdown shortcuts available</span>
+                    </div>
                 </div>
-                <button id="send-btn" type="button" aria-label="Send message" title="Send message">
-                    <span class="send-label">Send</span>
-                    <svg class="send-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" rx="2"/></svg>
-                </button>
             </div>
         </main>
 
@@ -974,6 +1040,10 @@
                             <option value="serif">Serif</option>
                             <option value="mono">Monospace</option>
                         </select>
+                        <label class="streaming-setting" for="markdown-toolbar-toggle" style="margin-top:10px;">
+                            <input id="markdown-toolbar-toggle" type="checkbox">
+                            <span>Show Markdown formatting buttons</span>
+                        </label>
                     </div>
 
                     <div class="rs-section">
@@ -1163,6 +1233,8 @@
         const webSearchStatus = document.getElementById('web-search-status');
         const compareModelToggle = document.getElementById('compare-model-toggle');
         const compareModelSelector = document.getElementById('compare-model-selector');
+        const markdownToolbarToggle = document.getElementById('markdown-toolbar-toggle');
+        const markdownToolbar = document.getElementById('markdown-toolbar');
         const attachmentInput = document.getElementById('attachment-input');
         const attachmentTray = document.getElementById('attachment-tray');
         try {
@@ -1179,6 +1251,8 @@
             document.documentElement.dataset.messageFont = initialFont;
             messageFontSelector.value = initialFont;
             streamingToggle.checked = localStorage.getItem('synapse-streaming') !== 'false';
+            markdownToolbarToggle.checked = localStorage.getItem('synapse-markdown-toolbar') === 'true';
+            markdownToolbar.hidden = !markdownToolbarToggle.checked;
         } catch (error) {
             console.error('Could not load saved appearance settings:', error);
             document.documentElement.dataset.theme = 'ember';
@@ -1188,6 +1262,8 @@
             document.documentElement.dataset.messageFont = 'sans';
             messageFontSelector.value = 'sans';
             streamingToggle.checked = true;
+            markdownToolbarToggle.checked = false;
+            markdownToolbar.hidden = true;
         }
         themeSelector.addEventListener('change', () => {
             const selectedTheme = AVAILABLE_THEMES.includes(themeSelector.value) ? themeSelector.value : 'ember';
@@ -1226,6 +1302,14 @@
                 console.error('Could not save response streaming setting:', error);
             }
         });
+        markdownToolbarToggle.addEventListener('change', () => {
+            markdownToolbar.hidden = !markdownToolbarToggle.checked;
+            try {
+                localStorage.setItem('synapse-markdown-toolbar', String(markdownToolbarToggle.checked));
+            } catch (error) {
+                console.error('Could not save Markdown toolbar setting:', error);
+            }
+        });
 
         const sidebar            = document.getElementById('sidebar');
         const backdrop           = document.getElementById('sidebar-backdrop');
@@ -1246,6 +1330,12 @@
         const feedbackCancelBtn  = document.getElementById('feedback-cancel-btn');
         const feedbackSubmitBtn  = document.getElementById('feedback-submit-btn');
         const modelSelector      = document.getElementById('model-selector');
+        const modelPickerTrigger = document.getElementById('model-picker-trigger');
+        const modelPickerName    = document.getElementById('model-picker-name');
+        const modelPickerNsfw    = document.getElementById('model-picker-nsfw');
+        const modelPickerMenu    = document.getElementById('model-picker-menu');
+        const modelPickerSearch  = document.getElementById('model-picker-search');
+        const modelPickerOptions = document.getElementById('model-picker-options');
         const cpuBar             = document.getElementById('cpu-bar');
         const ramBar             = document.getElementById('ram-bar');
         const vramBar            = document.getElementById('vram-bar');
@@ -1274,6 +1364,7 @@
 
         let activeConversationId = null;
         let activeGenerationController = null;
+        let activeGenerationId = null;
         let activeSpeechButton = null;
         let selectedAttachments = [];
         let contextMenuConvId    = null;
@@ -1507,6 +1598,7 @@
                 return;
             }
             modelSelector.value = profile.model;
+            updateModelPicker();
             applyGenerationSettings(profile.params);
             settingsSavedBadge.textContent = '✓ Profile loaded';
             settingsSavedBadge.style.display = 'block';
@@ -1785,7 +1877,7 @@
             });
         }
 
-        function createMessageContainer(role, content, messageIndex, modelName, comparisonId) {
+        function createMessageContainer(role, content, messageIndex, modelName, comparisonId, messageData) {
             const c = document.createElement('div');
             c.className = `message-container ${role}-message`;
             if (comparisonId) c.dataset.comparisonId = comparisonId;
@@ -1880,10 +1972,10 @@
                         action.addEventListener('click', () => regenerateResponse(action));
                         a.appendChild(action);
                     }
-                } else if (typeof content === 'string') {
+                } else if (role === 'user') {
                     action.textContent = 'Edit';
-                    action.title = 'Edit your message and regenerate from it';
-                    action.addEventListener('click', () => editUserMessage(c, messageIndex));
+                    action.title = 'Edit your message and attachments, then regenerate from it';
+                    action.addEventListener('click', () => editUserMessage(c, messageIndex, messageData));
                     a.appendChild(action);
                 }
                 if (a.childElementCount) c.appendChild(a);
@@ -1891,9 +1983,9 @@
             return c;
         }
 
-        function addMessageToChat(role, content, messageIndex) {
+        function addMessageToChat(role, content, messageIndex, messageData) {
             setWelcomeVisible(false);
-            const container = createMessageContainer(role, content, messageIndex);
+            const container = createMessageContainer(role, content, messageIndex, null, null, messageData);
             chatWindow.appendChild(container);
             scrollToBottom();
             return container;
@@ -1925,15 +2017,17 @@
                     });
                     chatWindow.appendChild(grid);
                 } else {
-                    chatWindow.appendChild(createMessageContainer(message.role, message.content, index, message.model));
+                    chatWindow.appendChild(createMessageContainer(
+                        message.role, message.content, index, message.model, null, message
+                    ));
                 }
             }
             scrollToBottom();
         }
 
-        function renderAttachmentTray() {
-            attachmentTray.replaceChildren();
-            selectedAttachments.forEach((attachment, index) => {
+        function renderAttachmentItems(tray, attachments, onChange) {
+            tray.replaceChildren();
+            attachments.forEach((attachment, index) => {
                 const chip = document.createElement('div');
                 chip.className = 'attachment-chip';
                 if (attachment.kind === 'image') {
@@ -1950,12 +2044,16 @@
                 remove.textContent = '×';
                 remove.setAttribute('aria-label', `Remove ${attachment.name}`);
                 remove.addEventListener('click', () => {
-                    selectedAttachments.splice(index, 1);
-                    renderAttachmentTray();
+                    attachments.splice(index, 1);
+                    onChange();
                 });
                 chip.appendChild(remove);
-                attachmentTray.appendChild(chip);
+                tray.appendChild(chip);
             });
+        }
+
+        function renderAttachmentTray() {
+            renderAttachmentItems(attachmentTray, selectedAttachments, renderAttachmentTray);
         }
 
         function displayUserContent(prompt, attachments) {
@@ -1975,13 +2073,15 @@
             return parts;
         }
 
-        async function uploadAttachments(files) {
+        async function uploadAttachments(files, target = selectedAttachments, onChange = renderAttachmentTray) {
             const incoming = Array.from(files);
-            if (selectedAttachments.length + incoming.length > 5) {
+            if (target.length + incoming.length > 5) {
                 alert('Attach up to five files to a message.');
                 return;
             }
-            const currentSize = selectedAttachments.reduce((total, item) => total + item.size_bytes, 0);
+            const currentSize = target.reduce((total, item) => total + (
+                item.size_bytes || (item.kind === 'text' ? new Blob([item.text || '']).size : Math.floor((item.data_url || '').length * 0.75))
+            ), 0);
             if (currentSize + incoming.reduce((total, file) => total + file.size, 0) > 10 * 1024 * 1024) {
                 alert('Attachments in a single message must total 10 MB or less.');
                 return;
@@ -1997,8 +2097,8 @@
                     });
                     const result = await response.json();
                     if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
-                    selectedAttachments.push(result);
-                    renderAttachmentTray();
+                    target.push(result);
+                    onChange();
                 } catch (error) {
                     alert(`Could not attach ${file.name}: ${error.message}`);
                     break;
@@ -2006,14 +2106,90 @@
             }
         }
 
-        async function editUserMessage(container, messageIndex) {
+        function getEditableMessageData(messageData) {
+            const content = messageData && messageData.content;
+            const imageUrls = Array.isArray(content)
+                ? content.filter(part => part && part.type === 'image_url' && part.image_url)
+                    .map(part => part.image_url.url)
+                : [];
+            if (messageData && typeof messageData.prompt === 'string' && Array.isArray(messageData.attachments)) {
+                let imageIndex = 0;
+                const attachments = messageData.attachments.map(item => {
+                    if (item.kind === 'image') {
+                        const url = imageUrls[imageIndex++] || item.data_url;
+                        return { ...item, data_url: url, size_bytes: item.size_bytes || Math.floor((url || '').length * 0.75) };
+                    }
+                    return { ...item };
+                });
+                return { prompt: messageData.prompt, attachments };
+            }
+
+            const rawText = Array.isArray(content)
+                ? content.filter(part => part && part.type === 'text').map(part => part.text).join('')
+                : typeof content === 'string' ? content : '';
+            const marker = /\n\n\[(Attachment|Image attachment): ([^\]]+)\](?:\n)?/g;
+            const matches = [...rawText.matchAll(marker)];
+            if (!matches.length) return { prompt: rawText, attachments: [] };
+
+            const prompt = rawText.slice(0, matches[0].index);
+            const attachments = [];
+            let imageIndex = 0;
+            matches.forEach((match, index) => {
+                if (match[1] === 'Attachment') {
+                    const start = match.index + match[0].length;
+                    const end = index + 1 < matches.length ? matches[index + 1].index : rawText.length;
+                    const text = rawText.slice(start, end).replace(/\n\n$/, '');
+                    attachments.push({ kind: 'text', name: match[2], text, size_bytes: new Blob([text]).size });
+                } else {
+                    const data_url = imageUrls[imageIndex++];
+                    if (data_url) {
+                        attachments.push({
+                            kind: 'image',
+                            name: match[2],
+                            data_url,
+                            size_bytes: Math.floor(data_url.length * 0.75)
+                        });
+                    }
+                }
+            });
+            return { prompt, attachments };
+        }
+
+        async function editUserMessage(container, messageIndex, messageData) {
             const message = container.querySelector('.message');
-            const originalContent = message.dataset.rawMarkdown || '';
+            const editableData = getEditableMessageData(messageData || {
+                content: message.dataset.rawMarkdown || ''
+            });
             const editor = document.createElement('textarea');
             editor.className = 'message param-number-input message-editor';
-            editor.value = originalContent;
+            editor.value = editableData.prompt;
             editor.setAttribute('aria-label', 'Edit your message');
-            message.replaceWith(editor);
+            const editPanel = document.createElement('div');
+            editPanel.className = 'message-edit-panel';
+            const editTray = document.createElement('div');
+            editTray.className = 'message-edit-attachments';
+            const editAttachButton = document.createElement('button');
+            editAttachButton.className = 'action-btn';
+            editAttachButton.type = 'button';
+            editAttachButton.textContent = 'Add attachment';
+            const editFileInput = document.createElement('input');
+            editFileInput.type = 'file';
+            editFileInput.accept = attachmentInput.accept;
+            editFileInput.multiple = true;
+            editFileInput.hidden = true;
+            editAttachButton.addEventListener('click', () => editFileInput.click());
+            editFileInput.addEventListener('change', async () => {
+                await uploadAttachments(editFileInput.files, editableData.attachments, () => {
+                    renderAttachmentItems(editTray, editableData.attachments, renderEditAttachments);
+                });
+                editFileInput.value = '';
+            });
+            const renderEditAttachments = () => {
+                renderAttachmentItems(editTray, editableData.attachments, renderEditAttachments);
+            };
+            editPanel.append(editor, editTray, editAttachButton, editFileInput);
+            renderEditAttachments();
+            message.replaceWith(editPanel);
 
             const actions = container.querySelector('.message-actions');
             actions.replaceChildren();
@@ -2030,8 +2206,11 @@
             editActions.append(saveButton, cancelButton);
             actions.appendChild(editActions);
 
+            const originalContent = messageData?.content ?? message.dataset.rawMarkdown ?? '';
             cancelButton.addEventListener('click', () => {
-                container.replaceWith(createMessageContainer('user', originalContent, messageIndex));
+                container.replaceWith(createMessageContainer(
+                    'user', originalContent, messageIndex, null, null, messageData || { content: originalContent }
+                ));
             });
             const save = async () => {
                 const content = editor.value.trim();
@@ -2043,7 +2222,7 @@
                         {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ content })
+                            body: JSON.stringify({ content, attachments: editableData.attachments })
                         }
                     );
                     renderConversationMessages(updated.messages);
@@ -2079,6 +2258,91 @@
             return (nicknames[id] && nicknames[id].trim()) ? nicknames[id].trim() : defaultLabel(id);
         }
 
+        function isNsfwModel(id) {
+            return /uncensor|uncencor|unfilter|unrestricted|nsfw|no[-_\s]?filter|abliterat|censorless/i.test(id);
+        }
+
+        function updateModelPicker() {
+            const id = modelSelector.value;
+            modelPickerName.textContent = id ? displayName(id) : 'No models available';
+            modelPickerNsfw.replaceChildren();
+            if (id && isNsfwModel(id)) {
+                const tag = document.createElement('span');
+                tag.className = 'nsfw-tag';
+                tag.textContent = 'NSFW';
+                modelPickerNsfw.appendChild(tag);
+            }
+            renderModelPickerOptions();
+        }
+
+        function renderModelPickerOptions() {
+            const query = modelPickerSearch.value.trim().toLowerCase();
+            const options = [...modelSelector.options].filter(option =>
+                option.value && `${displayName(option.value)} ${option.value}`.toLowerCase().includes(query)
+            );
+            modelPickerOptions.replaceChildren();
+            if (!options.length) {
+                const empty = document.createElement('div');
+                empty.className = 'model-picker-empty';
+                empty.textContent = modelSelector.options.length ? 'No matching models.' : 'No models are available.';
+                modelPickerOptions.appendChild(empty);
+                return;
+            }
+
+            options.forEach(option => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'model-picker-option';
+                button.setAttribute('role', 'option');
+                button.setAttribute('aria-selected', String(option.value === modelSelector.value));
+
+                const copy = document.createElement('span');
+                copy.className = 'model-picker-option-copy';
+                const name = document.createElement('span');
+                name.className = 'model-picker-option-name';
+                name.textContent = displayName(option.value);
+                const id = document.createElement('span');
+                id.className = 'model-picker-option-id';
+                id.textContent = option.value;
+                copy.append(name, id);
+                button.appendChild(copy);
+                if (isNsfwModel(option.value)) {
+                    const tag = document.createElement('span');
+                    tag.className = 'nsfw-tag';
+                    tag.textContent = 'NSFW';
+                    button.appendChild(tag);
+                }
+                button.addEventListener('click', () => {
+                    modelSelector.value = option.value;
+                    updateModelPicker();
+                    closeModelPicker();
+                    modelPickerTrigger.focus();
+                });
+                modelPickerOptions.appendChild(button);
+            });
+        }
+
+        function closeModelPicker() {
+            modelPickerMenu.classList.remove('open');
+            modelPickerTrigger.setAttribute('aria-expanded', 'false');
+        }
+
+        function openModelPicker() {
+            modelPickerMenu.classList.add('open');
+            modelPickerTrigger.setAttribute('aria-expanded', 'true');
+            const triggerRect = modelPickerTrigger.getBoundingClientRect();
+            const menuRect = modelPickerMenu.getBoundingClientRect();
+            const left = Math.max(12, Math.min(triggerRect.left, window.innerWidth - menuRect.width - 12));
+            const top = triggerRect.bottom + menuRect.height + 12 > window.innerHeight
+                ? Math.max(12, triggerRect.top - menuRect.height - 8)
+                : triggerRect.bottom + 8;
+            modelPickerMenu.style.left = `${left}px`;
+            modelPickerMenu.style.top = `${top}px`;
+            modelPickerSearch.value = '';
+            renderModelPickerOptions();
+            modelPickerSearch.focus();
+        }
+
         function refreshModelSelector() {
             const current = modelSelector.value;
             const comparisonCurrent = compareModelSelector.value;
@@ -2094,6 +2358,7 @@
                 const selected = index === 0 ? current : comparisonCurrent;
                 if (ids.includes(selected)) selector.value = selected;
             });
+            updateModelPicker();
         }
 
         function buildNicknameEditor(modelIds) {
@@ -2167,10 +2432,12 @@
                     if (models.length > 1) compareModelSelector.selectedIndex = 1;
                     buildNicknameEditor(models);
                 }
+                updateModelPicker();
             } catch {
                 modelSelector.innerHTML = '<option value="">Error loading models</option>';
                 compareModelSelector.innerHTML = '<option value="">Error loading models</option>';
                 buildNicknameEditor([]);
+                updateModelPicker();
             }
         }
 
@@ -2329,6 +2596,24 @@
             sendBtn.title = active ? 'Stop generating response' : 'Send message';
         }
 
+        async function stopActiveGeneration() {
+            const controller = activeGenerationController;
+            if (!controller) return;
+            const cancellation = activeGenerationId
+                ? fetchAPI('/chat/cancel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ generation_id: activeGenerationId })
+                })
+                : Promise.resolve();
+            controller.abort();
+            try {
+                await cancellation;
+            } catch (error) {
+                alert(`Could not stop LM Studio generation: ${error.message}`);
+            }
+        }
+
         async function sendMessage() {
             if (activeGenerationController) return;
             const p = userInput.value.trim();
@@ -2344,7 +2629,12 @@
             const conversationId = activeConversationId;
             const attachmentsForSend = selectedAttachments.slice();
             const messageIndex = chatWindow.querySelectorAll('.message-container[data-message-index]').length;
-            const userMessage = addMessageToChat('user', displayUserContent(p, attachmentsForSend), messageIndex);
+            const displayedUserContent = displayUserContent(p, attachmentsForSend);
+            const userMessage = addMessageToChat('user', displayedUserContent, messageIndex, {
+                content: displayedUserContent,
+                prompt: p,
+                attachments: attachmentsForSend
+            });
             selectedAttachments = [];
             renderAttachmentTray();
             userInput.value = '';
@@ -2366,7 +2656,9 @@
             }
             chatWindow.appendChild(loadingEl); scrollToBottom();
             const controller = new AbortController();
+            const generationId = createLocalId();
             activeGenerationController = controller;
+            activeGenerationId = generationId;
             setGenerationActive(true);
             let chatRequestStarted = false;
             try {
@@ -2410,7 +2702,8 @@
                     models: comparisonModels,
                     params: genParams,
                     web_context: webContext,
-                    attachments: attachmentsForSend
+                    attachments: attachmentsForSend,
+                    generation_id: generationId
                 };
                 chatRequestStarted = true;
                 if (compareModelToggle.checked) {
@@ -2505,6 +2798,7 @@
             } finally {
                 if (activeGenerationController === controller) {
                     activeGenerationController = null;
+                    activeGenerationId = null;
                     setGenerationActive(false);
                 }
             }
@@ -2524,12 +2818,15 @@
             else chatWindow.appendChild(loadingEl);
             scrollToBottom();
             const controller = new AbortController();
+            const generationId = createLocalId();
             const conversationId = activeConversationId;
             activeGenerationController = controller;
+            activeGenerationId = generationId;
             setGenerationActive(true);
             try {
                 const content = await streamAPI('/chat/stream', {
-                    conversation_id: conversationId, model: m, params: genParams, regenerate: true
+                    conversation_id: conversationId, model: m, params: genParams, regenerate: true,
+                    generation_id: generationId
                 }, loadingEl, controller, streamingToggle.checked);
                 loadingEl.replaceWith(createMessageContainer('assistant', content, assistantIndex));
             } catch (error) {
@@ -2545,6 +2842,7 @@
             } finally {
                 if (activeGenerationController === controller) {
                     activeGenerationController = null;
+                    activeGenerationId = null;
                     setGenerationActive(false);
                 }
             }
@@ -2638,8 +2936,26 @@
 
         menuBtn.addEventListener('click', showSidebar);
         backdrop.addEventListener('click', hideSidebar);
+        modelPickerTrigger.addEventListener('click', () => {
+            if (modelPickerMenu.classList.contains('open')) closeModelPicker();
+            else openModelPicker();
+        });
+        modelPickerSearch.addEventListener('input', renderModelPickerOptions);
+        modelSelector.addEventListener('change', updateModelPicker);
+        document.addEventListener('click', event => {
+            if (!modelPickerMenu.contains(event.target) && !modelPickerTrigger.contains(event.target)) {
+                closeModelPicker();
+            }
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && modelPickerMenu.classList.contains('open')) {
+                closeModelPicker();
+                modelPickerTrigger.focus();
+            }
+        });
+        window.addEventListener('resize', closeModelPicker);
         sendBtn.addEventListener('click', () => {
-            if (activeGenerationController) activeGenerationController.abort();
+            if (activeGenerationController) stopActiveGeneration();
             else sendMessage();
         });
         document.getElementById('attach-files-btn').addEventListener('click', () => attachmentInput.click());
@@ -2713,7 +3029,6 @@
             userInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
 
-        const markdownToolbar = document.getElementById('markdown-toolbar');
         markdownToolbar.addEventListener('mousedown', event => event.preventDefault());
         markdownToolbar.addEventListener('click', event => {
             const button = event.target.closest('[data-markdown-action]');

@@ -4,3 +4,4 @@ plyer
 psutil
 Flask-SocketIO
 pypdf
+Pillow

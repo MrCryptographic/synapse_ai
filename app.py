@@ -21,6 +21,7 @@ import psutil
 from werkzeug.serving import WSGIRequestHandler
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
+from PIL import Image, UnidentifiedImageError
 
 # --- Configuration ---
 LM_STUDIO_URL_BASE = "http://localhost:1234/v1"
@@ -75,6 +76,9 @@ app.config.update(
 )
 socketio = SocketIO(app)
 user_db_lock = threading.Lock()
+conversation_db_lock = threading.Lock()
+active_generation_lock = threading.Lock()
+active_generations = {}
 vram_cache = {"checked_at": 0.0, "value": None}
 vram_cache_lock = threading.Lock()
 
@@ -371,6 +375,54 @@ def load_json_db(filepath):
 def save_json_db(data, filepath):
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def save_generation_conversation(conversation_id, conversation):
+    with conversation_db_lock:
+        conversations = load_json_db(CONV_DB_FILE)
+        persisted = conversations.get(conversation_id)
+        if persisted is None or persisted.get("owner_id") != conversation.get("owner_id"):
+            return
+
+        updated = dict(conversation)
+        for field in ("title", "folder", "pinned", "timestamp", "owner_id"):
+            if field in persisted:
+                updated[field] = persisted[field]
+        if (
+            persisted.get("title", "New Chat") == "New Chat"
+            and conversation.get("title", "New Chat") != "New Chat"
+        ):
+            updated["title"] = conversation["title"]
+        conversations[conversation_id] = updated
+        save_json_db(conversations, CONV_DB_FILE)
+
+
+def register_active_generation(generation_id, owner_id):
+    generation = {
+        "owner_id": owner_id,
+        "cancelled": threading.Event(),
+        "upstream": None,
+    }
+    with active_generation_lock:
+        if generation_id in active_generations:
+            return None
+        active_generations[generation_id] = generation
+    return generation
+
+
+def attach_generation_response(generation, upstream):
+    with active_generation_lock:
+        generation["upstream"] = upstream
+        cancelled = generation["cancelled"].is_set()
+    if cancelled:
+        upstream.close()
+
+
+def unregister_active_generation(generation_id, generation):
+    with active_generation_lock:
+        if active_generations.get(generation_id) is generation:
+            del active_generations[generation_id]
+
 
 # --- Host Notification ---
 def send_host_notification(title, message):
@@ -728,6 +780,26 @@ def decode_image_data_url(data_url):
     return mime_type, image_bytes
 
 
+def normalize_model_image_data_url(data_url):
+    if not isinstance(data_url, str) or not data_url.startswith("data:image/webp;base64,"):
+        return data_url
+    mime_type, image_bytes = decode_image_data_url(data_url)
+    if mime_type != "image/webp":
+        return data_url
+
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as source_image:
+            source_image.load()
+            mode = "RGBA" if "A" in source_image.getbands() or source_image.info.get("transparency") else "RGB"
+            converted_image = source_image.convert(mode)
+            output = io.BytesIO()
+            converted_image.save(output, format="PNG")
+    except (UnidentifiedImageError, OSError, ValueError) as error:
+        raise ValueError("An attachment contains invalid WebP image data.") from error
+    encoded = base64.b64encode(output.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+
 def build_user_message_content(prompt, attachments):
     if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 100_000:
         raise ValueError("A message is required and must be 100,000 characters or fewer.")
@@ -754,18 +826,45 @@ def build_user_message_content(prompt, attachments):
                 "text": f"\n\n[Attachment: {name}]\n{text}",
             })
         elif attachment.get("kind") == "image":
-            mime_type, image_bytes = decode_image_data_url(attachment.get("data_url"))
+            data_url = attachment.get("data_url")
+            _, image_bytes = decode_image_data_url(data_url)
             total_image_bytes += len(image_bytes)
             if total_image_bytes > 10 * 1024 * 1024:
                 raise ValueError("Images in a single message must total 10 MB or less.")
+            model_data_url = normalize_model_image_data_url(data_url)
             text_parts.append({"type": "text", "text": f"\n\n[Image attachment: {name}]"})
             image_parts.append({
                 "type": "image_url",
-                "image_url": {"url": attachment["data_url"]},
+                "image_url": {"url": model_data_url},
             })
         else:
             raise ValueError("An attachment type is not supported.")
     return [*text_parts, *image_parts]
+
+
+def build_edit_metadata(prompt, attachments):
+    if not isinstance(prompt, str) or not prompt.strip() or len(prompt) > 100_000:
+        raise ValueError("A message is required and must be 100,000 characters or fewer.")
+    if attachments is None:
+        attachments = []
+    if not isinstance(attachments, list) or len(attachments) > 5:
+        raise ValueError("Attach up to five files to a message.")
+
+    metadata = []
+    for attachment in attachments:
+        if not isinstance(attachment, dict) or attachment.get("kind") not in ("text", "image"):
+            raise ValueError("An attachment is invalid.")
+        name = attachment.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("An attachment is invalid.")
+        item = {"kind": attachment["kind"], "name": Path(name).name[:120]}
+        if item["kind"] == "text":
+            text = attachment.get("text")
+            if not isinstance(text, str) or not text.strip() or len(text) > 50_000:
+                raise ValueError("Text and PDF attachments must contain at most 50,000 characters.")
+            item["text"] = text
+        metadata.append(item)
+    return prompt.strip(), metadata
 
 
 def is_valid_import_content(content):
@@ -785,7 +884,9 @@ def is_valid_import_content(content):
             if not isinstance(image_url, dict):
                 return False
             try:
-                _, image_bytes = decode_image_data_url(image_url.get("url"))
+                data_url = image_url.get("url")
+                _, image_bytes = decode_image_data_url(data_url)
+                normalize_model_image_data_url(data_url)
             except ValueError:
                 return False
             total_image_bytes += len(image_bytes)
@@ -797,11 +898,31 @@ def is_valid_import_content(content):
 
 
 def model_history_for_generation(history):
-    return [
-        {"role": message["role"], "content": message["content"]}
-        for message in history
-        if isinstance(message, dict) and message.get("role") in ("system", "user", "assistant")
-    ]
+    model_history = []
+    for message in history:
+        if not isinstance(message, dict) or message.get("role") not in ("system", "user", "assistant"):
+            continue
+        content = message["content"]
+        if isinstance(content, list):
+            content = [
+                {
+                    **part,
+                    "image_url": {
+                        **part["image_url"],
+                        "url": normalize_model_image_data_url(part["image_url"]["url"]),
+                    },
+                }
+                if (
+                    isinstance(part, dict)
+                    and part.get("type") == "image_url"
+                    and isinstance(part.get("image_url"), dict)
+                    and isinstance(part["image_url"].get("url"), str)
+                )
+                else part
+                for part in content
+            ]
+        model_history.append({"role": message["role"], "content": content})
+    return model_history
 
 
 def get_ai_response(history, model_name, temperature=0.7, top_p=1.0, max_tokens=-1, frequency_penalty=0.0, presence_penalty=0.0):
@@ -927,6 +1048,11 @@ def chat():
 def chat_stream():
     data = request.get_json()
     conv_id, model = data.get('conversation_id'), data.get('model')
+    generation_id = data.get("generation_id")
+    if generation_id is None:
+        generation_id = str(uuid.uuid4())
+    if not isinstance(generation_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", generation_id):
+        return jsonify({"error": "A valid generation ID is required."}), 400
     convs = load_json_db(CONV_DB_FILE)
     conversation = get_owned_conversation(convs, conv_id)
     if conversation is None:
@@ -946,7 +1072,13 @@ def chat_stream():
             message_content = build_user_message_content(prompt, data.get("attachments"))
         except ValueError as error:
             return jsonify({"error": str(error)}), 400
-        history.append({"role": "user", "content": message_content})
+        edit_prompt, edit_attachments = build_edit_metadata(prompt, data.get("attachments"))
+        history.append({
+            "role": "user",
+            "content": message_content,
+            "prompt": edit_prompt,
+            "attachments": edit_attachments,
+        })
 
     web_context = data.get("web_context", "")
     if not isinstance(web_context, str) or len(web_context) > 30_000:
@@ -963,6 +1095,19 @@ def chat_stream():
             })
 
     params = data.get("params") or {}
+    if not isinstance(params, dict):
+        if not is_regenerate:
+            history.pop()
+        elif removed_assistant is not None:
+            history.append(removed_assistant)
+        return jsonify({"error": "Generation parameters are invalid."}), 400
+    generation = register_active_generation(generation_id, session["user_id"])
+    if generation is None:
+        if not is_regenerate:
+            history.pop()
+        elif removed_assistant is not None:
+            history.append(removed_assistant)
+        return jsonify({"error": "That generation ID is already active."}), 409
     try:
         upstream = get_streamed_ai_response(
             model_history,
@@ -973,8 +1118,9 @@ def chat_stream():
             params.get("frequency_penalty", 0.0),
             params.get("presence_penalty", 0.0),
         )
+        attach_generation_response(generation, upstream)
         upstream.raise_for_status()
-    except requests.RequestException as error:
+    except (requests.RequestException, OSError, AttributeError) as error:
         if not is_regenerate:
             history.pop()
         elif removed_assistant is not None:
@@ -982,12 +1128,24 @@ def chat_stream():
         upstream_response = getattr(error, "response", None)
         if upstream_response is not None:
             upstream_response.close()
+        unregister_active_generation(generation_id, generation)
         return jsonify({"error": f"Error contacting LM Studio: {error}"}), 500
 
     def generate():
         response_text = []
         filter_state = {"buffer": "", "thinking": False}
         try:
+            if generation["cancelled"].is_set():
+                if (
+                    not is_regenerate
+                    and len([message for message in history if message["role"] == "user"]) == 1
+                    and conversation.get("title", "New Chat") == "New Chat"
+                ):
+                    conversation["title"] = data["prompt"]
+                save_generation_conversation(conv_id, conversation)
+                yield stream_event({"done": True, "cancelled": True})
+                return
+
             for line in upstream.iter_lines(decode_unicode=True):
                 if not line:
                     continue
@@ -1013,6 +1171,19 @@ def chat_stream():
                     response_text.append(visible)
                     yield stream_event({"content": visible})
 
+            if generation["cancelled"].is_set():
+                if response_text:
+                    history.append({"role": "assistant", "content": "".join(response_text).strip()})
+                if (
+                    not is_regenerate
+                    and len([message for message in history if message["role"] == "user"]) == 1
+                    and conversation.get("title", "New Chat") == "New Chat"
+                ):
+                    conversation["title"] = data["prompt"]
+                save_generation_conversation(conv_id, conversation)
+                yield stream_event({"done": True, "cancelled": True})
+                return
+
             tail = filter_state["buffer"] if not filter_state["thinking"] else ""
             if tail:
                 response_text.append(tail)
@@ -1020,27 +1191,48 @@ def chat_stream():
 
             answer = "".join(response_text).strip()
             history.append({"role": "assistant", "content": answer})
-            if not is_regenerate and len([message for message in history if message["role"] == "user"]) == 1:
+            if (
+                not is_regenerate
+                and len([message for message in history if message["role"] == "user"]) == 1
+                and conversation.get("title", "New Chat") == "New Chat"
+            ):
                 conversation["title"] = data["prompt"]
-            save_json_db(convs, CONV_DB_FILE)
+            save_generation_conversation(conv_id, conversation)
             yield stream_event({"done": True})
-        except requests.RequestException as error:
-            if not is_regenerate and history and history[-1].get("role") == "user":
-                history.pop()
-            elif is_regenerate and removed_assistant is not None:
-                history.append(removed_assistant)
-            yield stream_event({"error": f"Error reading LM Studio response: {error}"})
+        except (requests.RequestException, OSError, AttributeError) as error:
+            if generation["cancelled"].is_set():
+                if response_text:
+                    history.append({"role": "assistant", "content": "".join(response_text).strip()})
+                if (
+                    not is_regenerate
+                    and len([message for message in history if message["role"] == "user"]) == 1
+                    and conversation.get("title", "New Chat") == "New Chat"
+                ):
+                    conversation["title"] = data["prompt"]
+                save_generation_conversation(conv_id, conversation)
+                yield stream_event({"done": True, "cancelled": True})
+            else:
+                if not is_regenerate and history and history[-1].get("role") == "user":
+                    history.pop()
+                elif is_regenerate and removed_assistant is not None:
+                    history.append(removed_assistant)
+                yield stream_event({"error": f"Error reading LM Studio response: {error}"})
         except GeneratorExit:
             if is_regenerate and removed_assistant is not None and not response_text:
                 history.append(removed_assistant)
             elif response_text:
                 history.append({"role": "assistant", "content": "".join(response_text).strip()})
-            if not is_regenerate and len([message for message in history if message["role"] == "user"]) == 1:
+            if (
+                not is_regenerate
+                and len([message for message in history if message["role"] == "user"]) == 1
+                and conversation.get("title", "New Chat") == "New Chat"
+            ):
                 conversation["title"] = data["prompt"]
-            save_json_db(convs, CONV_DB_FILE)
+            save_generation_conversation(conv_id, conversation)
             raise
         finally:
             upstream.close()
+            unregister_active_generation(generation_id, generation)
 
     return Response(
         stream_with_context(generate()),
@@ -1049,11 +1241,34 @@ def chat_stream():
     )
 
 
+@app.route('/api/chat/cancel', methods=['POST'])
+def cancel_chat_generation():
+    data = request.get_json(silent=True)
+    generation_id = data.get("generation_id") if isinstance(data, dict) else None
+    if not isinstance(generation_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", generation_id):
+        return jsonify({"error": "A valid generation ID is required."}), 400
+
+    with active_generation_lock:
+        generation = active_generations.get(generation_id)
+        if generation is None or generation["owner_id"] != session["user_id"]:
+            return jsonify({"cancelled": False})
+        generation["cancelled"].set()
+        upstream = generation["upstream"]
+    if upstream is not None:
+        upstream.close()
+    return jsonify({"cancelled": True})
+
+
 @app.route('/api/chat/compare/stream', methods=['POST'])
 def chat_compare_stream():
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({"error": "A valid JSON comparison request is required."}), 400
+    generation_id = data.get("generation_id")
+    if generation_id is None:
+        generation_id = str(uuid.uuid4())
+    if not isinstance(generation_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", generation_id):
+        return jsonify({"error": "A valid generation ID is required."}), 400
     conv_id = data.get("conversation_id")
     models = data.get("models")
     prompt = data.get("prompt")
@@ -1076,7 +1291,13 @@ def chat_compare_stream():
         return jsonify({"error": "Conversation not found."}), 404
 
     history = conversation["messages"]
-    history.append({"role": "user", "content": message_content})
+    edit_prompt, edit_attachments = build_edit_metadata(prompt, data.get("attachments"))
+    history.append({
+        "role": "user",
+        "content": message_content,
+        "prompt": edit_prompt,
+        "attachments": edit_attachments,
+    })
     model_history = model_history_for_generation(history)
     web_context = data.get("web_context", "")
     if not isinstance(web_context, str) or len(web_context) > 30_000:
@@ -1096,6 +1317,10 @@ def chat_compare_stream():
     if not isinstance(params, dict):
         history.pop()
         return jsonify({"error": "Generation parameters are invalid."}), 400
+    generation = register_active_generation(generation_id, session["user_id"])
+    if generation is None:
+        history.pop()
+        return jsonify({"error": "That generation ID is already active."}), 409
     comparison_id = str(uuid.uuid4())
 
     def generate():
@@ -1104,7 +1329,19 @@ def chat_compare_stream():
         response_text = []
         upstream = None
         try:
+            if generation["cancelled"].is_set():
+                if (
+                    len([message for message in history if message.get("role") == "user"]) == 1
+                    and conversation.get("title", "New Chat") == "New Chat"
+                ):
+                    conversation["title"] = prompt.strip()
+                save_generation_conversation(conv_id, conversation)
+                yield stream_event({"done": True, "cancelled": True, "comparison_id": comparison_id})
+                return
+
             for model in models:
+                if generation["cancelled"].is_set():
+                    break
                 active_model = model
                 response_text = []
                 filter_state = {"buffer": "", "thinking": False}
@@ -1117,6 +1354,7 @@ def chat_compare_stream():
                     params.get("frequency_penalty", 0.0),
                     params.get("presence_penalty", 0.0),
                 )
+                attach_generation_response(generation, upstream)
                 try:
                     upstream.raise_for_status()
                     for line in upstream.iter_lines(decode_unicode=True):
@@ -1160,6 +1398,25 @@ def chat_compare_stream():
                     upstream.close()
                     upstream = None
 
+                if generation["cancelled"].is_set():
+                    if response_text:
+                        history.append({
+                            "role": "assistant",
+                            "content": "".join(response_text).strip(),
+                            "model": model,
+                            "comparison_id": comparison_id,
+                        })
+                        completed_models += 1
+                        if (
+                            len([message for message in history if message.get("role") == "user"]) == 1
+                            and conversation.get("title", "New Chat") == "New Chat"
+                        ):
+                            conversation["title"] = prompt.strip()
+                        save_generation_conversation(conv_id, conversation)
+                    response_text = []
+                    active_model = None
+                    break
+
                 answer = "".join(response_text).strip()
                 history.append({
                     "role": "assistant",
@@ -1168,13 +1425,20 @@ def chat_compare_stream():
                     "comparison_id": comparison_id,
                 })
                 completed_models += 1
-                if len([message for message in history if message.get("role") == "user"]) == 1:
+                if (
+                    len([message for message in history if message.get("role") == "user"]) == 1
+                    and conversation.get("title", "New Chat") == "New Chat"
+                ):
                     conversation["title"] = prompt.strip()
-                save_json_db(convs, CONV_DB_FILE)
+                save_generation_conversation(conv_id, conversation)
                 response_text = []
                 active_model = None
                 yield stream_event({"model_done": model, "comparison_id": comparison_id})
-            yield stream_event({"done": True, "comparison_id": comparison_id})
+            yield stream_event({
+                "done": True,
+                "cancelled": generation["cancelled"].is_set(),
+                "comparison_id": comparison_id,
+            })
         except requests.RequestException as error:
             if active_model and response_text:
                 history.append({
@@ -1184,16 +1448,27 @@ def chat_compare_stream():
                     "comparison_id": comparison_id,
                 })
                 completed_models += 1
-            elif completed_models == 0 and history and history[-1].get("role") == "user":
+            elif (
+                completed_models == 0
+                and history
+                and history[-1].get("role") == "user"
+                and not generation["cancelled"].is_set()
+            ):
                 history.pop()
-            if completed_models:
-                if len([message for message in history if message.get("role") == "user"]) == 1:
+            if completed_models or generation["cancelled"].is_set():
+                if (
+                    len([message for message in history if message.get("role") == "user"]) == 1
+                    and conversation.get("title", "New Chat") == "New Chat"
+                ):
                     conversation["title"] = prompt.strip()
-                save_json_db(convs, CONV_DB_FILE)
-            yield stream_event({
-                "error": f"Error contacting LM Studio: {error}",
-                "comparison_id": comparison_id,
-            })
+                save_generation_conversation(conv_id, conversation)
+            if generation["cancelled"].is_set():
+                yield stream_event({"done": True, "cancelled": True, "comparison_id": comparison_id})
+            else:
+                yield stream_event({
+                    "error": f"Error contacting LM Studio: {error}",
+                    "comparison_id": comparison_id,
+                })
         except GeneratorExit:
             if active_model and response_text:
                 history.append({
@@ -1202,13 +1477,17 @@ def chat_compare_stream():
                     "model": active_model,
                     "comparison_id": comparison_id,
                 })
-            if len([message for message in history if message.get("role") == "user"]) == 1:
+            if (
+                len([message for message in history if message.get("role") == "user"]) == 1
+                and conversation.get("title", "New Chat") == "New Chat"
+            ):
                 conversation["title"] = prompt.strip()
-            save_json_db(convs, CONV_DB_FILE)
+            save_generation_conversation(conv_id, conversation)
             raise
         finally:
             if upstream is not None:
                 upstream.close()
+            unregister_active_generation(generation_id, generation)
 
     return Response(
         stream_with_context(generate()),
@@ -1384,6 +1663,16 @@ def import_conversations():
                 "role": message["role"],
                 "content": message["content"],
             })
+            if message["role"] == "user" and isinstance(message.get("prompt"), str):
+                try:
+                    edit_prompt, edit_attachments = build_edit_metadata(
+                        message["prompt"],
+                        message.get("attachments", []),
+                    )
+                except ValueError:
+                    return jsonify({"error": "The export contains invalid editable message details."}), 400
+                validated_messages[-1]["prompt"] = edit_prompt
+                validated_messages[-1]["attachments"] = edit_attachments
             if isinstance(message.get("model"), str) and len(message["model"]) <= 200:
                 validated_messages[-1]["model"] = message["model"]
             if isinstance(message.get("comparison_id"), str) and len(message["comparison_id"]) <= 64:
@@ -1426,31 +1715,32 @@ def rename_conversation(conv_id):
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({"error": "Conversation updates must be a JSON object."}), 400
-    convs = load_json_db(CONV_DB_FILE)
-    conversation = get_owned_conversation(convs, conv_id)
-    if conversation is None:
-        return jsonify({"error": "Conversation not found."}), 404
+    with conversation_db_lock:
+        convs = load_json_db(CONV_DB_FILE)
+        conversation = get_owned_conversation(convs, conv_id)
+        if conversation is None:
+            return jsonify({"error": "Conversation not found."}), 404
 
-    if "title" in data:
-        new_title = data["title"]
-        if not isinstance(new_title, str) or not new_title.strip() or len(new_title.strip()) > 120:
-            return jsonify({"error": "Conversation titles must contain 1 to 120 characters."}), 400
-        conversation["title"] = new_title.strip()
-    if "folder" in data:
-        folder = data["folder"]
-        if folder is None:
-            folder = ""
-        if not isinstance(folder, str) or len(folder.strip()) > 64:
-            return jsonify({"error": "Folder names must be 64 characters or fewer."}), 400
-        conversation["folder"] = folder.strip()
-    if "pinned" in data:
-        if not isinstance(data["pinned"], bool):
-            return jsonify({"error": "Pinned must be true or false."}), 400
-        conversation["pinned"] = data["pinned"]
-    if not any(key in data for key in ("title", "folder", "pinned")):
-        return jsonify({"error": "No supported conversation fields were provided."}), 400
+        if "title" in data:
+            new_title = data["title"]
+            if not isinstance(new_title, str) or not new_title.strip() or len(new_title.strip()) > 120:
+                return jsonify({"error": "Conversation titles must contain 1 to 120 characters."}), 400
+            conversation["title"] = new_title.strip()
+        if "folder" in data:
+            folder = data["folder"]
+            if folder is None:
+                folder = ""
+            if not isinstance(folder, str) or len(folder.strip()) > 64:
+                return jsonify({"error": "Folder names must be 64 characters or fewer."}), 400
+            conversation["folder"] = folder.strip()
+        if "pinned" in data:
+            if not isinstance(data["pinned"], bool):
+                return jsonify({"error": "Pinned must be true or false."}), 400
+            conversation["pinned"] = data["pinned"]
+        if not any(key in data for key in ("title", "folder", "pinned")):
+            return jsonify({"error": "No supported conversation fields were provided."}), 400
 
-    save_json_db(convs, CONV_DB_FILE)
+        save_json_db(convs, CONV_DB_FILE)
     return jsonify({
         "success": True,
         "title": conversation.get("title", "New Chat"),
@@ -1461,25 +1751,38 @@ def rename_conversation(conv_id):
 
 @app.route('/api/conversations/<conv_id>/messages/<int:message_index>', methods=['PUT'])
 def edit_user_message(conv_id, message_index):
-    data = request.get_json()
-    content = data.get("content") if data else None
-    if not isinstance(content, str) or not content.strip():
-        return jsonify({"error": "Message content cannot be empty."}), 400
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Message updates must be a JSON object."}), 400
+    content = data.get("content")
+    attachments = data.get("attachments", [])
+    try:
+        message_content = build_user_message_content(content, attachments)
+        edit_prompt, edit_attachments = build_edit_metadata(content, attachments)
+    except ValueError as error:
+        return jsonify({"error": str(error)}), 400
 
     convs = load_json_db(CONV_DB_FILE)
     conversation = get_owned_conversation(convs, conv_id)
     if conversation is None:
         return jsonify({"error": "Conversation not found."}), 404
     messages = conversation.get("messages", [])
-    if message_index >= len(messages) or messages[message_index].get("role") != "user":
+    if message_index < 0 or message_index >= len(messages) or messages[message_index].get("role") != "user":
         return jsonify({"error": "Only your own user messages can be edited."}), 400
 
-    messages[message_index]["content"] = content.strip()
+    messages[message_index]["content"] = message_content
+    messages[message_index]["prompt"] = edit_prompt
+    messages[message_index]["attachments"] = edit_attachments
     conversation["messages"] = messages[:message_index + 1]
-    conversation["title"] = next(
-        (message["content"] for message in conversation["messages"] if message.get("role") == "user"),
-        "New Chat",
+    first_user_message = next(
+        (message for message in conversation["messages"] if message.get("role") == "user"),
+        None,
     )
+    title = first_user_message.get("prompt") if first_user_message else None
+    if not isinstance(title, str):
+        legacy_content = first_user_message.get("content") if first_user_message else None
+        title = legacy_content if isinstance(legacy_content, str) else edit_prompt
+    conversation["title"] = title
     save_json_db(convs, CONV_DB_FILE)
     return jsonify({"messages": conversation["messages"]})
 

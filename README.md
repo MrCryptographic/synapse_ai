@@ -22,11 +22,11 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 - **Prompt library** — save reusable prompt templates and insert them into the composer with one click
 - **Color themes** — choose Ember, Ocean, Forest, Violet, or Rose from Settings; your choice is saved in your browser
 - **Smooth response streaming** — responses stream with a paced reveal by default; click Stop to cancel a generation
-- **File attachments** — attach PNG/JPEG/WebP images, PDFs, or UTF-8 text files (up to five files per message; PDFs are limited to 30 pages)
+- **File attachments** — attach, remove, or update PNG/JPEG/WebP images, PDFs, or UTF-8 text files while composing or editing a message (up to five files per message; PDFs are limited to 30 pages)
 - **Optional web search** — search the web with Tavily and include cited result URLs in the model's context; the app reports free-credit usage and exhaustion
 - **Model comparison** — stream responses from two different models side by side and keep both answers in the conversation
 - **Read aloud** — use your browser's speech synthesis to listen to assistant responses; no microphone or dictation is used
-- **Editable prompts** — edit a user message to discard later turns and regenerate from the revised prompt
+- **Editable prompts and attachments** — edit a user message, add or remove its attachments, discard later turns, and regenerate from the revised message
 - **Message copying** — copy user prompts or assistant responses from the message actions
 - **Message appearance** — choose bubble, clean, or soft-card layouts and sans, serif, or monospace text
 - **Keyboard controls** — Enter sends, Ctrl+Enter regenerates the latest response, and Shift+Enter adds a line; Markdown shortcuts format selected text
@@ -35,6 +35,8 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 - **System prompt & generation params** — tweak temperature, top-p, top-k, repeat penalty, max tokens, and seed from a dedicated settings panel
 - **Quick presets** — one-click Precise / Balanced / Creative configurations
 - **Markdown rendering** — user prompts and AI responses render with sanitized Markdown, including code blocks
+- **Optional Markdown toolbar** — show formatting buttons from Settings; keyboard shortcuts remain available when the toolbar is hidden
+- **Model picker** — search models in a pop-up selector; model IDs containing common uncensored/unfiltered terms are marked NSFW
 - **Live resource usage** — CPU and RAM displayed in the sidebar, updated in real time over WebSocket
 - **Host notifications** — desktop alerts on your machine whenever a generation starts, showing the model name and time
 - **Boop button** — lets any network user send a notification ping to the host machine
@@ -113,6 +115,7 @@ plyer
 psutil
 Flask-SocketIO
 pypdf
+Pillow
 ```
 
 > **Note for Linux users:** `plyer` desktop notifications may require additional setup depending on your desktop environment. On headless servers, notifications will silently fail — everything else still works.
