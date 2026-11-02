@@ -555,7 +555,7 @@ def index():
 @app.route('/api/models', methods=['GET'])
 def get_models():
     try:
-        response = requests.get(f"{LM_STUDIO_URL_BASE}/models")
+        response = requests.get(f"{LM_STUDIO_URL_BASE}/models", timeout=(3, 10))
         response.raise_for_status()
         all_models = response.json().get('data', [])
         filtered_ids = [
@@ -1539,31 +1539,32 @@ def get_conversations():
     for conv_id, details in convs.items():
         if details.get("owner_id") != session["user_id"]:
             continue
-        messages = details.get("messages", [])
-        if not isinstance(messages, list):
-            messages = []
-        searchable_text = " ".join(
-            [
-                str(details.get("title", "")),
-                str(details.get("folder", "")),
-                *[
-                    message["content"]
-                    for message in messages
-                    if isinstance(message, dict) and isinstance(message.get("content"), str)
-                ],
-                *[
-                    part["text"]
-                    for message in messages
-                    if isinstance(message, dict) and isinstance(message.get("content"), list)
-                    for part in message["content"]
-                    if isinstance(part, dict)
-                    and part.get("type") == "text"
-                    and isinstance(part.get("text"), str)
-                ],
-            ]
-        ).casefold()
-        if search_term and search_term not in searchable_text:
-            continue
+        if search_term:
+            messages = details.get("messages", [])
+            if not isinstance(messages, list):
+                messages = []
+            searchable_text = " ".join(
+                [
+                    str(details.get("title", "")),
+                    str(details.get("folder", "")),
+                    *[
+                        message["content"]
+                        for message in messages
+                        if isinstance(message, dict) and isinstance(message.get("content"), str)
+                    ],
+                    *[
+                        part["text"]
+                        for message in messages
+                        if isinstance(message, dict) and isinstance(message.get("content"), list)
+                        for part in message["content"]
+                        if isinstance(part, dict)
+                        and part.get("type") == "text"
+                        and isinstance(part.get("text"), str)
+                    ],
+                ]
+            ).casefold()
+            if search_term not in searchable_text:
+                continue
         conv_list.append({
             "id": conv_id,
             "title": details.get("title", "New Chat"),
@@ -1793,7 +1794,8 @@ if __name__ == '__main__':
         server_options["request_handler"] = NoReverseDNSRequestHandler
     socketio.run(
         app,
-        host=os.environ.get("SYNAPSE_HOST", "127.0.0.1"),
+        # host=os.environ.get("SYNAPSE_HOST", "127.0.0.1"),
+        host=os.environ.get("SYNAPSE_HOST", "192.168.1.190"),
         port=int(os.environ.get("SYNAPSE_PORT", "6767")),
         debug=False,
         **server_options,

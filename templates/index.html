@@ -6,11 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     <meta name="account-id" content="{{ session['user_id'] }}">
     <title>Synapse</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         :root {
             --bg-deep:      #0e0f11;
@@ -33,9 +28,9 @@
             --radius-lg:    14px;
             --radius-md:    10px;
             --radius-sm:    6px;
-            --font-display: 'Syne', sans-serif;
-            --font-body:    'DM Sans', sans-serif;
-            --font-mono:    'DM Mono', monospace;
+            --font-display: system-ui, sans-serif;
+            --font-body:    system-ui, sans-serif;
+            --font-mono:    ui-monospace, SFMono-Regular, Consolas, monospace;
             --left-sidebar-w:  275px;
             --right-sidebar-w: 300px;
             --transition:   0.22s cubic-bezier(0.4, 0, 0.2, 1);
@@ -850,14 +845,19 @@
             #sidebar { position: fixed; height: 100%; transform: translateX(-100%); }
             #sidebar.visible { transform: translateX(0); }
             #sidebar-backdrop.visible { display: block; }
+            #sidebar-backdrop { backdrop-filter: none; }
+            #sidebar::before, #main-content::before { display: none; }
             #chat-header { display: flex; }
             .chat-tab .more-options-btn { display: block; }
+            .chat-tab { animation: none; }
             .message-actions { opacity: 1; }
-            #chat-window { padding: 52px 14px 20px; }
+            #chat-window { padding: 52px 14px 20px; scroll-behavior: auto; }
             #input-area { padding: 10px 12px 14px; }
             #right-sidebar { position: fixed; right: 0; top: 0; height: 100%; z-index: 200; }
             #right-sidebar.open { width: var(--right-sidebar-w); border-left-width: 0; }
             #settings-toggle-btn { top: 10px; right: 10px; }
+            #model-picker-menu { backdrop-filter: none; animation: none; }
+            #slow-notice { animation: none; }
         }
     </style>
 </head>
@@ -942,7 +942,7 @@
         <!-- MAIN -->
         <main id="main-content">
             <header id="chat-header">
-                <button id="menu-btn" aria-label="Open Menu">
+                <button id="menu-btn" aria-label="Open Menu" aria-controls="sidebar" aria-expanded="false">
                     <div class="hamburger-icon"><span></span><span></span><span></span></div>
                 </button>
                 <div id="header-title" style="font-family:var(--font-display);font-weight:700;">Synapse</div>
@@ -1221,6 +1221,9 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='vendor/marked.umd.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/purify.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
     <script>
         const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose'];
         const AVAILABLE_MESSAGE_STYLES = ['bubble', 'clean', 'paper'];
@@ -2545,8 +2548,16 @@
             } catch(e) { addMessageToChat('assistant', `Failed to load: ${e.message}`); }
         }
 
-        function showSidebar() { sidebar.classList.add('visible'); backdrop.classList.add('visible'); }
-        function hideSidebar()  { sidebar.classList.remove('visible'); backdrop.classList.remove('visible'); }
+        function showSidebar() {
+            sidebar.classList.add('visible');
+            backdrop.classList.add('visible');
+            menuBtn.setAttribute('aria-expanded', 'true');
+        }
+        function hideSidebar() {
+            sidebar.classList.remove('visible');
+            backdrop.classList.remove('visible');
+            menuBtn.setAttribute('aria-expanded', 'false');
+        }
 
         async function createNewConversation() {
             try { const n = await fetchAPI('/conversations', { method: 'POST' }); await loadConversation(n.id); }
@@ -2576,7 +2587,7 @@
         }
 
         async function initialize() {
-            await populateModels();
+            populateModels();
             try {
                 const c = await fetchAPI('/conversations');
                 activeConversationId = null;
