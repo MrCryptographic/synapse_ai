@@ -8,6 +8,7 @@
     <title>Synapse</title>
     <style>
         :root {
+            color-scheme: dark;
             --bg-deep:      #0e0f11;
             --bg-mid:       #141519;
             --bg-surface:   #1c1d23;
@@ -24,15 +25,14 @@
             --user-bubble:  #1e2433;
             --user-border:  rgba(232,168,56,0.25);
             --ai-bubble:    #191b22;
-            --radius-xl:    20px;
-            --radius-lg:    14px;
-            --radius-md:    10px;
-            --radius-sm:    6px;
+            --radius-xl:    14px;
+            --radius-lg:    10px;
+            --radius-md:    7px;
+            --radius-sm:    4px;
             --font-display: system-ui, sans-serif;
             --font-body:    system-ui, sans-serif;
             --font-mono:    ui-monospace, SFMono-Regular, Consolas, monospace;
             --left-sidebar-w:  275px;
-            --right-sidebar-w: 300px;
             --transition:   0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
         :root[data-theme="ocean"] {
@@ -107,20 +107,155 @@
             --user-border: rgba(240, 139, 164, 0.25);
             --ai-bubble: #24191d;
         }
-        :root[data-message-style="clean"] .message {
-            background: transparent !important;
-            border-color: transparent !important;
-            border-radius: 0 !important;
-            padding: 6px 0 !important;
+        :root[data-theme="midnight"] {
+            --bg-deep: #0b1020;
+            --bg-mid: #10182b;
+            --bg-surface: #18233a;
+            --bg-raised: #22314d;
+            --accent: #82aaff;
+            --accent-dim: #5e80d2;
+            --accent-glow: rgba(130, 170, 255, 0.15);
+            --accent-glow2: rgba(130, 170, 255, 0.06);
+            --text-primary: #edf2ff;
+            --text-secondary: #aab8d5;
+            --text-muted: #7181a1;
+            --border: rgba(220, 232, 255, 0.08);
+            --border-lit: rgba(130, 170, 255, 0.32);
+            --user-bubble: #1d2b47;
+            --user-border: rgba(130, 170, 255, 0.25);
+            --ai-bubble: #121b2e;
         }
-        :root[data-message-style="paper"] .message {
-            background: var(--bg-mid) !important;
-            border: 1px solid var(--border) !important;
-            border-radius: var(--radius-md) !important;
-            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);
+        :root[data-theme="aurora"] {
+            --bg-deep: #0b1518;
+            --bg-mid: #102125;
+            --bg-surface: #193034;
+            --bg-raised: #254247;
+            --accent: #78e0c1;
+            --accent-dim: #44b99b;
+            --accent-glow: rgba(120, 224, 193, 0.15);
+            --accent-glow2: rgba(120, 224, 193, 0.06);
+            --text-primary: #e9f8f4;
+            --text-secondary: #a5c4bc;
+            --text-muted: #6d9389;
+            --border: rgba(220, 255, 246, 0.08);
+            --border-lit: rgba(120, 224, 193, 0.32);
+            --user-bubble: #1a3534;
+            --user-border: rgba(120, 224, 193, 0.25);
+            --ai-bubble: #132426;
         }
+        :root[data-theme="sakura"] {
+            --bg-deep: #19121a;
+            --bg-mid: #241923;
+            --bg-surface: #312330;
+            --bg-raised: #443044;
+            --accent: #f3a6c8;
+            --accent-dim: #ce79a1;
+            --accent-glow: rgba(243, 166, 200, 0.15);
+            --accent-glow2: rgba(243, 166, 200, 0.06);
+            --text-primary: #fbf0f7;
+            --text-secondary: #cbb0c2;
+            --text-muted: #90778a;
+            --border: rgba(255, 230, 246, 0.08);
+            --border-lit: rgba(243, 166, 200, 0.32);
+            --user-bubble: #3a2737;
+            --user-border: rgba(243, 166, 200, 0.25);
+            --ai-bubble: #261b27;
+        }
+        :root[data-theme="slate"] {
+            --bg-deep: #111417;
+            --bg-mid: #191e23;
+            --bg-surface: #232a31;
+            --bg-raised: #303942;
+            --accent: #bac8d6;
+            --accent-dim: #8d9eae;
+            --accent-glow: rgba(186, 200, 214, 0.15);
+            --accent-glow2: rgba(186, 200, 214, 0.06);
+            --text-primary: #eef2f5;
+            --text-secondary: #b0bbc4;
+            --text-muted: #78848e;
+            --border: rgba(235, 243, 249, 0.08);
+            --border-lit: rgba(186, 200, 214, 0.32);
+            --user-bubble: #29323b;
+            --user-border: rgba(186, 200, 214, 0.25);
+            --ai-bubble: #1c2228;
+        }
+        :root[data-theme="daylight"] {
+            color-scheme: light;
+            --bg-deep: #f5f1eb;
+            --bg-mid: #eee8df;
+            --bg-surface: #faf7f1;
+            --bg-raised: #e4dbcf;
+            --accent: #d97742;
+            --accent-dim: #aa542c;
+            --accent-glow: rgba(188, 91, 44, 0.15);
+            --accent-glow2: rgba(188, 91, 44, 0.06);
+            --text-primary: #28231f;
+            --text-secondary: #625a52;
+            --text-muted: #83796f;
+            --border: rgba(61, 44, 31, 0.12);
+            --border-lit: rgba(170, 84, 44, 0.38);
+            --user-bubble: #f3e4d7;
+            --user-border: rgba(170, 84, 44, 0.26);
+            --ai-bubble: #faf7f1;
+        }
+        :root[data-theme="daylight"] .ai-message code { background: rgba(0, 0, 0, 0.06); }
+        :root[data-theme="custom"] {
+            --accent-dim: color-mix(in srgb, var(--accent) 78%, #111);
+            --accent-glow: color-mix(in srgb, var(--accent) 15%, transparent);
+            --accent-glow2: color-mix(in srgb, var(--accent) 6%, transparent);
+            --border: color-mix(in srgb, var(--text-primary) 9%, transparent);
+            --border-lit: color-mix(in srgb, var(--accent) 34%, transparent);
+            --user-border: color-mix(in srgb, var(--accent) 38%, transparent);
+            color-scheme: dark;
+        }
+        :root[data-theme="custom"][data-custom-light="true"] { color-scheme: light; }
+        :root[data-message-style="clean"] .message-container {
+            width: min(100%, 860px); margin: 0 auto 28px; padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        :root[data-message-style="clean"] .message-role-label {
+            margin: 0 0 6px 12px; color: var(--accent); letter-spacing: .14em;
+        }
+        :root[data-message-style="clean"] .message-container .message {
+            width: 100%; max-width: 100%; padding: 4px 12px 4px 16px;
+            background: transparent !important; border: 0 !important;
+            border-left: 3px solid var(--accent) !important; border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+        :root[data-message-style="clean"] .message-container.user-message .message {
+            border-left-color: var(--accent-dim) !important; text-align: right;
+        }
+        :root[data-message-style="paper"] .message-container {
+            width: min(88%, 760px); margin: 0 auto 24px; padding: 16px 18px 17px;
+            gap: 5px; background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: 4px 20px 20px 20px; box-shadow: 0 14px 36px rgba(0,0,0,.18);
+        }
+        :root[data-message-style="paper"] .message-container.user-message {
+            border-top: 3px solid var(--accent); border-radius: 20px 4px 20px 20px;
+            background: linear-gradient(140deg, var(--user-bubble), var(--bg-surface));
+        }
+        :root[data-message-style="paper"] .message-container.ai-message {
+            border-left: 3px solid var(--accent-dim);
+            background: linear-gradient(140deg, var(--bg-surface), var(--ai-bubble));
+        }
+        :root[data-message-style="paper"] .message-role-label {
+            margin: 0 0 3px; padding: 0; color: var(--accent); letter-spacing: .13em;
+        }
+        :root[data-message-style="paper"] .message-container .message {
+            width: 100%; max-width: 100%; padding: 3px 0;
+            background: transparent !important; border: 0 !important;
+            border-radius: 0 !important; box-shadow: none !important;
+        }
+        :root[data-theme-density="compact"] #chat-window { gap: 8px; }
+        :root[data-theme-density="compact"] .message-container { margin-bottom: 12px; }
+        :root[data-chat-width="wide"] .message-container { max-width: 1100px; }
+        :root[data-chat-width="wide"][data-message-style="clean"] .message-container { width: min(100%, 1100px); }
+        #app-container[data-sidebar-position="right"] #sidebar { order: 2; border-right: 0; border-left: 1px solid var(--border); }
+        #app-container[data-sidebar-position="right"] #main-content { order: 1; }
+        :root[data-show-sidebar-stats="false"] #resource-usage { display: none; }
         :root[data-message-font="serif"] .message { font-family: Georgia, "Times New Roman", serif; font-size: 1em; }
         :root[data-message-font="mono"] .message { font-family: var(--font-mono); font-size: 0.84em; }
+        :root[data-message-font="uploaded"] .message { font-family: var(--uploaded-message-font, var(--font-body)); }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -129,10 +264,11 @@
             overflow: hidden; -webkit-font-smoothing: antialiased;
         }
 
-        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--bg-raised); border-radius: 99px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(18px); }
@@ -173,17 +309,20 @@
         #slow-notice-close:hover { background: var(--accent-glow); transform: rotate(90deg); }
 
         /* ── Layout ── */
-        #app-container { display: flex; height: 100vh; transition: padding-top var(--transition); }
+        #app-container { display: flex; height: 100vh; height: 100dvh; transition: padding-top var(--transition); }
 
         /* ── Left sidebar ── */
         #sidebar {
             width: var(--left-sidebar-w);
+            flex: 0 0 var(--left-sidebar-w);
+            min-width: 0; overflow: hidden;
             background: var(--bg-mid);
             display: flex; flex-direction: column;
             border-right: 1px solid var(--border);
             flex-shrink: 0; z-index: 100;
-            transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+            transition: width 0.3s cubic-bezier(0.4,0,0.2,1), flex-basis 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1), border-color var(--transition);
             position: relative;
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.08);
         }
         #sidebar::before {
             content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -275,6 +414,11 @@
         .model-picker-option-copy { min-width: 0; flex: 1; }
         .model-picker-option-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.83em; font-weight: 600; }
         .model-picker-option-id { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; color: var(--text-muted); font: 0.68em var(--font-mono); }
+        .model-picker-option-description { display: block; margin-top: 5px; color: var(--text-secondary); font-size: 0.72em; line-height: 1.4; white-space: normal; }
+        .model-picker-option-rating { display: block; margin-top: 4px; color: var(--accent); font-size: 0.7em; }
+        .model-picker-community-actions { display: flex; gap: 7px; padding: 8px; border-top: 1px solid var(--border); }
+        .model-picker-community-actions button { flex: 1; padding: 7px; color: var(--text-secondary); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font: 0.72em var(--font-body); }
+        .model-picker-community-actions button:hover { color: var(--accent); border-color: var(--border-lit); }
         .model-picker-empty { padding: 12px 8px; color: var(--text-muted); font-size: 0.8em; text-align: center; }
         .theme-label { color: var(--text-secondary); display: block; font-size: 0.82em; margin-bottom: 7px; }
         .theme-selector {
@@ -284,6 +428,17 @@
         }
         .theme-selector:focus { border-color: var(--border-lit); box-shadow: 0 0 0 3px var(--accent-glow2); }
         .theme-selector option { background: var(--bg-surface); color: var(--text-primary); }
+        .theme-tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+        .theme-color-field { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: .75em; }
+        .theme-color-field input { width: 36px; height: 30px; padding: 2px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-surface); cursor: pointer; }
+        .theme-color-field input[type="checkbox"] { width: auto; height: auto; padding: 0; border: 0; }
+        .theme-style-field { display: flex; flex-direction: column; gap: 5px; color: var(--text-secondary); font-size: .75em; }
+        .theme-style-field select { width: 100%; padding: 7px; color: var(--text-primary); background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .appearance-actions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 9px; }
+        .appearance-actions button { padding: 8px 10px; color: var(--text-primary); background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font: 600 .76em var(--font-body); }
+        .appearance-actions button:hover { border-color: var(--border-lit); }
+        .appearance-hint { margin-top: 7px; color: var(--text-muted); font-size: .72em; line-height: 1.4; }
+        .appearance-status { min-height: 1.3em; margin-top: 6px; color: var(--accent); font-size: .75em; }
         .appearance-select { margin-top: 10px; }
         .streaming-setting { align-items: flex-start; display: flex; gap: 10px; }
         .streaming-setting input { accent-color: var(--accent); margin-top: 3px; }
@@ -314,6 +469,15 @@
             color: var(--accent); border-color: var(--border-lit); background: var(--accent-glow2);
         }
         #import-conversations-file { display: none; }
+        #roleplay-link, #moderation-link {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; margin-top: 9px; padding: 9px 12px;
+            color: var(--accent); background: var(--accent-glow2);
+            border: 1px solid var(--border-lit); border-radius: var(--radius-md);
+            text-decoration: none; font-size: 0.8em; font-weight: 700;
+            transition: transform var(--transition), background var(--transition);
+        }
+        #roleplay-link:hover, #moderation-link:hover { transform: translateY(-2px); background: var(--accent-glow); }
         .tabs-label {
             font-size: 0.67em; color: var(--text-muted); font-weight: 600;
             letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 6px 6px;
@@ -364,7 +528,9 @@
         /* ── Main content ── */
         #main-content {
             flex-grow: 1; display: flex; flex-direction: column;
-            min-width: 0; background: var(--bg-deep); position: relative;
+            min-width: 0;
+            background: radial-gradient(ellipse at 50% -20%, var(--accent-glow2), transparent 55%), var(--bg-deep);
+            position: relative;
         }
         #main-content::before {
             content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
@@ -388,6 +554,23 @@
         .hamburger-icon { width: 20px; height: 14px; display: flex; flex-direction: column; justify-content: space-between; }
         .hamburger-icon span { display: block; height: 2px; width: 100%; background: var(--text-secondary); border-radius: 2px; }
         #menu-btn:hover .hamburger-icon span { background: var(--text-primary); }
+        #desktop-sidebar-toggle {
+            position: absolute; top: 14px; left: 14px; z-index: 20;
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; color: var(--text-secondary);
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); cursor: pointer;
+            transition: color var(--transition), border-color var(--transition), background var(--transition);
+        }
+        #desktop-sidebar-toggle:hover, #desktop-sidebar-toggle[aria-expanded="false"] {
+            color: var(--accent); border-color: var(--border-lit); background: var(--accent-glow2);
+        }
+        #desktop-sidebar-toggle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+        @media (min-width: 769px) {
+            #app-container.sidebar-collapsed #sidebar {
+                width: 0; flex-basis: 0; border-right-color: transparent;
+            }
+        }
 
         /* Settings toggle button — floats top-right of main area */
         #settings-toggle-btn {
@@ -417,6 +600,7 @@
             width: 52px; height: 52px; background: var(--accent);
             border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;
             box-shadow: 0 0 28px var(--accent-glow); margin-bottom: 6px;
+            transform: rotate(-4deg);
         }
         .welcome-icon svg { width: 26px; height: 26px; stroke: #000; }
         #welcome-screen h2 { font-family: var(--font-display); font-size: 1.7em; font-weight: 800; letter-spacing: -0.02em; }
@@ -429,6 +613,7 @@
             transition: color var(--transition), border-color var(--transition), background var(--transition);
         }
         .welcome-prompt:hover { color: var(--accent); border-color: var(--border-lit); background: var(--accent-glow2); }
+        .welcome-prompt { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08); }
 
         /* ── Messages ── */
         .message-container {
@@ -481,6 +666,44 @@
             padding: 2px 5px; border-radius: 4px; font-size: 0.86em;
         }
         .ai-message pre code { background: none; padding: 0; }
+        .ai-message pre { position: relative; padding-top: 38px; }
+        .code-actions {
+            position: absolute; top: 6px; right: 7px;
+            display: flex; gap: 5px;
+        }
+        .code-action {
+            padding: 4px 7px; color: var(--text-secondary);
+            background: var(--bg-surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); cursor: pointer; font: 600 0.72em var(--font-body);
+        }
+        .code-action:hover { color: var(--accent); border-color: var(--border-lit); }
+        #code-viewer {
+            position: fixed; inset: 0; z-index: 1200;
+            display: none; padding: 24px; background: rgba(5, 7, 11, 0.88);
+            backdrop-filter: blur(12px);
+        }
+        #code-viewer.open { display: flex; animation: fadeIn 0.18s ease; }
+        .code-viewer-panel {
+            display: flex; flex-direction: column; width: min(1200px, 100%);
+            height: min(900px, 100%); margin: auto; overflow: hidden;
+            background: var(--bg-mid); border: 1px solid var(--border-lit);
+            border-radius: var(--radius-xl); box-shadow: 0 30px 100px rgba(0,0,0,.5);
+        }
+        .code-viewer-header {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 12px 16px; border-bottom: 1px solid var(--border);
+        }
+        .code-viewer-actions { display: flex; gap: 7px; }
+        .code-viewer-actions button {
+            padding: 7px 10px; color: var(--text-primary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
+        }
+        .code-viewer-actions button:hover { border-color: var(--border-lit); }
+        #code-viewer-content {
+            flex: 1; min-height: 0; margin: 0; padding: 18px; overflow: auto;
+            color: var(--text-primary); background: var(--bg-deep);
+            font: 0.88em/1.6 var(--font-mono); white-space: pre;
+        }
         .ai-message p:first-child { margin-top: 0; }
         .ai-message p:last-child  { margin-bottom: 0; }
         .ai-message h1,.ai-message h2,.ai-message h3 { font-family: var(--font-display); margin: 14px 0 6px; }
@@ -490,7 +713,43 @@
         .ai-message blockquote { border-left: 3px solid var(--border-lit); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
         .message-attachment-image { display: block; max-width: min(100%, 480px); max-height: 360px; margin-top: 8px; border-radius: var(--radius-md); object-fit: contain; }
         .message-actions { display: flex; gap: 4px; margin-top: 7px; opacity: 0; transition: opacity 0.2s; }
-        .message-container:hover .message-actions { opacity: 1; }
+        .message-container:hover .message-actions, .message-container:focus-within .message-actions { opacity: 1; }
+        .message-token-count { margin-top: 5px; color: var(--text-muted); font: 0.68em var(--font-mono); }
+        .response-rating { display: flex; align-items: center; gap: 5px; margin-left: auto; }
+        .response-rating button { padding: 3px 6px; color: var(--text-muted); background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; font: 0.75em var(--font-body); }
+        .response-rating button:hover, .response-rating button[aria-pressed="true"] { color: var(--accent); border-color: var(--border-lit); background: var(--accent-glow2); }
+        #conversation-token-summary { flex: 0 0 auto; padding: 0 22px 4px; color: var(--text-muted); text-align: right; font: 0.68em var(--font-mono); }
+        #sidebar-model-picker-slot { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+        #sidebar-model-picker-slot #model-selector-container { min-width: 0; }
+        #sidebar-model-picker-slot #active-model-label { font-size: 0.72em; }
+        #sidebar-model-picker-slot #model-picker-trigger { min-height: 38px; padding: 8px 10px; }
+        @keyframes streamedCharacterIn {
+            from { opacity: 0; filter: blur(2px); transform: translateY(3px); }
+            to { opacity: 1; filter: blur(0); transform: translateY(0); }
+        }
+        .message .streaming-char { animation: streamedCharacterIn 0.18s ease-out both; }
+        .message-thinking {
+            width: min(80%, 700px); margin-bottom: 8px; overflow: hidden;
+            color: var(--text-secondary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            font-size: 0.82em;
+        }
+        .message-thinking summary {
+            padding: 8px 11px; color: var(--accent); cursor: pointer; font-weight: 600;
+        }
+        .message-thinking summary:hover { background: var(--accent-glow2); }
+        .message-thinking-body {
+            padding: 0 11px 10px; border-top: 1px solid var(--border);
+            line-height: 1.55; overflow-wrap: anywhere;
+        }
+        .message-thinking-body p { margin: 8px 0; }
+        .message-thinking-body p:last-child { margin-bottom: 0; }
+        .message-thinking-body pre {
+            margin: 8px 0; padding: 9px; overflow-x: auto;
+            background: var(--bg-deep); border-radius: var(--radius-sm);
+            font: 0.9em var(--font-mono);
+        }
+        .message-thinking-body code { font-family: var(--font-mono); }
         .action-btn {
             background: var(--bg-surface); border: 1px solid var(--border);
             border-radius: var(--radius-sm); cursor: pointer; padding: 5px 7px;
@@ -515,7 +774,8 @@
         #input-area {
             display: flex; align-items: flex-end;
             padding: 13px 20px 16px; border-top: 1px solid var(--border);
-            background: var(--bg-mid); position: relative; z-index: 1;
+            background: linear-gradient(180deg, var(--bg-mid), var(--bg-deep));
+            position: relative; z-index: 1;
         }
         .input-compose { width: 100%; min-width: 0; }
         #markdown-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px 2px; }
@@ -575,24 +835,21 @@
 
         /* ── RIGHT sidebar ── */
         #right-sidebar {
-            width: 0; overflow: hidden;
-            background: var(--bg-mid);
-            border-left: 0px solid var(--border);
-            flex-shrink: 0; z-index: 90;
-            display: flex; flex-direction: column;
-            transition: width 0.35s cubic-bezier(0.4,0,0.2,1), border-left-width 0.1s linear;
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            width: 100%; height: 100vh; height: 100dvh; overflow-y: auto;
+            background: var(--bg-deep); overscroll-behavior: contain;
         }
-        #right-sidebar.open { width: var(--right-sidebar-w); border-left-width: 1px; }
+        #right-sidebar.open { display: flex; justify-content: center; }
 
         #right-sidebar-inner {
-            width: var(--right-sidebar-w); height: 100%;
-            display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0;
+            width: 100%; max-width: 1280px; min-height: 100%;
+            display: flex; flex-direction: column; flex-shrink: 0;
         }
 
         .rs-header {
-            padding: 17px 16px 13px; border-bottom: 1px solid var(--border);
+            min-height: 66px; padding: 14px clamp(16px, 4vw, 40px); border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-            position: sticky; top: 0; background: var(--bg-mid); z-index: 1;
+            position: sticky; top: 0; background: var(--bg-deep); z-index: 3;
         }
         .rs-header h2 {
             font-family: var(--font-display); font-size: 0.97em; font-weight: 800;
@@ -606,9 +863,25 @@
         }
         #rs-close-btn:hover { color: var(--text-primary); background: var(--bg-surface); }
 
-        .rs-body { padding: 16px; flex: 1; }
+        #settings-nav {
+            position: sticky; top: 66px; z-index: 2; display: flex; flex-wrap: wrap; gap: 7px;
+            padding: 10px clamp(16px, 4vw, 40px); background: color-mix(in srgb, var(--bg-deep) 94%, transparent);
+            border-bottom: 1px solid var(--border); backdrop-filter: blur(14px);
+        }
+        #settings-nav button {
+            padding: 7px 10px; color: var(--text-secondary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: 99px; cursor: pointer;
+            font: 600 .75em var(--font-body);
+        }
+        #settings-nav button:hover { color: var(--accent); border-color: var(--border-lit); }
+        .rs-body {
+            width: 100%; padding: 20px clamp(16px, 4vw, 40px) 42px; flex: 1;
+            display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 24px;
+            align-content: start;
+        }
 
-        .rs-section { margin-bottom: 20px; }
+        .rs-section { min-width: 0; margin-bottom: 20px; scroll-margin-top: 136px; }
+        .rs-section.wide { grid-column: 1 / -1; }
         .rs-section-title {
             font-size: 0.66em; color: var(--text-muted); font-weight: 700;
             letter-spacing: 0.09em; text-transform: uppercase;
@@ -742,6 +1015,14 @@
             display: none; text-align: center; font-size: 0.78em;
             color: var(--accent); margin-top: 10px; animation: fadeIn 0.3s ease;
         }
+        #settings-models .model-picker-wrap { max-width: 620px; }
+        #settings-models .conversation-data-actions { max-width: 620px; }
+        #settings-host .sidebar-footer-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        #settings-host #logout-form { grid-column: 1 / -1; }
+        #settings-host .footer-button { margin-top: 0; }
+        #settings-host #resource-usage { max-width: 620px; margin-bottom: 18px; }
+        #settings-host .settings-host-title { margin-bottom: 12px; }
+        #apply-settings-btn { grid-column: 1 / -1; position: sticky; bottom: 10px; z-index: 1; width: min(340px, 100%); justify-self: center; }
 
         /* ── Nickname list ── */
         #nickname-list { display: flex; flex-direction: column; gap: 6px; }
@@ -839,10 +1120,13 @@
 
         /* ── Mobile ── */
         @media (max-width: 768px) {
-            :root { --right-sidebar-w: 92vw; }
+            #desktop-sidebar-toggle { display: none; }
+            #sidebar-model-picker-slot { display: none; }
             #slow-notice { flex-direction: column; text-align: center; padding: 13px 14px; }
             #slow-notice-close { margin-top: 6px; width: auto; padding: 6px 20px; border-radius: var(--radius-md); height: auto; }
             #sidebar { position: fixed; height: 100%; transform: translateX(-100%); }
+            #app-container[data-sidebar-position="right"] #sidebar { right: 0; left: auto; transform: translateX(100%); border-left: 1px solid var(--border); }
+            #app-container[data-sidebar-position="right"] #sidebar.visible { transform: translateX(0); }
             #sidebar.visible { transform: translateX(0); }
             #sidebar-backdrop.visible { display: block; }
             #sidebar-backdrop { backdrop-filter: none; }
@@ -852,9 +1136,12 @@
             .chat-tab { animation: none; }
             .message-actions { opacity: 1; }
             #chat-window { padding: 52px 14px 20px; scroll-behavior: auto; }
+            #conversation-token-summary { padding: 0 14px 4px; }
             #input-area { padding: 10px 12px 14px; }
-            #right-sidebar { position: fixed; right: 0; top: 0; height: 100%; z-index: 200; }
-            #right-sidebar.open { width: var(--right-sidebar-w); border-left-width: 0; }
+            #right-sidebar { height: 100dvh; }
+            #settings-nav { top: 66px; flex-wrap: nowrap; overflow-x: auto; }
+            .rs-body { display: block; padding-top: 14px; }
+            .rs-section { margin-bottom: 24px; }
             #settings-toggle-btn { top: 10px; right: 10px; }
             #model-picker-menu { backdrop-filter: none; animation: none; }
             #slow-notice { animation: none; }
@@ -885,28 +1172,11 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     New Chat
                 </button>
-                <div id="model-selector-container">
-                    <label id="active-model-label">Active Model</label>
-                    <div class="model-picker-wrap">
-                        <select id="model-selector" aria-hidden="true" tabindex="-1"><option>Loading models...</option></select>
-                        <button id="model-picker-trigger" type="button" aria-labelledby="active-model-label model-picker-name" aria-haspopup="dialog" aria-expanded="false">
-                            <span class="model-picker-orb" aria-hidden="true"></span>
-                            <span id="model-picker-name">Loading models…</span>
-                            <span id="model-picker-nsfw"></span>
-                            <span class="model-picker-chevron" aria-hidden="true">⌄</span>
-                        </button>
-                        <div id="model-picker-menu" role="dialog" aria-label="Choose a model">
-                            <input id="model-picker-search" type="search" placeholder="Search models…" aria-label="Search models">
-                            <div id="model-picker-options" role="listbox" aria-label="Available models"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="conversation-data-actions">
-                    <button id="export-conversations-btn" type="button">Export chats</button>
-                    <button id="import-conversations-btn" type="button">Import chats</button>
-                    <input id="import-conversations-file" type="file" accept="application/json,.json">
-                </div>
+                <a id="roleplay-link" href="/roleplay">✦ Roleplay Studio</a>
+                <a id="community-library-link" href="/library">Community library</a>
+                {% if moderator %}<a id="moderation-link" href="/approvelibrary">Community moderation</a>{% endif %}
             </div>
+            <div id="sidebar-model-picker-slot" aria-label="Model picker"></div>
             <div id="conversation-filters">
                 <input id="conversation-search" type="search" placeholder="Search conversations…" aria-label="Search conversations">
                 <select id="folder-filter" aria-label="Filter by folder">
@@ -915,26 +1185,6 @@
                 </select>
             </div>
             <div id="chat-tabs"><div class="tabs-label">Conversations</div></div>
-            <div id="sidebar-footer">
-                <ul id="resource-usage">
-                    <li><span>CPU</span><div class="stat-bar"><div id="cpu-bar" class="stat-bar-inner"></div></div></li>
-                    <li><span>RAM</span><div class="stat-bar"><div id="ram-bar" class="stat-bar-inner"></div></div></li>
-                    <li title="VRAM is reported when nvidia-smi or rocm-smi is available on the host.">
-                        <span>VRAM</span><div class="stat-bar"><div id="vram-bar" class="stat-bar-inner"></div></div>
-                        <div id="vram-display" style="font-size:0.72em;color:var(--text-muted);min-width:72px;text-align:right;">Checking…</div>
-                    </li>
-                </ul>
-                <button id="feedback-btn" class="footer-button">
-                    <img src="/static/icons/feedback.svg" alt="Feedback"><span>Send Feedback</span>
-                </button>
-                <button id="boop-btn" class="footer-button">
-                    <img src="/static/icons/boop.svg" alt="Boop"><span>Boop the Host</span>
-                </button>
-                <form id="logout-form" method="post" action="{{ url_for('logout') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                    <button type="submit" class="footer-button">Sign out</button>
-                </form>
-            </div>
         </aside>
 
         <div id="sidebar-backdrop"></div>
@@ -949,7 +1199,10 @@
                 <div style="width:40px;"></div>
             </header>
 
-            <button id="settings-toggle-btn" title="Model Settings">
+            <button id="desktop-sidebar-toggle" type="button" aria-label="Collapse conversation sidebar" aria-controls="sidebar" aria-expanded="true" title="Collapse conversation sidebar">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 10l-3 2 3 2"/></svg>
+            </button>
+            <button id="settings-toggle-btn" title="Settings" aria-controls="right-sidebar" aria-expanded="false">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
                     <circle cx="12" cy="12" r="3"/>
@@ -971,9 +1224,13 @@
                         <button class="welcome-prompt" type="button" data-starter-prompt="Explain a difficult concept in simple terms.">Explain a concept</button>
                         <button class="welcome-prompt" type="button" data-starter-prompt="Help me brainstorm ideas for a project.">Brainstorm ideas</button>
                         <button class="welcome-prompt" type="button" data-starter-prompt="Help me understand or improve some code.">Get coding help</button>
+                        <button class="welcome-prompt" type="button" data-starter-prompt="Summarize this for me and pull out the key takeaways: ">Summarize text</button>
+                        <button class="welcome-prompt" type="button" data-starter-prompt="Help me make a practical plan for: ">Make a plan</button>
+                        <button class="welcome-prompt" type="button" data-starter-prompt="Give me a few creative approaches to: ">Explore ideas</button>
                     </div>
                 </div>
             </div>
+            <div id="conversation-token-summary" aria-live="polite">Approx. 0 tokens in conversation</div>
 
             <div id="input-area">
                 <div class="input-compose">
@@ -1003,22 +1260,62 @@
         </main>
 
         <!-- RIGHT SIDEBAR (Settings) -->
-        <aside id="right-sidebar">
+        <aside id="right-sidebar" role="dialog" aria-modal="true" aria-labelledby="settings-heading" aria-hidden="true">
             <div id="right-sidebar-inner">
                 <div class="rs-header">
-                    <h2>
+                    <h2 id="settings-heading">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
                             <circle cx="12" cy="12" r="3"/>
                         </svg>
-                        Model Settings
+                        Settings
                     </h2>
-                    <button id="rs-close-btn">✕</button>
+                    <button id="rs-close-btn" aria-label="Close settings">✕</button>
                 </div>
 
-                <div class="rs-body">
+                    <nav id="settings-nav" aria-label="Settings sections">
+                        <button type="button" data-settings-target="settings-models">Models & data</button>
+                        <button type="button" data-settings-target="settings-appearance">Appearance</button>
+                        <button type="button" data-settings-target="settings-generation">Generation</button>
+                        <button type="button" data-settings-target="settings-knowledge">Knowledge</button>
+                        <button type="button" data-settings-target="settings-system-prompt">System prompt</button>
+                        <button type="button" data-settings-target="settings-prompts">Prompt library</button>
+                        <button type="button" data-settings-target="settings-host">Host & account</button>
+                    </nav>
 
-                    <div class="rs-section">
+                    <div class="rs-body">
+
+                        <div class="rs-section wide" id="settings-models">
+                            <div class="rs-section-title">Models & conversation data</div>
+                            <div id="settings-model-picker-slot"></div>
+                            <div id="model-selector-container">
+                                <label id="active-model-label">Active Model</label>
+                                <div class="model-picker-wrap">
+                                    <select id="model-selector" aria-hidden="true" tabindex="-1"><option>Loading models...</option></select>
+                                    <button id="model-picker-trigger" type="button" aria-labelledby="active-model-label model-picker-name" aria-haspopup="dialog" aria-expanded="false">
+                                        <span class="model-picker-orb" aria-hidden="true"></span>
+                                        <span id="model-picker-name">Loading models…</span>
+                                        <span id="model-picker-nsfw"></span>
+                                        <span class="model-picker-chevron" aria-hidden="true">⌄</span>
+                                    </button>
+                                    <div id="model-picker-menu" role="dialog" aria-label="Choose a model">
+                                        <input id="model-picker-search" type="search" placeholder="Search models…" aria-label="Search models">
+                                        <div id="model-picker-options" role="listbox" aria-label="Available models"></div>
+                                        <div class="model-picker-community-actions">
+                                            <button id="model-submit-btn" type="button">Submit model</button>
+                                            <button id="model-report-btn" type="button">Report model</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="conversation-data-actions">
+                                <button id="export-conversations-btn" type="button">Export chats</button>
+                                <button id="import-conversations-btn" type="button">Import chats</button>
+                                <input id="import-conversations-file" type="file" accept="application/json,.json">
+                            </div>
+                        </div>
+
+                        <div class="rs-section wide" id="settings-appearance">
                         <div class="rs-section-title">Appearance</div>
                         <label for="theme-selector" class="theme-label">Color theme</label>
                         <select id="theme-selector" class="theme-selector">
@@ -1027,7 +1324,61 @@
                             <option value="forest">Forest</option>
                             <option value="violet">Violet</option>
                             <option value="rose">Rose</option>
+                            <option value="midnight">Midnight</option>
+                            <option value="aurora">Aurora</option>
+                            <option value="sakura">Sakura</option>
+                            <option value="slate">Slate</option>
+                            <option value="daylight">Daylight</option>
                         </select>
+                        <label for="theme-name-input" class="theme-label appearance-select">Create a custom theme</label>
+                        <input id="theme-name-input" class="library-input" maxlength="50" placeholder="Theme name">
+                        <input id="theme-description-input" class="library-input" maxlength="160" placeholder="Short community description" style="margin-top:7px;">
+                        <input id="theme-idea-input" class="library-input" maxlength="1200" placeholder="Describe a mood for AI generation" style="margin-top:7px;">
+                        <div class="theme-tool-grid" id="theme-color-grid">
+                            <label class="theme-color-field">Deep background <input type="color" data-theme-color="bg_deep"></label>
+                            <label class="theme-color-field">Panel background <input type="color" data-theme-color="bg_mid"></label>
+                            <label class="theme-color-field">Surface <input type="color" data-theme-color="bg_surface"></label>
+                            <label class="theme-color-field">Raised surface <input type="color" data-theme-color="bg_raised"></label>
+                            <label class="theme-color-field">Accent <input type="color" data-theme-color="accent"></label>
+                            <label class="theme-color-field">Main text <input type="color" data-theme-color="text_primary"></label>
+                            <label class="theme-color-field">Muted text <input type="color" data-theme-color="text_secondary"></label>
+                            <label class="theme-color-field">Your messages <input type="color" data-theme-color="user_bubble"></label>
+                            <label class="theme-color-field">AI messages <input type="color" data-theme-color="ai_bubble"></label>
+                        </div>
+                        <div class="theme-tool-grid" id="theme-style-grid">
+                            <label class="theme-style-field">Message style
+                                <select data-theme-style="message_style"><option value="bubble">Bubble</option><option value="clean">Clean</option><option value="paper">Soft cards</option></select>
+                            </label>
+                            <label class="theme-style-field">Layout density
+                                <select data-theme-style="density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select>
+                            </label>
+                            <label class="theme-style-field">Sidebar position
+                                <select data-theme-style="sidebar_position"><option value="left">Left</option><option value="right">Right</option></select>
+                            </label>
+                            <label class="theme-style-field">Chat width
+                                <select data-theme-style="chat_width"><option value="normal">Normal</option><option value="wide">Wide</option></select>
+                            </label>
+                            <label class="theme-style-field">Text font
+                                <select data-theme-style="font"><option value="sans">Sans</option><option value="serif">Serif</option><option value="mono">Monospace</option></select>
+                            </label>
+                            <label class="theme-style-field">Corner radius
+                                <input data-theme-style="corner_radius" type="range" min="0" max="24" step="1" value="14">
+                            </label>
+                            <label class="theme-color-field"><input data-theme-style="show_sidebar_stats" type="checkbox" checked> Show host stats</label>
+                        </div>
+                        <div class="appearance-actions">
+                            <button id="generate-theme-btn" type="button">Generate with AI</button>
+                            <button id="save-theme-btn" type="button">Save theme</button>
+                            <button id="delete-theme-btn" type="button" disabled>Delete saved theme</button>
+                            <button id="publish-theme-btn" type="button">Publish to library</button>
+                        </div>
+                        <input id="theme-import-input" type="file" accept=".json,application/json" hidden>
+                        <div class="appearance-actions">
+                            <button id="export-theme-btn" type="button">Export theme</button>
+                            <button id="import-theme-btn" type="button">Import theme</button>
+                        </div>
+                        <p class="appearance-hint">Preview colors and layout as you edit. Community themes are reviewed before appearing for everyone; customizations use validated style controls, not executable CSS.</p>
+                        <div id="theme-status" class="appearance-status" role="status" aria-live="polite"></div>
                         <label for="message-style-selector" class="theme-label appearance-select">Message style</label>
                         <select id="message-style-selector" class="theme-selector">
                             <option value="bubble">Bubbles</option>
@@ -1040,13 +1391,35 @@
                             <option value="serif">Serif</option>
                             <option value="mono">Monospace</option>
                         </select>
+                        <label for="font-upload-input" class="theme-label appearance-select">Your local fonts</label>
+                        <select id="uploaded-font-selector" class="theme-selector" aria-label="Uploaded font">
+                            <option value="">No uploaded font selected</option>
+                        </select>
+                        <input id="font-upload-input" type="file" accept=".woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf" hidden>
+                        <div class="appearance-actions">
+                            <button id="upload-font-btn" type="button">Upload font</button>
+                            <button id="delete-font-btn" type="button">Delete selected font</button>
+                        </div>
+                        <p class="appearance-hint">Font files are stored on this Synapse server for your account (up to 10 MB each).</p>
+                        <label class="streaming-setting" for="ui-sounds-toggle" style="margin-top:10px;">
+                            <input id="ui-sounds-toggle" type="checkbox" checked>
+                            <span>Enable interface sounds</span>
+                        </label>
+                        <label for="sound-profile-selector" class="theme-label appearance-select">Sound profile</label>
+                        <select id="sound-profile-selector" class="theme-selector">
+                            <option value="soft">Soft tones</option>
+                            <option value="typewriter">Typewriter</option>
+                            <option value="arcade">Arcade</option>
+                            <option value="synth">Warm synth</option>
+                        </select>
+                        <div class="appearance-actions"><button id="preview-sound-btn" type="button">Preview sounds</button></div>
                         <label class="streaming-setting" for="markdown-toolbar-toggle" style="margin-top:10px;">
                             <input id="markdown-toolbar-toggle" type="checkbox">
                             <span>Show Markdown formatting buttons</span>
                         </label>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-response">
                         <div class="rs-section-title">Response</div>
                         <label class="streaming-setting" for="streaming-toggle">
                             <input id="streaming-toggle" type="checkbox">
@@ -1057,9 +1430,30 @@
                             <span>Search the web before answering (query sent to Tavily)</span>
                         </label>
                         <div id="web-search-status" class="profile-hint" role="status" aria-live="polite">Web search is off.</div>
+                        <label class="streaming-setting" for="use-knowledge-toggle" style="margin-top:10px;">
+                            <input id="use-knowledge-toggle" type="checkbox">
+                            <span>Use my private knowledge library (RAG)</span>
+                        </label>
+                        <div id="knowledge-status" class="profile-hint" role="status" aria-live="polite">No knowledge sources loaded.</div>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-knowledge">
+                        <div class="rs-section-title">Knowledge Library</div>
+                        <label for="knowledge-url" class="theme-label">Read a website</label>
+                        <input id="knowledge-url" class="library-input" type="url" maxlength="2048" placeholder="https://example.org/guide">
+                        <div class="appearance-actions"><button id="knowledge-add-website" type="button">Import site pages</button></div>
+                        <p class="appearance-hint">Imports up to 8 public pages from the same hostname. Local/private network URLs are blocked.</p>
+                        <input id="knowledge-file-input" type="file" accept=".txt,.md,.markdown,.html,.htm,.pdf" multiple hidden>
+                        <input id="knowledge-folder-input" type="file" accept=".txt,.md,.markdown,.html,.htm,.pdf" webkitdirectory directory multiple hidden>
+                        <div class="appearance-actions">
+                            <button id="knowledge-upload-files" type="button">Upload files</button>
+                            <button id="knowledge-upload-folder" type="button">Upload a folder</button>
+                        </div>
+                        <p class="appearance-hint">Folder upload reads only files you select in the browser; it never scans folders automatically.</p>
+                        <div id="knowledge-sources" class="prompt-library-list"></div>
+                    </div>
+
+                    <div class="rs-section" id="settings-comparison">
                         <div class="rs-section-title">Model Comparison</div>
                         <label class="streaming-setting" for="compare-model-toggle">
                             <input id="compare-model-toggle" type="checkbox">
@@ -1071,13 +1465,13 @@
                         </select>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-system-prompt">
                         <div class="rs-section-title">System Prompt</div>
-                        <textarea id="system-prompt" rows="6" placeholder="You are a helpful assistant…"></textarea>
+                        <textarea id="system-prompt" rows="6" maxlength="10000" placeholder="You are a helpful assistant…"></textarea>
                         <div class="system-prompt-hint">Sets the AI's persona and behavior. Applied to every new message sent.</div>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-prompts">
                         <div class="rs-section-title">Prompt Library</div>
                         <div class="library-form">
                             <input id="prompt-template-name" class="library-input" type="text" maxlength="60" placeholder="Template name" aria-label="Prompt template name">
@@ -1089,7 +1483,7 @@
                         <div id="prompt-library-list"></div>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-presets">
                         <div class="rs-section-title">Quick Presets</div>
                         <div class="preset-row">
                             <button class="preset-btn" data-preset="precise">Precise</button>
@@ -1098,7 +1492,7 @@
                         </div>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-profiles">
                         <div class="rs-section-title">Saved Model Profiles</div>
                         <div class="profile-form">
                             <input id="profile-name" class="profile-input" type="text" maxlength="60" placeholder="Profile name" aria-label="Profile name">
@@ -1114,7 +1508,7 @@
                         </div>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-generation">
                         <div class="rs-section-title">Generation</div>
 
                         <div class="param-row">
@@ -1163,7 +1557,7 @@
                         </div>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-context">
                         <div class="rs-section-title">Context</div>
                         <div class="param-row">
                             <div class="param-label"><span>Seed</span></div>
@@ -1172,16 +1566,37 @@
                         </div>
                     </div>
 
-                    <div class="rs-section">
+                    <div class="rs-section" id="settings-nicknames">
                         <div class="rs-section-title">Model Nicknames</div>
                         <div id="nickname-list">
                             <div class="nickname-empty">Load models to set nicknames.</div>
                         </div>
-                        <div class="system-prompt-hint" style="margin-top:8px;">Nicknames are local to your browser session. The real model ID is always sent to LM Studio.</div>
+                        <div class="system-prompt-hint" style="margin-top:8px;">Nicknames are local to your browser session. The real model ID is sent to the configured model backend.</div>
                     </div>
 
-                    <div class="rs-section">
-                        <div class="rs-section-title">Delete Account</div>
+                    <div class="rs-section wide" id="settings-host">
+                        <div class="rs-section-title">Host & account</div>
+                        <ul id="resource-usage">
+                            <li><span>CPU</span><div class="stat-bar"><div id="cpu-bar" class="stat-bar-inner"></div></div></li>
+                            <li><span>RAM</span><div class="stat-bar"><div id="ram-bar" class="stat-bar-inner"></div></div></li>
+                            <li title="VRAM is reported when nvidia-smi or rocm-smi is available on the host.">
+                                <span>VRAM</span><div class="stat-bar"><div id="vram-bar" class="stat-bar-inner"></div></div>
+                                <div id="vram-display" style="font-size:0.72em;color:var(--text-muted);min-width:72px;text-align:right;">Checking…</div>
+                            </li>
+                        </ul>
+                        <div class="sidebar-footer-tools">
+                            <button id="feedback-btn" class="footer-button" type="button">
+                                <img src="/static/icons/feedback.svg" alt=""><span>Send Feedback</span>
+                            </button>
+                            <button id="boop-btn" class="footer-button" type="button">
+                                <img src="/static/icons/boop.svg" alt=""><span>Boop the Host</span>
+                            </button>
+                            <form id="logout-form" method="post" action="{{ url_for('logout') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit" class="footer-button">Sign out</button>
+                            </form>
+                        </div>
+                        <div class="rs-section-title settings-host-title">Delete account</div>
                         <div class="account-delete-warning">Permanently delete your account and all conversations saved under it. This cannot be undone.</div>
                         <label for="delete-account-password" class="theme-label" style="margin-top:10px;">Current password</label>
                         <input id="delete-account-password" type="password" autocomplete="current-password" maxlength="1024">
@@ -1198,6 +1613,7 @@
     <!-- Context menu -->
     <div id="context-menu">
         <div class="context-menu-item" id="rename-btn">Rename</div>
+        <div class="context-menu-item" id="lock-btn">Lock with password</div>
         <div class="context-menu-item" id="pin-btn">Pin</div>
         <div class="context-menu-item" id="folder-btn">Move to folder</div>
         <div class="context-menu-item danger" id="delete-btn">Delete</div>
@@ -1217,6 +1633,18 @@
                     <button type="button" id="feedback-cancel-btn">Cancel</button>
                     <button type="submit" id="feedback-submit-btn">Submit</button>
                 </div>
+                <div id="code-viewer" role="dialog" aria-modal="true" aria-labelledby="code-viewer-title">
+                    <div class="code-viewer-panel">
+                        <div class="code-viewer-header">
+                            <strong id="code-viewer-title">Code preview</strong>
+                            <div class="code-viewer-actions">
+                                <button id="code-download-btn" type="button">Download file</button>
+                                <button id="code-viewer-close" type="button" aria-label="Close code preview">Close</button>
+                            </div>
+                        </div>
+                        <pre id="code-viewer-content"></pre>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
@@ -1225,15 +1653,27 @@
     <script src="{{ url_for('static', filename='vendor/purify.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
     <script>
-        const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose'];
+        const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose', 'midnight', 'aurora', 'sakura', 'slate', 'daylight'];
         const AVAILABLE_MESSAGE_STYLES = ['bubble', 'clean', 'paper'];
         const AVAILABLE_MESSAGE_FONTS = ['sans', 'serif', 'mono'];
         const themeSelector = document.getElementById('theme-selector');
+        const themeNameInput = document.getElementById('theme-name-input');
+        const themeDescriptionInput = document.getElementById('theme-description-input');
+        const themeIdeaInput = document.getElementById('theme-idea-input');
+        const themeStatus = document.getElementById('theme-status');
+        const themeColorInputs = [...document.querySelectorAll('[data-theme-color]')];
+        const themeStyleInputs = [...document.querySelectorAll('[data-theme-style]')];
         const messageStyleSelector = document.getElementById('message-style-selector');
         const messageFontSelector = document.getElementById('message-font-selector');
+        const uploadedFontSelector = document.getElementById('uploaded-font-selector');
+        const soundProfileSelector = document.getElementById('sound-profile-selector');
+        const uiSoundsToggle = document.getElementById('ui-sounds-toggle');
         const streamingToggle = document.getElementById('streaming-toggle');
         const webSearchToggle = document.getElementById('web-search-toggle');
         const webSearchStatus = document.getElementById('web-search-status');
+        const useKnowledgeToggle = document.getElementById('use-knowledge-toggle');
+        const knowledgeStatus = document.getElementById('knowledge-status');
+        const knowledgeSources = document.getElementById('knowledge-sources');
         const compareModelToggle = document.getElementById('compare-model-toggle');
         const compareModelSelector = document.getElementById('compare-model-selector');
         const markdownToolbarToggle = document.getElementById('markdown-toolbar-toggle');
@@ -1253,7 +1693,13 @@
             const initialFont = AVAILABLE_MESSAGE_FONTS.includes(savedFont) ? savedFont : 'sans';
             document.documentElement.dataset.messageFont = initialFont;
             messageFontSelector.value = initialFont;
+            uiSoundsToggle.checked = localStorage.getItem('synapse-ui-sounds') !== 'false';
+            const savedSoundProfile = localStorage.getItem('synapse-sound-profile');
+            soundProfileSelector.value = ['soft', 'typewriter', 'arcade', 'synth'].includes(savedSoundProfile)
+                ? savedSoundProfile : 'soft';
             streamingToggle.checked = localStorage.getItem('synapse-streaming') !== 'false';
+            useKnowledgeToggle.checked = localStorage.getItem('synapse-use-knowledge') === 'true';
+            document.getElementById('system-prompt').value = localStorage.getItem('synapse-system-prompt') || '';
             markdownToolbarToggle.checked = localStorage.getItem('synapse-markdown-toolbar') === 'true';
             markdownToolbar.hidden = !markdownToolbarToggle.checked;
         } catch (error) {
@@ -1264,18 +1710,15 @@
             messageStyleSelector.value = 'bubble';
             document.documentElement.dataset.messageFont = 'sans';
             messageFontSelector.value = 'sans';
+            uiSoundsToggle.checked = true;
+            soundProfileSelector.value = 'soft';
             streamingToggle.checked = true;
+            useKnowledgeToggle.checked = false;
             markdownToolbarToggle.checked = false;
             markdownToolbar.hidden = true;
         }
         themeSelector.addEventListener('change', () => {
-            const selectedTheme = AVAILABLE_THEMES.includes(themeSelector.value) ? themeSelector.value : 'ember';
-            document.documentElement.dataset.theme = selectedTheme;
-            try {
-                localStorage.setItem('synapse-theme', selectedTheme);
-            } catch (error) {
-                console.error('Could not save color theme:', error);
-            }
+            selectTheme(themeSelector.value);
         });
         webSearchToggle.addEventListener('change', () => {
             if (!webSearchToggle.checked) webSearchStatus.textContent = 'Web search is off.';
@@ -1283,6 +1726,7 @@
         messageStyleSelector.addEventListener('change', () => {
             const style = AVAILABLE_MESSAGE_STYLES.includes(messageStyleSelector.value) ? messageStyleSelector.value : 'bubble';
             document.documentElement.dataset.messageStyle = style;
+            document.querySelector('[data-theme-style="message_style"]').value = style;
             try {
                 localStorage.setItem('synapse-message-style', style);
             } catch (error) {
@@ -1292,17 +1736,42 @@
         messageFontSelector.addEventListener('change', () => {
             const font = AVAILABLE_MESSAGE_FONTS.includes(messageFontSelector.value) ? messageFontSelector.value : 'sans';
             document.documentElement.dataset.messageFont = font;
+            document.querySelector('[data-theme-style="font"]').value = font;
+            uploadedFontSelector.value = '';
             try {
                 localStorage.setItem('synapse-message-font', font);
             } catch (error) {
                 console.error('Could not save message font:', error);
             }
         });
+        uiSoundsToggle.addEventListener('change', () => {
+            try {
+                localStorage.setItem('synapse-ui-sounds', String(uiSoundsToggle.checked));
+            } catch (error) {
+                console.error('Could not save interface sound setting:', error);
+            }
+            if (uiSoundsToggle.checked) playUiSound('toggle');
+        });
+        soundProfileSelector.addEventListener('change', () => {
+            try {
+                localStorage.setItem('synapse-sound-profile', soundProfileSelector.value);
+            } catch (error) {
+                console.error('Could not save sound profile:', error);
+            }
+            if (uiSoundsToggle.checked) playUiSound('toggle');
+        });
         streamingToggle.addEventListener('change', () => {
             try {
                 localStorage.setItem('synapse-streaming', String(streamingToggle.checked));
             } catch (error) {
                 console.error('Could not save response streaming setting:', error);
+            }
+        });
+        useKnowledgeToggle.addEventListener('change', () => {
+            try {
+                localStorage.setItem('synapse-use-knowledge', String(useKnowledgeToggle.checked));
+            } catch (error) {
+                console.error('Could not save knowledge retrieval setting:', error);
             }
         });
         markdownToolbarToggle.addEventListener('change', () => {
@@ -1314,9 +1783,103 @@
             }
         });
 
+        let uiAudioContext = null;
+        let lastUiSoundAt = 0;
+        let nextTypingSoundAt = 0;
+        function unlockUiAudio() {
+            if (!uiSoundsToggle.checked || !('AudioContext' in window)) return;
+            try {
+                uiAudioContext ||= new AudioContext();
+                if (uiAudioContext.state === 'suspended') {
+                    uiAudioContext.resume().catch(error => {
+                        console.warn('Could not enable interface sounds:', error);
+                    });
+                }
+            } catch (error) {
+                console.warn('Could not enable interface sounds:', error);
+            }
+        }
+
+        function playUiSound(kind = 'click') {
+            if (!uiSoundsToggle.checked || !('AudioContext' in window)) return;
+            const now = performance.now();
+            if (kind === 'click' && now - lastUiSoundAt < 35) return;
+            lastUiSoundAt = now;
+            try {
+                unlockUiAudio();
+                const profiles = {
+                    soft: { wave: 'sine', click: [660, 0.025, 0.04], toggle: [880, 0.035, 0.06], complete: [740, 0.055, 0.13], typing: [680, 760, 'sine', 0.014] },
+                    typewriter: { wave: 'square', click: [510, 0.018, 0.025], toggle: [760, 0.025, 0.04], complete: [620, 0.035, 0.09], typing: [1180, 1420, 'square', 0.009] },
+                    arcade: { wave: 'square', click: [520, 0.025, 0.055], toggle: [920, 0.03, 0.09], complete: [1040, 0.05, 0.16], typing: [880, 1240, 'square', 0.012] },
+                    synth: { wave: 'triangle', click: [420, 0.03, 0.07], toggle: [660, 0.035, 0.12], complete: [520, 0.06, 0.2], typing: [460, 620, 'triangle', 0.012] }
+                };
+                const profile = profiles[soundProfileSelector.value] || profiles.soft;
+                const [frequency, volume, duration] = profile[kind] || profile.click;
+                const oscillator = uiAudioContext.createOscillator();
+                const gain = uiAudioContext.createGain();
+                const startAt = uiAudioContext.currentTime;
+                oscillator.type = profile.wave;
+                oscillator.frequency.setValueAtTime(frequency, startAt);
+                oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.72, startAt + duration);
+                gain.gain.setValueAtTime(volume, startAt);
+                gain.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
+                oscillator.connect(gain);
+                gain.connect(uiAudioContext.destination);
+                oscillator.start(startAt);
+                oscillator.stop(startAt + duration);
+            } catch (error) {
+                console.warn('Could not play interface sound:', error);
+            }
+        }
+        function playTypingSounds(text) {
+            if (!uiSoundsToggle.checked || !('AudioContext' in window)) return;
+            const letterCount = Array.from(text).filter(character => /\p{L}/u.test(character)).length;
+            if (!letterCount) return;
+            try {
+                unlockUiAudio();
+                const profiles = {
+                    soft: [680, 760, 'sine', 0.014],
+                    typewriter: [1180, 1420, 'square', 0.009],
+                    arcade: [880, 1240, 'square', 0.012],
+                    synth: [460, 620, 'triangle', 0.012]
+                };
+                const [lowFrequency, highFrequency, wave, volume] = profiles[soundProfileSelector.value] || profiles.soft;
+                const startAt = Math.max(uiAudioContext.currentTime + 0.005, nextTypingSoundAt);
+                for (let index = 0; index < letterCount; index += 1) {
+                    const noteAt = startAt + index * 0.006;
+                    const oscillator = uiAudioContext.createOscillator();
+                    const gain = uiAudioContext.createGain();
+                    oscillator.type = wave;
+                    oscillator.frequency.setValueAtTime(index % 2 ? highFrequency : lowFrequency, noteAt);
+                    gain.gain.setValueAtTime(volume, noteAt);
+                    gain.gain.exponentialRampToValueAtTime(0.001, noteAt + 0.018);
+                    oscillator.connect(gain);
+                    gain.connect(uiAudioContext.destination);
+                    oscillator.start(noteAt);
+                    oscillator.stop(noteAt + 0.02);
+                }
+                nextTypingSoundAt = startAt + letterCount * 0.006;
+            } catch (error) {
+                console.warn('Could not play typing sounds:', error);
+            }
+        }
+        document.addEventListener('pointerdown', unlockUiAudio, { once: true });
+        document.addEventListener('keydown', unlockUiAudio, { once: true });
+        document.addEventListener('click', event => {
+            if (event.target.closest('button, [role="button"], .context-menu-item')) {
+                playUiSound();
+            }
+        });
+        document.addEventListener('change', event => {
+            if (event.target.matches('select, input[type="checkbox"]') && event.target !== uiSoundsToggle) {
+                playUiSound('toggle');
+            }
+        });
+
         const sidebar            = document.getElementById('sidebar');
         const backdrop           = document.getElementById('sidebar-backdrop');
         const menuBtn            = document.getElementById('menu-btn');
+        const desktopSidebarToggle = document.getElementById('desktop-sidebar-toggle');
         const headerTitle        = document.getElementById('header-title');
         const chatWindow         = document.getElementById('chat-window');
         const welcomeScreen      = document.getElementById('welcome-screen');
@@ -1339,6 +1902,18 @@
         const modelPickerMenu    = document.getElementById('model-picker-menu');
         const modelPickerSearch  = document.getElementById('model-picker-search');
         const modelPickerOptions = document.getElementById('model-picker-options');
+        const modelPickerSidebarSlot = document.getElementById('sidebar-model-picker-slot');
+        const modelPickerSettingsSlot = document.getElementById('settings-model-picker-slot');
+        const modelSelectorContainer = document.getElementById('model-selector-container');
+        const modelPickerLocation = window.matchMedia('(min-width: 769px)');
+        function placeModelPicker() {
+            (modelPickerLocation.matches ? modelPickerSidebarSlot : modelPickerSettingsSlot)
+                .appendChild(modelSelectorContainer);
+        }
+        placeModelPicker();
+        modelPickerLocation.addEventListener('change', placeModelPicker);
+        const modelSubmitButton = document.getElementById('model-submit-btn');
+        const modelReportButton = document.getElementById('model-report-btn');
         const cpuBar             = document.getElementById('cpu-bar');
         const ramBar             = document.getElementById('ram-bar');
         const vramBar            = document.getElementById('vram-bar');
@@ -1368,7 +1943,8 @@
         let activeConversationId = null;
         let activeGenerationController = null;
         let activeGenerationId = null;
-        let activeSpeechButton = null;
+        let followStreamToBottom = true;
+        let pendingBottomScroll = null;
         let selectedAttachments = [];
         let contextMenuConvId    = null;
         let allConversations     = [];
@@ -1457,6 +2033,15 @@
             document.getElementById('rep-penalty-val').textContent = Number(repSlider.value).toFixed(2);
             genParams = readGenerationSettings();
         }
+        systemPrompt.addEventListener('input', () => {
+            try {
+                localStorage.setItem('synapse-system-prompt', systemPrompt.value);
+            } catch (error) {
+                console.error('Could not save system instructions:', error);
+            }
+            genParams = readGenerationSettings();
+        });
+        genParams = readGenerationSettings();
 
         function loadLocalCollection(storageKey, validateEntry) {
             try {
@@ -1629,25 +2214,78 @@
             setTimeout(() => { settingsSavedBadge.style.display = 'none'; }, 2400);
         });
 
-        // ── Right sidebar toggle
+        function closeSettings() {
+            rightSidebar.classList.remove('open');
+            rightSidebar.setAttribute('aria-hidden', 'true');
+            settingsToggleBtn.classList.remove('active');
+            settingsToggleBtn.setAttribute('aria-expanded', 'false');
+            settingsToggleBtn.focus();
+        }
+
         settingsToggleBtn.addEventListener('click', () => {
             const isOpen = rightSidebar.classList.toggle('open');
             settingsToggleBtn.classList.toggle('active', isOpen);
+            rightSidebar.setAttribute('aria-hidden', String(!isOpen));
+            settingsToggleBtn.setAttribute('aria-expanded', String(isOpen));
+            if (isOpen) {
+                rightSidebar.scrollTop = 0;
+                rsCloseBtn.focus();
+            }
         });
-        rsCloseBtn.addEventListener('click', () => {
-            rightSidebar.classList.remove('open');
-            settingsToggleBtn.classList.remove('active');
+        rsCloseBtn.addEventListener('click', closeSettings);
+        document.querySelectorAll('[data-settings-target]').forEach(button => {
+            button.addEventListener('click', () => {
+                const target = document.getElementById(button.dataset.settingsTarget);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && rightSidebar.classList.contains('open')) {
+                closeSettings();
+            }
+        });
+        rightSidebar.addEventListener('keydown', event => {
+            if (event.key !== 'Tab') return;
+            const focusable = [...rightSidebar.querySelectorAll(
+                'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )].filter(element => element.getClientRects().length > 0);
+            if (!focusable.length) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
         });
 
         // ── Socket.IO
         const socket = io();
-        socket.on('update_stats', stats => {
+        let lastStatsUpdate = 0;
+        function updateResourceStats(stats) {
             cpuBar.style.width      = stats.cpu + '%';
             ramBar.style.width      = stats.ram + '%';
             vramDisplay.textContent = stats.vram.text;
             vramBar.style.width = `${stats.vram.percent}%`;
             vramDisplay.title = stats.vram.title;
-        });
+            lastStatsUpdate = Date.now();
+        }
+        socket.on('update_stats', updateResourceStats);
+        async function refreshResourceStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) throw new Error(`Resource stats request failed: HTTP ${response.status}`);
+                updateResourceStats(await response.json());
+            } catch (error) {
+                console.error('Could not refresh resource stats:', error);
+            }
+        }
+        refreshResourceStats();
+        setInterval(() => {
+            if (Date.now() - lastStatsUpdate > 5000) refreshResourceStats();
+        }, 5000);
 
         // ── Slow notice
         if (!sessionStorage.getItem('slowNoticeDismissed')) {
@@ -1681,7 +2319,512 @@
             } catch(e) { console.error('API Error:', e); throw e; }
         }
 
+        function setKnowledgeStatus(message, isError = false) {
+            knowledgeStatus.textContent = message;
+            knowledgeStatus.style.color = isError ? '#ff9b9b' : '';
+        }
+
+        function renderKnowledgeSources(sources) {
+            knowledgeSources.replaceChildren();
+            if (!sources.length) {
+                const empty = document.createElement('p');
+                empty.className = 'appearance-hint';
+                empty.textContent = 'Your private library is empty.';
+                knowledgeSources.appendChild(empty);
+                setKnowledgeStatus('No knowledge sources loaded.');
+                return;
+            }
+            sources.forEach(source => {
+                const row = document.createElement('div');
+                row.className = 'prompt-library-item';
+                const label = document.createElement('span');
+                label.textContent = `${source.title} · ${source.chunks} chunks`;
+                label.title = source.origin;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.textContent = 'Remove';
+                remove.addEventListener('click', async () => {
+                    remove.disabled = true;
+                    try {
+                        await fetchAPI(`/knowledge/sources/${encodeURIComponent(source.id)}`, { method: 'DELETE' });
+                        await loadKnowledgeSources();
+                        setKnowledgeStatus(`${source.title} removed.`);
+                    } catch (error) {
+                        remove.disabled = false;
+                        setKnowledgeStatus(`Could not remove source: ${error.message}`, true);
+                    }
+                });
+                row.append(label, remove);
+                knowledgeSources.appendChild(row);
+            });
+            setKnowledgeStatus(`${sources.length} private source${sources.length === 1 ? '' : 's'} available.`);
+        }
+
+        async function loadKnowledgeSources() {
+            const sources = await fetchAPI('/knowledge/sources');
+            renderKnowledgeSources(Array.isArray(sources) ? sources : []);
+        }
+
+        async function uploadKnowledgeFiles(fileList) {
+            const files = [...fileList];
+            if (!files.length) return;
+            if (files.length > 100) {
+                setKnowledgeStatus('Select at most 100 files per folder upload.', true);
+                return;
+            }
+            let imported = 0;
+            const errors = [];
+            for (const [index, file] of files.entries()) {
+                setKnowledgeStatus(`Importing ${index + 1} of ${files.length}: ${file.name}`);
+                const form = new FormData();
+                form.append('file', file, file.name);
+                form.append('relative_path', file.webkitRelativePath || file.name);
+                try {
+                    const response = await fetch('/api/knowledge/files', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
+                        body: form
+                    });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+                    imported += 1;
+                } catch (error) {
+                    errors.push(`${file.name}: ${error.message}`);
+                }
+            }
+            await loadKnowledgeSources();
+            if (errors.length) {
+                setKnowledgeStatus(
+                    `${imported} imported; ${errors.length} failed. ${errors.slice(0, 3).join(' · ')}`,
+                    imported === 0
+                );
+            } else {
+                setKnowledgeStatus(`Imported ${imported} file${imported === 1 ? '' : 's'}.`);
+            }
+        }
+
+        document.getElementById('knowledge-add-website').addEventListener('click', async event => {
+            const button = event.currentTarget;
+            const url = document.getElementById('knowledge-url').value.trim();
+            if (!url) {
+                setKnowledgeStatus('Enter a website URL to import.', true);
+                return;
+            }
+            button.disabled = true;
+            setKnowledgeStatus('Reading up to 8 pages from this site…');
+            try {
+                const source = await fetchAPI('/knowledge/websites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                document.getElementById('knowledge-url').value = '';
+                await loadKnowledgeSources();
+                setKnowledgeStatus(`Imported ${source.pages} page${source.pages === 1 ? '' : 's'} from ${source.title}.`);
+            } catch (error) {
+                setKnowledgeStatus(error.message, true);
+            } finally {
+                button.disabled = false;
+            }
+        });
+        document.getElementById('knowledge-upload-files').addEventListener('click', () => document.getElementById('knowledge-file-input').click());
+        document.getElementById('knowledge-upload-folder').addEventListener('click', () => document.getElementById('knowledge-folder-input').click());
+        for (const id of ['knowledge-file-input', 'knowledge-folder-input']) {
+            document.getElementById(id).addEventListener('change', async event => {
+                await uploadKnowledgeFiles(event.currentTarget.files);
+                event.currentTarget.value = '';
+            });
+        }
+
+        const themeColorKeys = ['bg_deep', 'bg_mid', 'bg_surface', 'bg_raised', 'accent', 'text_primary', 'text_secondary', 'user_bubble', 'ai_bubble'];
+        let userThemes = [];
+        let communityThemes = [];
+        let uploadedFonts = [];
+        let themeEditingId = '';
+        let themeEditingScope = '';
+        const loadedFontFaces = new Set();
+
+        function colorToHex(value) {
+            const hex = value.match(/^#([0-9a-f]{6})$/i);
+            if (hex) return `#${hex[1].toLowerCase()}`;
+            const parts = value.match(/[\d.]+/g);
+            if (!parts || parts.length < 3) return '#20242a';
+            return `#${parts.slice(0, 3).map(part => Math.round(Number(part)).toString(16).padStart(2, '0')).join('')}`;
+        }
+
+        function colorsFromCurrentTheme() {
+            const computed = getComputedStyle(document.documentElement);
+            return Object.fromEntries(themeColorKeys.map(key => [
+                key,
+                colorToHex(computed.getPropertyValue(`--${key.replaceAll('_', '-')}`).trim())
+            ]));
+        }
+
+        function readThemeEditor() {
+            const styles = Object.fromEntries(themeStyleInputs.map(input => [
+                input.dataset.themeStyle,
+                input.type === 'checkbox' ? input.checked
+                    : input.type === 'range' ? Number(input.value)
+                    : input.value
+            ]));
+            return {
+                name: themeNameInput.value.trim(),
+                description: themeDescriptionInput.value.trim(),
+                colors: Object.fromEntries(themeColorInputs.map(input => [input.dataset.themeColor, input.value])),
+                styles
+            };
+        }
+
+        function setThemeEditor(theme) {
+            themeEditingId = theme?.id || '';
+            themeEditingScope = theme?.scope || '';
+            document.getElementById('delete-theme-btn').disabled = themeEditingScope !== 'user';
+            themeNameInput.value = theme?.name || '';
+            themeDescriptionInput.value = theme?.description || '';
+            const colors = theme?.colors || colorsFromCurrentTheme();
+            themeColorInputs.forEach(input => {
+                if (colors[input.dataset.themeColor]) input.value = colors[input.dataset.themeColor];
+            });
+            const styles = { corner_radius: 14, density: 'comfortable', sidebar_position: 'left', message_style: 'bubble', font: 'sans', chat_width: 'normal', show_sidebar_stats: true, ...(theme?.styles || {}) };
+            themeStyleInputs.forEach(input => {
+                if (!(input.dataset.themeStyle in styles)) return;
+                if (input.type === 'checkbox') input.checked = styles[input.dataset.themeStyle];
+                else input.value = String(styles[input.dataset.themeStyle]);
+            });
+        }
+
+        function applyThemeStyles(styles = {}) {
+            const root = document.documentElement;
+            const normalized = {
+                corner_radius: 14, density: 'comfortable', sidebar_position: 'left',
+                message_style: 'bubble', font: 'sans', chat_width: 'normal',
+                show_sidebar_stats: true, ...styles
+            };
+            const radius = Math.max(0, Math.min(24, Number(normalized.corner_radius) || 0));
+            root.style.setProperty('--radius-sm', `${Math.round(radius * 0.3)}px`);
+            root.style.setProperty('--radius-md', `${Math.round(radius * 0.5)}px`);
+            root.style.setProperty('--radius-lg', `${Math.round(radius * 0.75)}px`);
+            root.style.setProperty('--radius-xl', `${radius}px`);
+            root.dataset.themeDensity = normalized.density;
+            root.dataset.chatWidth = normalized.chat_width;
+            root.dataset.showSidebarStats = String(normalized.show_sidebar_stats);
+            root.dataset.messageStyle = normalized.message_style;
+            root.dataset.messageFont = normalized.font;
+            document.getElementById('app-container').dataset.sidebarPosition = normalized.sidebar_position;
+            messageStyleSelector.value = normalized.message_style;
+            messageFontSelector.value = normalized.font;
+        }
+
+        function applyThemeColors(colors, styles = {}) {
+            const root = document.documentElement;
+            root.dataset.theme = 'custom';
+            for (const key of themeColorKeys) {
+                root.style.setProperty(`--${key.replaceAll('_', '-')}`, colors[key]);
+            }
+            const bg = colors.bg_deep.slice(1).match(/.{2}/g).map(value => parseInt(value, 16));
+            const brightness = (bg[0] * 299 + bg[1] * 587 + bg[2] * 114) / 1000;
+            root.dataset.customLight = brightness > 150 ? 'true' : 'false';
+            applyThemeStyles(styles);
+        }
+
+        function persistThemeSelection(value) {
+            try {
+                localStorage.setItem('synapse-theme', value);
+            } catch (error) {
+                console.error('Could not save color theme:', error);
+            }
+        }
+
+        function selectTheme(value, persist = true) {
+            themeSelector.value = value;
+            if (AVAILABLE_THEMES.includes(value)) {
+                document.documentElement.dataset.theme = value;
+                document.documentElement.style.removeProperty('--bg-deep');
+                for (const key of themeColorKeys) {
+                    document.documentElement.style.removeProperty(`--${key.replaceAll('_', '-')}`);
+                }
+                delete document.documentElement.dataset.customLight;
+                const theme = [...userThemes, ...communityThemes].find(item => `${item.scope}:${item.id}` === value);
+                const currentStyles = readThemeEditor().styles;
+                setThemeEditor(theme || {
+                    name: themeSelector.selectedOptions[0]?.textContent || 'Custom theme',
+                    colors: colorsFromCurrentTheme(),
+                    styles: currentStyles
+                });
+                applyThemeStyles(theme?.styles || currentStyles);
+            } else {
+                const theme = [...userThemes.map(item => ({ ...item, scope: 'user' })),
+                    ...communityThemes.map(item => ({ ...item, scope: 'library' }))]
+                    .find(item => `${item.scope}:${item.id}` === value);
+                if (!theme) {
+                    selectTheme('ember', persist);
+                    return;
+                }
+                applyThemeColors(theme.colors, theme.styles);
+                setThemeEditor(theme);
+            }
+            if (persist) persistThemeSelection(value);
+        }
+
+        function renderThemeOptions() {
+            themeSelector.querySelectorAll('optgroup').forEach(group => group.remove());
+            const addGroup = (label, scope, themes) => {
+                if (!themes.length) return;
+                const group = document.createElement('optgroup');
+                group.label = label;
+                themes.forEach(theme => group.appendChild(new Option(theme.name, `${scope}:${theme.id}`)));
+                themeSelector.appendChild(group);
+            };
+            addGroup('My themes', 'user', userThemes);
+            addGroup('Community library', 'library', communityThemes);
+        }
+
+        function setThemeStatus(message, isError = false) {
+            themeStatus.textContent = message;
+            themeStatus.style.color = isError ? '#ff9b9b' : '';
+        }
+
+        async function reloadThemes() {
+            const result = await fetchAPI('/themes');
+            userThemes = Array.isArray(result.themes) ? result.themes : [];
+            communityThemes = Array.isArray(result.library) ? result.library : [];
+            renderThemeOptions();
+        }
+
+        async function loadAppearanceData() {
+            setThemeEditor(null);
+            let savedTheme = 'ember';
+            try {
+                savedTheme = localStorage.getItem('synapse-theme') || 'ember';
+            } catch (error) {
+                console.warn('Could not read the saved color theme:', error);
+            }
+            try {
+                await reloadThemes();
+                selectTheme(savedTheme, false);
+            } catch (error) {
+                console.error('Could not load saved themes:', error);
+                setThemeStatus(`Could not load saved themes: ${error.message}`, true);
+                selectTheme(AVAILABLE_THEMES.includes(savedTheme) ? savedTheme : 'ember', false);
+            }
+            try {
+                const result = await fetchAPI('/fonts');
+                uploadedFonts = Array.isArray(result) ? result : [];
+                renderFontOptions();
+                const savedFont = localStorage.getItem('synapse-message-font') || '';
+                const fontId = savedFont.startsWith('uploaded:') ? savedFont.slice('uploaded:'.length) : '';
+                const font = uploadedFonts.find(item => item.id === fontId);
+                if (font) {
+                    uploadedFontSelector.value = `uploaded:${font.id}`;
+                    await applyUploadedFont(font, false);
+                }
+            } catch (error) {
+                console.error('Could not load uploaded fonts:', error);
+            }
+        }
+
+        themeColorInputs.forEach(input => input.addEventListener('input', () => {
+            const theme = readThemeEditor();
+            applyThemeColors(theme.colors, theme.styles);
+        }));
+        themeStyleInputs.forEach(input => input.addEventListener('input', () => {
+            applyThemeStyles(readThemeEditor().styles);
+        }));
+        document.getElementById('save-theme-btn').addEventListener('click', async () => {
+            try {
+                const theme = readThemeEditor();
+                if (themeEditingScope === 'user' && themeEditingId) theme.id = themeEditingId;
+                if (!theme.name) throw new Error('Enter a theme name before saving.');
+                const saved = await fetchAPI('/themes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(theme) });
+                await reloadThemes();
+                selectTheme(`user:${saved.id}`);
+                setThemeStatus(`${saved.name} saved to your themes.`);
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            }
+        });
+        document.getElementById('delete-theme-btn').addEventListener('click', async () => {
+            if (themeEditingScope !== 'user' || !themeEditingId) return;
+            try {
+                await fetchAPI(`/themes/${encodeURIComponent(themeEditingId)}`, { method: 'DELETE' });
+                await reloadThemes();
+                selectTheme('ember');
+                setThemeStatus('Saved theme deleted.');
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            }
+        });
+        document.getElementById('publish-theme-btn').addEventListener('click', async () => {
+            try {
+                const theme = readThemeEditor();
+                if (!theme.name) throw new Error('Enter a theme name before publishing.');
+                await fetchAPI('/themes/library', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(theme) });
+                setThemeStatus('Theme submitted for moderator review. It will join the community library after approval.');
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            }
+        });
+        document.getElementById('generate-theme-btn').addEventListener('click', async event => {
+            const button = event.currentTarget;
+            const model = modelSelector.value;
+            if (!model) {
+                setThemeStatus('Choose an available local model first.', true);
+                return;
+            }
+            button.disabled = true;
+            try {
+                const theme = await fetchAPI('/themes/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model, idea: themeIdeaInput.value.trim() })
+                });
+                setThemeEditor(theme);
+                applyThemeColors(theme.colors, theme.styles);
+                setThemeStatus(`Generated ${theme.name}. Review and save or publish it.`);
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            } finally {
+                button.disabled = false;
+            }
+        });
+        document.getElementById('export-theme-btn').addEventListener('click', () => {
+            const theme = readThemeEditor();
+            if (!theme.name) {
+                setThemeStatus('Name the theme before exporting it.', true);
+                return;
+            }
+            const url = URL.createObjectURL(new Blob([JSON.stringify(theme, null, 2)], { type: 'application/json' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${theme.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'synapse-theme'}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+        document.getElementById('import-theme-btn').addEventListener('click', () => document.getElementById('theme-import-input').click());
+        document.getElementById('theme-import-input').addEventListener('change', async event => {
+            const file = event.currentTarget.files[0];
+            if (!file) return;
+            try {
+                if (file.size > 100_000) throw new Error('Theme files must be 100 KB or smaller.');
+                const theme = JSON.parse(await file.text());
+                if (!theme || typeof theme !== 'object' || typeof theme.name !== 'string'
+                    || !theme.colors || themeColorKeys.some(key => !/^#[0-9a-f]{6}$/i.test(theme.colors[key] || ''))) {
+                    throw new Error('This file does not contain a valid Synapse theme palette.');
+                }
+                setThemeEditor(theme);
+                themeEditingId = '';
+                themeEditingScope = '';
+                applyThemeColors(theme.colors, theme.styles);
+                setThemeStatus(`Imported ${theme.name}. Review and save it to your themes.`);
+            } catch (error) {
+                setThemeStatus(`Could not import theme: ${error.message}`, true);
+            } finally {
+                event.currentTarget.value = '';
+            }
+        });
+
+        function renderFontOptions() {
+            uploadedFontSelector.replaceChildren(new Option('Choose an uploaded font…', ''));
+            if (uploadedFonts.length) {
+                const group = document.createElement('optgroup');
+                group.label = 'Stored on this Synapse server';
+                uploadedFonts.forEach(font => group.appendChild(new Option(font.name, `uploaded:${font.id}`)));
+                uploadedFontSelector.appendChild(group);
+            }
+        }
+
+        async function applyUploadedFont(font, persist = true) {
+            const family = `SynapseUploaded${font.id.replaceAll('-', '')}`;
+            if (!loadedFontFaces.has(font.id)) {
+                const face = new FontFace(family, `url("/api/fonts/${encodeURIComponent(font.id)}/file")`);
+                await face.load();
+                document.fonts.add(face);
+                loadedFontFaces.add(font.id);
+            }
+            document.documentElement.style.setProperty('--uploaded-message-font', `"${family}"`);
+            document.documentElement.dataset.messageFont = 'uploaded';
+            if (persist) {
+                try {
+                    localStorage.setItem('synapse-message-font', `uploaded:${font.id}`);
+                } catch (error) {
+                    console.error('Could not save message font:', error);
+                }
+            }
+        }
+
+        uploadedFontSelector.addEventListener('change', async () => {
+            const fontId = uploadedFontSelector.value.replace(/^uploaded:/, '');
+            const font = uploadedFonts.find(item => item.id === fontId);
+            if (!font) return;
+            try {
+                await applyUploadedFont(font);
+                messageFontSelector.value = 'sans';
+            } catch (error) {
+                setThemeStatus(`Could not load font: ${error.message}`, true);
+            }
+        });
+        document.getElementById('upload-font-btn').addEventListener('click', () => document.getElementById('font-upload-input').click());
+        document.getElementById('font-upload-input').addEventListener('change', async event => {
+            const file = event.currentTarget.files[0];
+            if (!file) return;
+            const form = new FormData();
+            form.append('font', file);
+            try {
+                const response = await fetch('/api/fonts', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
+                    body: form
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+                uploadedFonts.push(result);
+                renderFontOptions();
+                uploadedFontSelector.value = `uploaded:${result.id}`;
+                await applyUploadedFont(result);
+                messageFontSelector.value = 'sans';
+                setThemeStatus(`${result.name} uploaded and saved for your account.`);
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            } finally {
+                event.currentTarget.value = '';
+            }
+        });
+        document.getElementById('delete-font-btn').addEventListener('click', async () => {
+            const fontId = uploadedFontSelector.value.replace(/^uploaded:/, '');
+            if (!fontId) {
+                setThemeStatus('Choose one of your uploaded fonts first.', true);
+                return;
+            }
+            try {
+                await fetchAPI(`/fonts/${encodeURIComponent(fontId)}`, { method: 'DELETE' });
+                uploadedFonts = uploadedFonts.filter(font => font.id !== fontId);
+                loadedFontFaces.delete(fontId);
+                renderFontOptions();
+                uploadedFontSelector.value = '';
+                document.documentElement.dataset.messageFont = 'sans';
+                try {
+                    localStorage.setItem('synapse-message-font', 'sans');
+                } catch (error) {
+                    console.error('Could not save message font:', error);
+                }
+                setThemeStatus('Uploaded font deleted.');
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            }
+        });
+        document.getElementById('preview-sound-btn').addEventListener('click', () => {
+            if (!uiSoundsToggle.checked) {
+                setThemeStatus('Enable interface sounds to preview this profile.', true);
+                return;
+            }
+            playUiSound('click');
+            window.setTimeout(() => playTypingSounds('Synapse'), 80);
+            window.setTimeout(() => playUiSound('complete'), 220);
+        });
+
         async function streamAPI(endpoint, payload, messageElement, controller, renderUpdates) {
+            const startedAt = performance.now();
+            messageElement.dataset.generationStartedAt = String(startedAt);
             const response = await fetch(`/api${endpoint}`, {
                 method: 'POST',
                 headers: {
@@ -1701,7 +2844,9 @@
             const decoder = new TextDecoder();
             let buffer = '';
             let content = '';
+            let thinking = '';
             let completed = false;
+            let cancelled = false;
             let renderTimer = null;
             let renderedCharacters = 0;
             messageElement.classList.add('is-streaming');
@@ -1716,7 +2861,12 @@
                         return;
                     }
                     renderedCharacters = Math.min(characters.length, renderedCharacters + 4);
-                    updateStreamingMessage(messageElement, characters.slice(0, renderedCharacters).join(''));
+                    updateStreamingMessage(
+                        messageElement,
+                        characters.slice(0, renderedCharacters).join(''),
+                        thinking,
+                        true
+                    );
                 }, 24);
             }
 
@@ -1730,7 +2880,13 @@
                     messageElement.dataset.partialContent = content;
                     scheduleRender();
                 }
+                if (event.thinking) {
+                    thinking += event.thinking;
+                    messageElement.dataset.partialThinking = thinking;
+                    updateThinkingBlock(messageElement, thinking, true);
+                }
                 if (event.done) completed = true;
+                if (event.cancelled) cancelled = true;
             }
 
             try {
@@ -1746,14 +2902,19 @@
                 }
                 if (buffer.trim()) processFrame(buffer);
                 if (!completed) throw new Error('The response stream ended unexpectedly.');
-                updateStreamingMessage(messageElement, content);
-                return content;
+                if (!cancelled) playUiSound('complete');
+                updateStreamingMessage(messageElement, content, thinking, renderUpdates);
+                const elapsedSeconds = Math.max(0.1, (performance.now() - startedAt) / 1000);
+                const tokensPerSecond = Math.round(estimateTokenCount(content) / elapsedSeconds);
+                return { content, thinking, tokensPerSecond };
             } finally {
                 if (renderTimer !== null) clearInterval(renderTimer);
             }
         }
 
         async function compareStreamAPI(payload, grid, cards, models, controller) {
+            const startedAt = performance.now();
+            cards.forEach(card => { card.dataset.generationStartedAt = String(startedAt); });
             const response = await fetch('/api/chat/compare/stream', {
                 method: 'POST',
                 headers: {
@@ -1772,10 +2933,12 @@
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             const contentByModel = new Map(models.map(model => [model, '']));
+            const thinkingByModel = new Map(models.map(model => [model, '']));
             const renderedByModel = new Map(models.map(model => [model, 0]));
             const timers = new Map();
             let buffer = '';
             let completed = false;
+            let cancelled = false;
             grid.classList.add('is-streaming');
 
             function scheduleRender(model) {
@@ -1794,7 +2957,7 @@
                     renderedByModel.set(model, next);
                     const visible = characters.slice(0, next).join('');
                     card.dataset.partialContent = content;
-                    updateStreamingMessage(card, visible);
+                    updateStreamingMessage(card, visible, thinkingByModel.get(model) || '', true);
                 }, 24);
                 timers.set(model, timer);
             }
@@ -1811,7 +2974,14 @@
                     card.dataset.partialContent = contentByModel.get(event.model);
                     scheduleRender(event.model);
                 }
+                if (event.thinking && thinkingByModel.has(event.model)) {
+                    thinkingByModel.set(event.model, (thinkingByModel.get(event.model) || '') + event.thinking);
+                    const card = cards[models.indexOf(event.model)];
+                    card.dataset.partialThinking = thinkingByModel.get(event.model);
+                    updateThinkingBlock(card, thinkingByModel.get(event.model), true);
+                }
                 if (event.done) completed = true;
+                if (event.cancelled) cancelled = true;
             }
 
             try {
@@ -1827,9 +2997,20 @@
                 }
                 if (buffer.trim()) processFrame(buffer);
                 if (!completed) throw new Error('The comparison stream ended unexpectedly.');
-                models.forEach((model, index) => updateStreamingMessage(cards[index], contentByModel.get(model) || ''));
+                if (!cancelled) playUiSound('complete');
+                models.forEach((model, index) => updateStreamingMessage(
+                    cards[index],
+                    contentByModel.get(model) || '',
+                    thinkingByModel.get(model) || '',
+                    streamingToggle.checked
+                ));
                 return {
                     contents: models.map(model => contentByModel.get(model) || ''),
+                    thinkings: models.map(model => thinkingByModel.get(model) || ''),
+                    tokensPerSecond: models.map(model => Math.round(
+                        estimateTokenCount(contentByModel.get(model) || '')
+                        / Math.max(0.1, (performance.now() - startedAt) / 1000)
+                    )),
                     comparisonId: grid.dataset.comparisonId
                 };
             } finally {
@@ -1837,11 +3018,76 @@
             }
         }
 
-        function updateStreamingMessage(container, content) {
+        function updateThinkingBlock(container, thinking, animate = false) {
+            let block = container.querySelector('.message-thinking');
+            if (!thinking.trim()) {
+                if (block) block.remove();
+                return;
+            }
+            if (!block) {
+                block = document.createElement('details');
+                block.className = 'message-thinking';
+                const summary = document.createElement('summary');
+                summary.textContent = 'Thinking';
+                const body = document.createElement('div');
+                body.className = 'message-thinking-body';
+                block.append(summary, body);
+                const message = container.querySelector('.message');
+                container.insertBefore(block, message);
+            }
+            const body = block.querySelector('.message-thinking-body');
+            if (body.dataset.rawMarkdown !== thinking) {
+                const previousVisibleLength = Array.from(body.textContent).length;
+                body.dataset.rawMarkdown = thinking;
+                body.innerHTML = DOMPurify.sanitize(marked.parse(thinking));
+                if (animate) {
+                    const visibleAdded = Math.max(0, Array.from(body.textContent).length - previousVisibleLength);
+                    if (visibleAdded) fadeInRecentText(body, visibleAdded);
+                    if (thinking.startsWith(body.dataset.previousThinking || '')) {
+                        playTypingSounds(thinking.slice((body.dataset.previousThinking || '').length));
+                    }
+                }
+                body.dataset.previousThinking = thinking;
+            }
+        }
+
+        function fadeInRecentText(message, characterCount) {
+            let remaining = characterCount;
+            const textNodes = [];
+            const walker = document.createTreeWalker(message, NodeFilter.SHOW_TEXT);
+            while (walker.nextNode()) textNodes.push(walker.currentNode);
+            for (let index = textNodes.length - 1; index >= 0 && remaining > 0; index -= 1) {
+                const textNode = textNodes[index];
+                const characters = Array.from(textNode.textContent);
+                const count = Math.min(remaining, characters.length);
+                if (!count) continue;
+                const splitAt = characters.slice(0, characters.length - count).join('').length;
+                const range = document.createRange();
+                range.setStart(textNode, splitAt);
+                range.setEnd(textNode, textNode.length);
+                const span = document.createElement('span');
+                span.className = 'streaming-char';
+                range.surroundContents(span);
+                remaining -= count;
+            }
+        }
+
+        function updateStreamingMessage(container, content, thinking = '', animate = false) {
+            updateThinkingBlock(container, thinking, animate);
             const message = container.querySelector('.message');
+            const previousVisibleLength = Array.from(message.textContent).length;
+            const previousRaw = message.dataset.rawMarkdown || '';
             message.dataset.rawMarkdown = content;
             message.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            enhanceCodeBlocks(message);
+            if (animate) {
+                const visibleAdded = Math.max(0, Array.from(message.textContent).length - previousVisibleLength);
+                if (visibleAdded) fadeInRecentText(message, visibleAdded);
+                if (content.startsWith(previousRaw)) playTypingSounds(content.slice(previousRaw.length));
+            }
+            updateMessageTokenCount(container, content, thinking);
+            updateConversationTokenSummary();
+            followStreamingOutput();
         }
 
         function setWelcomeVisible(v) { welcomeScreen.style.display = v ? 'flex' : 'none'; }
@@ -1855,9 +3101,36 @@
                 .join('\n');
         }
 
+        function estimateTokenCount(text) {
+            const value = typeof text === 'string' ? text.trim() : '';
+            return value ? Math.max(1, Math.ceil(value.length / 4)) : 0;
+        }
+
+        function updateMessageTokenCount(container, content, thinking = '') {
+            const metadata = container.querySelector('.message-token-count');
+            if (!metadata) return;
+            const tokens = content === '__loading__'
+                ? 0
+                : estimateTokenCount(getPlainMessageText(content) + thinking);
+            const startedAt = Number(container.dataset.generationStartedAt);
+            const elapsed = startedAt ? Math.max(0.1, (performance.now() - startedAt) / 1000) : 0;
+            const speed = elapsed
+                ? Math.round(tokens / elapsed)
+                : Number(container.dataset.tokensPerSecond) || 0;
+            metadata.textContent = `${content === '__loading__' ? 'Generating… · ' : ''}~${tokens} tokens${speed ? ` · ~${speed} tok/s` : ''}`;
+        }
+
+        function updateConversationTokenSummary() {
+            const total = [...chatWindow.querySelectorAll('.message-container .message')]
+                .reduce((sum, message) => sum + estimateTokenCount(message.dataset.rawMarkdown || ''), 0);
+            document.getElementById('conversation-token-summary').textContent =
+                `Approx. ${total.toLocaleString()} tokens in conversation`;
+        }
+
         function renderMessageContent(element, content) {
             if (typeof content === 'string') {
                 element.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
+                enhanceCodeBlocks(element);
                 return;
             }
             if (!Array.isArray(content)) return;
@@ -1878,19 +3151,107 @@
                     element.appendChild(image);
                 }
             });
+            enhanceCodeBlocks(element);
         }
+
+        const codeViewer = document.getElementById('code-viewer');
+        const codeViewerContent = document.getElementById('code-viewer-content');
+        let currentCodeFilename = 'synapse-code.txt';
+        function enhanceCodeBlocks(container) {
+            container.querySelectorAll('pre').forEach((pre, index) => {
+                if (pre.querySelector('.code-actions')) return;
+                const code = pre.querySelector('code');
+                if (!code) return;
+                pre.dataset.codeIndex = String(index + 1);
+                const actions = document.createElement('div');
+                actions.className = 'code-actions';
+                for (const [action, label] of [['open', 'Open'], ['download', 'Download']]) {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'code-action';
+                    button.dataset.codeAction = action;
+                    button.textContent = label;
+                    actions.appendChild(button);
+                }
+                pre.appendChild(actions);
+            });
+        }
+
+        function codeFilename(code, index) {
+            const language = [...code.classList]
+                .find(className => className.startsWith('language-'))
+                ?.slice('language-'.length)
+                .toLowerCase();
+            const extensions = {
+                py: 'py', python: 'py', js: 'js', javascript: 'js', jsx: 'jsx',
+                ts: 'ts', typescript: 'ts', tsx: 'tsx', html: 'html', css: 'css',
+                json: 'json', sh: 'sh', bash: 'sh', sql: 'sql', rs: 'rs',
+                go: 'go', java: 'java', c: 'c', cpp: 'cpp', cs: 'cs',
+                md: 'md', markdown: 'md', yaml: 'yml', yml: 'yml', xml: 'xml',
+                svg: 'svg', toml: 'toml', txt: 'txt'
+            };
+            const extension = extensions[language] || 'txt';
+            return `synapse-code-${index}.${extension}`;
+        }
+
+        function downloadCodeFile(content, filename) {
+            const url = URL.createObjectURL(new Blob([content], { type: 'text/plain;charset=utf-8' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        chatWindow.addEventListener('click', event => {
+            const button = event.target.closest('[data-code-action]');
+            if (!button) return;
+            const pre = button.closest('pre');
+            const code = pre && pre.querySelector('code');
+            if (!code) return;
+            const text = code.textContent || '';
+            currentCodeFilename = codeFilename(code, pre.dataset.codeIndex || '1');
+            if (button.dataset.codeAction === 'download') {
+                downloadCodeFile(text, currentCodeFilename);
+                return;
+            }
+            document.getElementById('code-viewer-title').textContent = currentCodeFilename;
+            codeViewerContent.textContent = text;
+            codeViewer.classList.add('open');
+            document.getElementById('code-viewer-close').focus();
+        });
+        function closeCodeViewer() {
+            codeViewer.classList.remove('open');
+        }
+        document.getElementById('code-viewer-close').addEventListener('click', closeCodeViewer);
+        document.getElementById('code-download-btn').addEventListener('click', () => {
+            downloadCodeFile(codeViewerContent.textContent || '', currentCodeFilename);
+        });
+        codeViewer.addEventListener('click', event => {
+            if (event.target === codeViewer) closeCodeViewer();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && codeViewer.classList.contains('open')) closeCodeViewer();
+        });
 
         function createMessageContainer(role, content, messageIndex, modelName, comparisonId, messageData) {
             const c = document.createElement('div');
             c.className = `message-container ${role}-message`;
+            if (messageData && Number.isFinite(messageData.tokensPerSecond)) {
+                c.dataset.tokensPerSecond = String(messageData.tokensPerSecond);
+            }
             if (comparisonId) c.dataset.comparisonId = comparisonId;
             if (messageIndex !== undefined && messageIndex !== null) {
                 c.dataset.messageIndex = messageIndex;
             }
             const label = document.createElement('div');
             label.className = 'message-role-label';
-            label.textContent = role === 'user' ? 'You' : modelName ? displayName(modelName) : 'Synapse';
+            const exactModelId = modelName || (messageData && messageData.model);
+            label.textContent = role === 'user' ? 'You' : exactModelId || 'Assistant';
             c.appendChild(label);
+            if (role === 'assistant' && messageData && typeof messageData.thinking === 'string') {
+                updateThinkingBlock(c, messageData.thinking);
+            }
             const m = document.createElement('div');
             m.className = 'message';
             if (content === '__loading__') {
@@ -1900,6 +3261,12 @@
                 renderMessageContent(m, content);
             }
             c.appendChild(m);
+            if (role === 'assistant') {
+                const tokenCount = document.createElement('div');
+                tokenCount.className = 'message-token-count';
+                c.appendChild(tokenCount);
+                updateMessageTokenCount(c, content, messageData && messageData.thinking || '');
+            }
             if (content !== '__loading__') {
                 const a = document.createElement('div');
                 a.className = 'message-actions';
@@ -1941,39 +3308,30 @@
                 action.className = 'action-btn';
                 action.type = 'button';
                 if (role === 'assistant') {
-                    const speakButton = document.createElement('button');
-                    speakButton.className = 'action-btn';
-                    speakButton.type = 'button';
-                    speakButton.textContent = 'Read aloud';
-                    speakButton.addEventListener('click', () => {
-                        if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
-                            alert('Read aloud is not supported by this browser.');
-                            return;
-                        }
-                        if (activeSpeechButton === speakButton) {
-                            window.speechSynthesis.cancel();
-                            speakButton.textContent = 'Read aloud';
-                            activeSpeechButton = null;
-                            return;
-                        }
-                        if (activeSpeechButton) activeSpeechButton.textContent = 'Read aloud';
-                        window.speechSynthesis.cancel();
-                        const utterance = new SpeechSynthesisUtterance(m.textContent);
-                        activeSpeechButton = speakButton;
-                        speakButton.textContent = 'Stop speaking';
-                        utterance.onend = utterance.onerror = () => {
-                            speakButton.textContent = 'Read aloud';
-                            if (activeSpeechButton === speakButton) activeSpeechButton = null;
-                        };
-                        window.speechSynthesis.speak(utterance);
-                    });
-                    a.appendChild(speakButton);
                     if (!comparisonId) {
                         action.title = 'Regenerate response';
                         action.setAttribute('aria-label', 'Regenerate response');
                         action.innerHTML = '<img src="/static/icons/regenerate.svg" alt="">';
                         action.addEventListener('click', () => regenerateResponse(action));
                         a.appendChild(action);
+                    }
+                    if (exactModelId && messageIndex !== undefined && messageIndex !== null) {
+                        const rating = document.createElement('div');
+                        rating.className = 'response-rating';
+                        const modelInfo = modelCatalogById.get(exactModelId) || { up: 0, down: 0 };
+                        const currentVote = messageData && messageData.rating;
+                        [['up', '👍'], ['down', '👎']].forEach(([vote, symbol]) => {
+                            const voteButton = document.createElement('button');
+                            voteButton.type = 'button';
+                            voteButton.dataset.vote = vote;
+                            voteButton.setAttribute('aria-label', vote === 'up' ? 'Rate response thumbs up' : 'Rate response thumbs down');
+                            voteButton.setAttribute('aria-pressed', String(currentVote === vote));
+                            voteButton.textContent = `${symbol} ${modelInfo[vote] || 0}`;
+                            voteButton.title = `${vote === 'up' ? 'Thumbs up' : 'Thumbs down'} for this response; model total`;
+                            voteButton.addEventListener('click', () => rateAssistantResponse(c, vote));
+                            rating.appendChild(voteButton);
+                        });
+                        a.appendChild(rating);
                     }
                 } else if (role === 'user') {
                     action.textContent = 'Edit';
@@ -1990,8 +3348,42 @@
             setWelcomeVisible(false);
             const container = createMessageContainer(role, content, messageIndex, null, null, messageData);
             chatWindow.appendChild(container);
+            updateConversationTokenSummary();
             scrollToBottom();
             return container;
+        }
+
+        async function rateAssistantResponse(container, vote) {
+            if (!activeConversationId) return;
+            const messageIndex = Number(container.dataset.messageIndex);
+            if (!Number.isInteger(messageIndex) || messageIndex < 0) return;
+            const pressed = container.querySelector(`[data-vote="${vote}"]`);
+            const currentVote = pressed.getAttribute('aria-pressed') === 'true';
+            try {
+                const result = await fetchAPI(
+                    `/conversations/${encodeURIComponent(activeConversationId)}/messages/${messageIndex}/rating`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ vote: currentVote ? null : vote })
+                    }
+                );
+                const modelInfo = modelCatalogById.get(result.model_id) || { id: result.model_id };
+                modelCatalogById.set(result.model_id, {
+                    ...modelInfo,
+                    up: result.up,
+                    down: result.down,
+                    score: result.up - result.down
+                });
+                container.querySelectorAll('.response-rating [data-vote]').forEach(button => {
+                    const buttonVote = button.dataset.vote;
+                    button.setAttribute('aria-pressed', String(result.vote === buttonVote));
+                    button.textContent = `${buttonVote === 'up' ? '👍' : '👎'} ${result[buttonVote]}`;
+                });
+                renderModelPickerOptions();
+            } catch (error) {
+                alert(`Could not save your rating: ${error.message}`);
+            }
         }
 
         function renderConversationMessages(messages) {
@@ -2015,7 +3407,8 @@
                             item.content,
                             item.index,
                             item.model,
-                            item.comparison_id
+                            item.comparison_id,
+                            item
                         ));
                     });
                     chatWindow.appendChild(grid);
@@ -2025,6 +3418,7 @@
                     ));
                 }
             }
+            updateConversationTokenSummary();
             scrollToBottom();
         }
 
@@ -2252,6 +3646,7 @@
 
         // ── Nickname map: modelId -> display string (empty = use default label)
         const nicknames = {};
+        let modelCatalogById = new Map();
 
         function defaultLabel(id) {
             return id.split('/').pop().split('.Q')[0].replace(/[-_]/g, ' ');
@@ -2281,7 +3676,7 @@
         function renderModelPickerOptions() {
             const query = modelPickerSearch.value.trim().toLowerCase();
             const options = [...modelSelector.options].filter(option =>
-                option.value && `${displayName(option.value)} ${option.value}`.toLowerCase().includes(query)
+                option.value && `${displayName(option.value)} ${option.value} ${modelCatalogById.get(option.value)?.description || ''}`.toLowerCase().includes(query)
             );
             modelPickerOptions.replaceChildren();
             if (!options.length) {
@@ -2308,6 +3703,19 @@
                 id.className = 'model-picker-option-id';
                 id.textContent = option.value;
                 copy.append(name, id);
+                const metadata = modelCatalogById.get(option.value);
+                if (metadata && metadata.description) {
+                    const description = document.createElement('span');
+                    description.className = 'model-picker-option-description';
+                    description.textContent = metadata.description;
+                    copy.appendChild(description);
+                }
+                if (metadata) {
+                    const rating = document.createElement('span');
+                    rating.className = 'model-picker-option-rating';
+                    rating.textContent = `👍 ${metadata.up || 0} · 👎 ${metadata.down || 0}`;
+                    copy.appendChild(rating);
+                }
                 button.appendChild(copy);
                 if (isNsfwModel(option.value)) {
                     const tag = document.createElement('span');
@@ -2415,7 +3823,9 @@
 
         async function populateModels() {
             try {
-                const models = await fetchAPI('/models');
+                const catalog = await fetchAPI('/model-catalog');
+                const models = catalog.models.filter(model => model.installed).map(model => model.id);
+                modelCatalogById = new Map(catalog.models.map(model => [model.id, model]));
                 modelSelector.innerHTML = '';
                 compareModelSelector.innerHTML = '';
                 if (!models.length || models.error) {
@@ -2433,6 +3843,13 @@
                         });
                     });
                     if (models.length > 1) compareModelSelector.selectedIndex = 1;
+                    let savedModel = '';
+                    try {
+                        savedModel = localStorage.getItem('synapse-active-model') || '';
+                    } catch (error) {
+                        console.warn('Could not read the active model preference:', error);
+                    }
+                    if (models.includes(savedModel)) modelSelector.value = savedModel;
                     buildNicknameEditor(models);
                 }
                 updateModelPicker();
@@ -2491,7 +3908,7 @@
                 details.className = 'chat-tab-details';
                 const title = document.createElement('span');
                 title.className = 'chat-tab-title';
-                title.textContent = c.title;
+                title.textContent = `${c.locked ? '🔒 ' : ''}${c.roleplay ? '✦ ' : ''}${c.title}`;
                 details.appendChild(title);
                 if (c.folder) {
                     const folder = document.createElement('span');
@@ -2530,6 +3947,8 @@
             e.preventDefault(); contextMenuConvId = id;
             const conversation = allConversations.find(item => item.id === id);
             document.getElementById('pin-btn').textContent = conversation && conversation.pinned ? 'Unpin' : 'Pin';
+            document.getElementById('lock-btn').textContent = conversation && conversation.locked
+                ? 'Unlock conversation' : 'Lock with password';
             contextMenu.style.display = 'block';
             contextMenu.style.left = `${Math.min(e.pageX, window.innerWidth - 160)}px`;
             contextMenu.style.top = `${Math.min(e.pageY, window.innerHeight - contextMenu.offsetHeight)}px`;
@@ -2538,14 +3957,35 @@
         async function loadConversation(id) {
             if (activeConversationId === id) return;
             if (activeGenerationController) activeGenerationController.abort();
-            activeConversationId = id;
             chatWindow.innerHTML = ''; chatWindow.appendChild(welcomeScreen); setWelcomeVisible(false);
             try {
-                const msgs = await fetchAPI(`/conversations/${id}`);
+                let msgs;
+                try {
+                    msgs = await fetchAPI(`/conversations/${id}`);
+                } catch (error) {
+                    if (!error.message.includes('password locked')) throw error;
+                    const password = prompt('This chat is locked. Enter its password to open it:');
+                    if (password === null) return;
+                    await fetchAPI(`/conversations/${id}/unlock`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password })
+                    });
+                    msgs = await fetchAPI(`/conversations/${id}`);
+                }
+                activeConversationId = id;
                 if (msgs.length === 0) setWelcomeVisible(true);
                 renderConversationMessages(msgs);
                 await refreshTabs();
-            } catch(e) { addMessageToChat('assistant', `Failed to load: ${e.message}`); }
+            } catch(e) {
+                activeConversationId = null;
+                setWelcomeVisible(true);
+                if (e.message !== 'Incorrect conversation password.') {
+                    addMessageToChat('assistant', `Failed to load: ${e.message}`);
+                } else {
+                    alert(e.message);
+                }
+            }
         }
 
         function showSidebar() {
@@ -2587,7 +4027,7 @@
         }
 
         async function initialize() {
-            populateModels();
+            const modelsReady = populateModels();
             try {
                 const c = await fetchAPI('/conversations');
                 activeConversationId = null;
@@ -2596,10 +4036,37 @@
                 setWelcomeVisible(true);
                 headerTitle.textContent = 'New conversation';
                 renderTabs(c);
+                const requestedModel = new URLSearchParams(location.search).get('model');
+                if (requestedModel) {
+                    await modelsReady;
+                    if ([...modelSelector.options].some(option => option.value === requestedModel)) {
+                        modelSelector.value = requestedModel;
+                        updateModelPicker();
+                    }
+                }
+                const requestedConversation = new URLSearchParams(location.search).get('conversation');
+                if (requestedConversation) await loadConversation(requestedConversation);
             } catch { addMessageToChat('assistant', 'Initialization failed. Is the server running?'); }
         }
 
-        function scrollToBottom() { setTimeout(() => chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' }), 50); }
+        function scrollToBottom() {
+            followStreamToBottom = true;
+            if (pendingBottomScroll !== null) clearTimeout(pendingBottomScroll);
+            pendingBottomScroll = window.setTimeout(() => {
+                pendingBottomScroll = null;
+                if (followStreamToBottom) chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+            }, 50);
+        }
+        function followStreamingOutput() {
+            if (followStreamToBottom) chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+        chatWindow.addEventListener('scroll', () => {
+            followStreamToBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 72;
+            if (!followStreamToBottom && pendingBottomScroll !== null) {
+                clearTimeout(pendingBottomScroll);
+                pendingBottomScroll = null;
+            }
+        }, { passive: true });
 
         function setGenerationActive(active) {
             sendBtn.classList.toggle('is-stopping', active);
@@ -2621,7 +4088,7 @@
             try {
                 await cancellation;
             } catch (error) {
-                alert(`Could not stop LM Studio generation: ${error.message}`);
+                alert(`Could not stop generation: ${error.message}`);
             }
         }
 
@@ -2706,6 +4173,7 @@
                         `[${index + 1}] ${result.title}\n${result.url}\n${result.content}`
                     ).join('\n\n');
                 }
+                genParams = readGenerationSettings();
                 const payload = {
                     conversation_id: conversationId,
                     prompt: p,
@@ -2713,6 +4181,7 @@
                     models: comparisonModels,
                     params: genParams,
                     web_context: webContext,
+                    use_knowledge: useKnowledgeToggle.checked,
                     attachments: attachmentsForSend,
                     generation_id: generationId
                 };
@@ -2725,12 +4194,15 @@
                             result.contents[index],
                             messageIndex + index + 1,
                             comparisonModels[index],
-                            result.comparisonId
+                            result.comparisonId,
+                            { thinking: result.thinkings[index], tokensPerSecond: result.tokensPerSecond[index] }
                         ));
                     });
                 } else {
-                    const content = await streamAPI('/chat/stream', payload, loadingEl, controller, streamingToggle.checked);
-                    loadingEl.replaceWith(createMessageContainer('assistant', content, messageIndex + 1));
+                    const result = await streamAPI('/chat/stream', payload, loadingEl, controller, streamingToggle.checked);
+                    loadingEl.replaceWith(createMessageContainer(
+                        'assistant', result.content, messageIndex + 1, m, null, result
+                    ));
                 }
                 await refreshTabs();
             } catch (error) {
@@ -2741,13 +4213,15 @@
                             let keptResponse = false;
                             comparisonCards.forEach((card, index) => {
                                 const partial = card.dataset.partialContent || '';
-                                if (partial) {
+                                const thinking = card.dataset.partialThinking || '';
+                                if (partial || thinking) {
                                     card.replaceWith(createMessageContainer(
                                         'assistant',
                                         partial,
                                         messageIndex + index + 1,
                                         comparisonModels[index],
-                                        comparisonGrid.dataset.comparisonId
+                                        comparisonGrid.dataset.comparisonId,
+                                        { thinking }
                                     ));
                                     keptResponse = true;
                                 } else {
@@ -2757,7 +4231,10 @@
                             if (!keptResponse) comparisonGrid.remove();
                         } else {
                             const partial = loadingEl.dataset.partialContent || '';
-                            if (partial) loadingEl.replaceWith(createMessageContainer('assistant', partial, messageIndex + 1));
+                            const thinking = loadingEl.dataset.partialThinking || '';
+                            if (partial || thinking) loadingEl.replaceWith(createMessageContainer(
+                                'assistant', partial, messageIndex + 1, null, null, { thinking }
+                            ));
                             else loadingEl.remove();
                         }
                         await refreshTabs();
@@ -2775,13 +4252,15 @@
                         let keptResponse = false;
                         comparisonCards.forEach((card, index) => {
                             const partial = card.dataset.partialContent || '';
-                            if (partial) {
+                            const thinking = card.dataset.partialThinking || '';
+                            if (partial || thinking) {
                                 card.replaceWith(createMessageContainer(
                                     'assistant',
                                     partial,
                                     messageIndex + index + 1,
                                     comparisonModels[index],
-                                    comparisonGrid.dataset.comparisonId
+                                    comparisonGrid.dataset.comparisonId,
+                                    { thinking }
                                 ));
                                 keptResponse = true;
                             } else {
@@ -2824,6 +4303,7 @@
             const assistantIndex = original && original.dataset.messageIndex
                 ? original.dataset.messageIndex
                 : chatWindow.querySelectorAll('.message-container[data-message-index]').length;
+            genParams = readGenerationSettings();
             const loadingEl = createMessageContainer('assistant', '__loading__');
             if (original) original.replaceWith(loadingEl);
             else chatWindow.appendChild(loadingEl);
@@ -2835,16 +4315,22 @@
             activeGenerationId = generationId;
             setGenerationActive(true);
             try {
-                const content = await streamAPI('/chat/stream', {
+                const result = await streamAPI('/chat/stream', {
                     conversation_id: conversationId, model: m, params: genParams, regenerate: true,
+                    use_knowledge: useKnowledgeToggle.checked,
                     generation_id: generationId
                 }, loadingEl, controller, streamingToggle.checked);
-                loadingEl.replaceWith(createMessageContainer('assistant', content, assistantIndex));
+                loadingEl.replaceWith(createMessageContainer(
+                    'assistant', result.content, assistantIndex, m, null, result
+                ));
             } catch (error) {
                 if (activeConversationId !== conversationId) return;
                 if (controller.signal.aborted) {
                     const partial = loadingEl.dataset.partialContent || '';
-                    if (partial) loadingEl.replaceWith(createMessageContainer('assistant', partial, assistantIndex));
+                    const thinking = loadingEl.dataset.partialThinking || '';
+                    if (partial || thinking) loadingEl.replaceWith(createMessageContainer(
+                        'assistant', partial, assistantIndex, null, null, { thinking }
+                    ));
                     else if (original) loadingEl.replaceWith(original);
                     else loadingEl.remove();
                 } else {
@@ -2879,6 +4365,41 @@
                         await initialize();
                     } else { await refreshTabs(); }
                 } catch(e) { alert(`Could not delete: ${e.message}`); }
+            }
+        }
+
+        async function toggleConversationLock() {
+            const conversation = allConversations.find(item => item.id === contextMenuConvId);
+            if (!conversation) return;
+            try {
+                if (conversation.locked) {
+                    const password = prompt('Enter the conversation password to unlock:');
+                    if (password === null) return;
+                    await fetchAPI(`/conversations/${contextMenuConvId}/unlock`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password })
+                    });
+                    await loadConversation(contextMenuConvId);
+                } else {
+                    const password = prompt('Choose a password with at least 8 characters:');
+                    if (password === null) return;
+                    await fetchAPI(`/conversations/${contextMenuConvId}/lock`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password })
+                    });
+                    if (activeConversationId === contextMenuConvId) {
+                        activeConversationId = null;
+                        chatWindow.replaceChildren(welcomeScreen);
+                        setWelcomeVisible(true);
+                        headerTitle.textContent = 'New conversation';
+                    }
+                    await refreshTabs();
+                }
+                contextMenu.style.display = 'none';
+            } catch (error) {
+                alert(`Could not update conversation lock: ${error.message}`);
             }
         }
 
@@ -2947,12 +4468,70 @@
 
         menuBtn.addEventListener('click', showSidebar);
         backdrop.addEventListener('click', hideSidebar);
+        const desktopSidebarMedia = window.matchMedia('(min-width: 769px)');
+        function setDesktopSidebarCollapsed(collapsed) {
+            appContainer.classList.toggle('sidebar-collapsed', collapsed);
+            sidebar.inert = collapsed && desktopSidebarMedia.matches;
+            desktopSidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+            const label = collapsed ? 'Expand conversation sidebar' : 'Collapse conversation sidebar';
+            desktopSidebarToggle.setAttribute('aria-label', label);
+            desktopSidebarToggle.title = label;
+        }
+        desktopSidebarToggle.addEventListener('click', () => {
+            setDesktopSidebarCollapsed(!appContainer.classList.contains('sidebar-collapsed'));
+        });
+        desktopSidebarMedia.addEventListener('change', event => {
+            sidebar.inert = appContainer.classList.contains('sidebar-collapsed') && event.matches;
+        });
         modelPickerTrigger.addEventListener('click', () => {
             if (modelPickerMenu.classList.contains('open')) closeModelPicker();
             else openModelPicker();
         });
         modelPickerSearch.addEventListener('input', renderModelPickerOptions);
         modelSelector.addEventListener('change', updateModelPicker);
+        modelSelector.addEventListener('change', () => {
+            try {
+                localStorage.setItem('synapse-active-model', modelSelector.value);
+            } catch (error) {
+                console.error('Could not save active model:', error);
+            }
+        });
+        modelSubmitButton.addEventListener('click', async () => {
+            const modelId = modelSelector.value;
+            if (!modelId) return alert('Choose a model to submit.');
+            const repository = prompt('Hugging Face model repository (owner/name):');
+            if (repository === null) return;
+            const filename = prompt('GGUF filename to download after approval:');
+            if (filename === null) return;
+            const description = prompt('Describe this model for the community (1,000 characters maximum):');
+            if (description === null) return;
+            try {
+                await fetchAPI('/model-submissions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_id: modelId, repository, filename, description })
+                });
+                alert('Model submitted for moderator review.');
+            } catch (error) {
+                alert(`Could not submit model: ${error.message}`);
+            }
+        });
+        modelReportButton.addEventListener('click', async () => {
+            const modelId = modelSelector.value;
+            if (!modelId) return alert('Choose a model to report.');
+            const reason = prompt(`What is wrong with ${modelId}?`);
+            if (reason === null || !reason.trim()) return;
+            try {
+                await fetchAPI(`/models/${encodeURIComponent(modelId)}/report`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+                alert('Model issue sent to moderators.');
+            } catch (error) {
+                alert(`Could not report model: ${error.message}`);
+            }
+        });
         document.addEventListener('click', event => {
             if (!modelPickerMenu.contains(event.target) && !modelPickerTrigger.contains(event.target)) {
                 closeModelPicker();
@@ -3110,6 +4689,7 @@
             const conversation = allConversations.find(item => item.id === contextMenuConvId);
             updateConversationMetadata({ pinned: !(conversation && conversation.pinned) });
         });
+        document.getElementById('lock-btn').addEventListener('click', toggleConversationLock);
         document.getElementById('folder-btn').addEventListener('click', () => {
             const conversation = allConversations.find(item => item.id === contextMenuConvId);
             const folder = prompt('Folder name (leave blank to remove it):', conversation ? conversation.folder || '' : '');
@@ -3132,6 +4712,10 @@
         feedbackCancelBtn.addEventListener('click', hideFeedbackModal);
         feedbackForm.addEventListener('submit', handleFeedbackSubmit);
 
+        loadAppearanceData();
+        loadKnowledgeSources().catch(error => {
+            setKnowledgeStatus(`Could not load knowledge sources: ${error.message}`, true);
+        });
         initialize();
     </script>
 </body>

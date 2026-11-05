@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Community library · Synapse</title>
+    <style>
+        :root { color-scheme:dark; font-family:system-ui,sans-serif; background:#0e0f11; color:#edeef0; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; background:radial-gradient(ellipse at 70% -15%,#382a16,transparent 50%),#0e0f11; }
+        main { width:min(1120px,calc(100% - 32px)); margin:auto; padding:24px 0 64px; }
+        header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+        a { color:#e8a838; text-decoration:none; }
+        h1 { margin:28px 0 8px; font-size:clamp(2rem,5vw,3rem); letter-spacing:-.04em; }
+        p { color:#a3a6b0; }
+        .toolbar { display:flex; flex-wrap:wrap; gap:10px; margin:24px 0 18px; }
+        input,button { font:inherit; }
+        input { flex:1 1 240px; min-width:0; padding:11px 13px; color:inherit; background:#17191f; border:1px solid #ffffff20; border-radius:8px; }
+        .filters { display:flex; flex-wrap:wrap; gap:7px; }
+        button { padding:9px 13px; color:#ddd; background:#191b21; border:1px solid #ffffff20; border-radius:8px; cursor:pointer; }
+        button[aria-pressed="true"],button.primary { color:#17120a; background:#e8a838; border-color:#e8a838; font-weight:700; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:13px; }
+        article { display:flex; flex-direction:column; gap:9px; min-width:0; padding:18px; background:#17191f; border:1px solid #ffffff15; border-radius:13px; }
+        h2 { margin:0; overflow-wrap:anywhere; font-size:1.08rem; }
+        .meta { color:#858a96; font-size:.75rem; overflow-wrap:anywhere; }
+        .description { color:#b9bdc7; font-size:.88rem; line-height:1.6; overflow-wrap:anywhere; }
+        .rating { color:#e8b44f; font-size:.82rem; }
+        .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:auto; padding-top:5px; }
+        .empty { grid-column:1/-1; padding:24px; color:#a3a6b0; text-align:center; border:1px dashed #ffffff26; border-radius:12px; }
+        [hidden] { display:none!important; }
+        @media(max-width:600px) { header { align-items:flex-start; flex-direction:column; } }
+    </style>
+</head>
+<body>
+    <main>
+        <header><a href="/">← Synapse</a><a href="/roleplay">Roleplay Studio</a></header>
+        <h1>Community library</h1>
+        <p>Browse moderator-approved characters, themes, and model listings shared by this Synapse community.</p>
+        <div class="toolbar">
+            <input id="library-search" type="search" placeholder="Search the library…" aria-label="Search community library">
+            <div class="filters" role="group" aria-label="Library category">
+                <button type="button" data-kind="all" aria-pressed="true">All</button>
+                <button type="button" data-kind="character" aria-pressed="false">Characters</button>
+                <button type="button" data-kind="theme" aria-pressed="false">Themes</button>
+                <button type="button" data-kind="model" aria-pressed="false">Models</button>
+            </div>
+        </div>
+        <div id="library-status" role="status" aria-live="polite"></div>
+        <section id="library-items" class="grid" aria-label="Approved community items"></section>
+    </main>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const itemsContainer = document.getElementById('library-items');
+        const status = document.getElementById('library-status');
+        const search = document.getElementById('library-search');
+        let items = [];
+        let activeKind = 'all';
+        async function api(url) {
+            const response = await fetch(url, { headers: { 'X-CSRF-Token': csrfToken } });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+            return result;
+        }
+        function addText(parent, tag, className, value) {
+            const element = document.createElement(tag);
+            if (className) element.className = className;
+            element.textContent = value || '';
+            parent.appendChild(element);
+            return element;
+        }
+        function render() {
+            const query = search.value.trim().toLowerCase();
+            const visible = items.filter(item => {
+                if (activeKind !== 'all' && item.kind !== activeKind) return false;
+                return `${item.title} ${item.description} ${item.meta}`.toLowerCase().includes(query);
+            });
+            itemsContainer.replaceChildren();
+            if (!visible.length) {
+                addText(itemsContainer, 'div', 'empty', 'No approved items match this search yet.');
+                return;
+            }
+            visible.forEach(item => {
+                const card = document.createElement('article');
+                addText(card, 'h2', '', item.title);
+                addText(card, 'div', 'meta', item.meta);
+                addText(card, 'p', 'description', item.description || 'No description provided.');
+                if (item.kind === 'model') {
+                    addText(card, 'div', 'rating', `👍 ${item.up} · 👎 ${item.down} · net ${item.score}`);
+                    if (item.repository) addText(card, 'div', 'meta', `Hugging Face · ${item.repository} · ${item.filename}`);
+                    const actions = document.createElement('div');
+                    actions.className = 'actions';
+                    if (item.installed) {
+                        const use = document.createElement('button');
+                        use.className = 'primary';
+                        use.textContent = 'Use model';
+                        use.addEventListener('click', () => {
+                            localStorage.setItem('synapse-active-model', item.id);
+                            location.assign('/');
+                        });
+                        actions.appendChild(use);
+                    }
+                    if (item.repository) {
+                        const source = document.createElement('a');
+                        source.href = `https://huggingface.co/${encodeURIComponent(item.repository).replace('%2F', '/')}`;
+                        source.target = '_blank';
+                        source.rel = 'noopener noreferrer';
+                        source.textContent = 'View source';
+                        actions.appendChild(source);
+                    }
+                    card.appendChild(actions);
+                } else if (item.kind === 'theme') {
+                    const apply = document.createElement('button');
+                    apply.className = 'primary';
+                    apply.textContent = 'Use theme';
+                    apply.addEventListener('click', () => {
+                        localStorage.setItem('synapse-theme', `library:${item.id}`);
+                        location.assign('/');
+                    });
+                    card.appendChild(apply);
+                } else if (item.kind === 'character') {
+                    const use = document.createElement('a');
+                    use.className = 'primary';
+                    use.href = '/roleplay';
+                    use.textContent = 'Open Roleplay Studio';
+                    card.appendChild(use);
+                }
+                itemsContainer.appendChild(card);
+            });
+        }
+        async function load() {
+            status.textContent = 'Loading approved items…';
+            try {
+                const results = await Promise.allSettled([
+                    api('/api/roleplay/profiles'),
+                    api('/api/themes'),
+                    api('/api/model-catalog')
+                ]);
+                items = [];
+                if (results[0].status === 'fulfilled') {
+                    (results[0].value.library || []).forEach(profile => items.push({
+                        kind: 'character',
+                        id: profile.id,
+                        title: profile.name,
+                        description: profile.description,
+                        meta: `Approved character · ${profile.type}`
+                    }));
+                }
+                if (results[1].status === 'fulfilled') {
+                    (results[1].value.library || []).forEach(theme => items.push({
+                        kind: 'theme',
+                        id: theme.id,
+                        title: theme.name,
+                        description: theme.description,
+                        meta: `Approved theme · ${theme.styles?.density || 'comfortable'} layout`
+                    }));
+                }
+                if (results[2].status === 'fulfilled') {
+                    (results[2].value.models || []).forEach(model => {
+                        if (!model.repository && !model.description && !model.up && !model.down) return;
+                        items.push({
+                            kind: 'model', id: model.id, title: model.id,
+                            description: model.description,
+                            meta: model.installed ? 'Installed on this server' : 'Approved listing · not currently installed',
+                            installed: model.installed, repository: model.repository, filename: model.filename,
+                            up: model.up, down: model.down, score: model.score
+                        });
+                    });
+                }
+                const failures = results.filter(result => result.status === 'rejected');
+                status.textContent = failures.length ? `${failures.length} library section(s) could not be loaded.` : `${items.length} approved item${items.length === 1 ? '' : 's'}.`;
+                render();
+            } catch (error) {
+                status.textContent = error.message;
+                itemsContainer.replaceChildren();
+            }
+        }
+        search.addEventListener('input', render);
+        document.querySelectorAll('[data-kind]').forEach(button => button.addEventListener('click', () => {
+            activeKind = button.dataset.kind;
+            document.querySelectorAll('[data-kind]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            render();
+        }));
+        load();
+    </script>
+</body>
+</html>

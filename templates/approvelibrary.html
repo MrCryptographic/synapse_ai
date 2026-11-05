@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Community moderation · Synapse</title>
+    <style>
+        :root { color-scheme:dark; --bg:#0e0f11; --panel:#17191f; --line:rgba(255,255,255,.09); --text:#edeef0; --muted:#9a9dab; --accent:#e8a838; }
+        * { box-sizing:border-box; }
+        body { margin:0; min-height:100vh; color:var(--text); background:radial-gradient(ellipse at 50% -20%,#382a16,transparent 55%),var(--bg); font:15px/1.5 system-ui,sans-serif; }
+        main { width:min(1120px,calc(100% - 32px)); margin:auto; padding:24px 0 64px; }
+        header { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:30px; }
+        a { color:var(--accent); text-decoration:none; }
+        h1 { margin:0; font-size:clamp(2rem,5vw,3.2rem); letter-spacing:-.04em; }
+        h2 { margin:0; font-size:1.15rem; overflow-wrap:anywhere; }
+        h3 { margin:28px 0 12px; }
+        #review-status { min-height:24px; color:var(--accent); }
+        .queue { display:grid; gap:14px; }
+        .submission { padding:18px; background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+        .meta { color:var(--muted); font-size:.8rem; overflow-wrap:anywhere; }
+        .field { margin-top:12px; }
+        .field strong { display:block; color:var(--accent); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; }
+        .field p { margin:3px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .actions, .tabs { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+        button { padding:9px 13px; color:#17120a; background:var(--accent); border:0; border-radius:7px; cursor:pointer; font:700 .88rem system-ui; }
+        button.reject, button.secondary { color:var(--text); background:#2b303a; border:1px solid var(--line); }
+        button[aria-pressed="true"] { color:#17120a; background:var(--accent); }
+        button:hover:not(:disabled) { filter:brightness(1.1); }
+        button:disabled { cursor:wait; opacity:.65; }
+        .tabs button { color:var(--text); background:transparent; border:1px solid var(--line); }
+        .empty { color:var(--muted); padding:22px; background:var(--panel); border:1px solid var(--line); border-radius:12px; }
+        .library-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:12px; }
+        .swatches { display:flex; gap:5px; margin-top:12px; }
+        .swatches span { width:27px; height:27px; border:1px solid #fff3; border-radius:6px; }
+        .status-error { color:#ff9b9b!important; }
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+    </style>
+</head>
+<body>
+    <main>
+        <header><a href="/">← Synapse</a><span>Community moderation</span></header>
+        <h1>Community library</h1>
+        <p>Review characters, model submissions and issue reports, and visual themes before they are shared.</p>
+        <p id="review-status" role="status" aria-live="polite"></p>
+        <nav class="tabs" aria-label="Review queues">
+            <button type="button" data-queue="roleplay" aria-pressed="true">Characters</button>
+            <button type="button" data-queue="models" aria-pressed="false">Models</button>
+            <button type="button" data-queue="themes" aria-pressed="false">Themes</button>
+        </nav>
+        <section id="review-queue" class="queue" aria-label="Pending submissions"></section>
+        <section id="approved-models-section">
+            <h3>Approved model downloads</h3>
+            <div id="approved-models" class="library-grid" aria-label="Approved models"></div>
+        </section>
+    </main>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const queue = document.getElementById('review-queue');
+        const status = document.getElementById('review-status');
+        const approvedModels = document.getElementById('approved-models');
+        let currentQueue = 'roleplay';
+        async function api(url, options = {}) {
+            const response = await fetch(url, {
+                ...options,
+                headers: { ...options.headers, 'X-CSRF-Token': csrfToken }
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+            return result;
+        }
+        function field(label, value) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'field';
+            const heading = document.createElement('strong');
+            heading.textContent = label;
+            const text = document.createElement('p');
+            text.textContent = Array.isArray(value) ? value.join(', ') : value || '—';
+            wrapper.append(heading, text);
+            return wrapper;
+        }
+        function actionButton(label, className, handler) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = label;
+            if (className) button.className = className;
+            button.addEventListener('click', handler);
+            return button;
+        }
+        async function review(url, action, card, kind) {
+            const buttons = card.querySelectorAll('button');
+            buttons.forEach(button => { button.disabled = true; });
+            try {
+                await api(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                card.remove();
+                status.textContent = `${kind} ${action === 'approve' ? 'approved' : 'rejected'}.`;
+                if (!queue.children.length) queue.innerHTML = '<div class="empty">This review queue is clear.</div>';
+                if (kind === 'model' && action === 'approve') await loadApprovedModels();
+            } catch (error) {
+                status.textContent = error.message;
+                status.className = 'status-error';
+                buttons.forEach(button => { button.disabled = false; });
+            }
+        }
+        function renderActions(card, url, kind) {
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+            actions.append(
+                actionButton('Approve', '', () => review(url, 'approve', card, kind)),
+                actionButton('Reject / close', 'reject', () => review(url, 'reject', card, kind))
+            );
+            card.appendChild(actions);
+        }
+        function renderRoleplay(submission, index) {
+            const profile = submission.profile;
+            const card = document.createElement('article');
+            card.className = 'submission';
+            card.style.animationDelay = `${Math.min(index * 35, 280)}ms`;
+            const title = document.createElement('h2');
+            title.textContent = profile.name;
+            const meta = document.createElement('div');
+            meta.className = 'meta';
+            meta.textContent = `${profile.type} · submitted by ${submission.username || 'account'} · ${submission.submitted_at || ''}`;
+            card.append(title, meta);
+            for (const [label, key] of [
+                ['Description', 'description'], ['Personality', 'personality'],
+                ['Scenario', 'scenario'], ['Opening message', 'first_message'],
+                ['Character instructions', 'system_instruction'], ['Example dialogue', 'example_dialogue'], ['Tags', 'tags']
+            ]) card.appendChild(field(label, profile[key]));
+            renderActions(card, `/api/roleplay/moderation/submissions/${encodeURIComponent(submission.id)}`, 'Profile');
+            return card;
+        }
+        function renderModel(submission, index) {
+            const card = document.createElement('article');
+            card.className = 'submission';
+            card.style.animationDelay = `${Math.min(index * 35, 280)}ms`;
+            const title = document.createElement('h2');
+            title.textContent = submission.kind === 'report' ? `Issue report · ${submission.model_id}` : submission.model_id;
+            const meta = document.createElement('div');
+            meta.className = 'meta';
+            meta.textContent = `Submitted by ${submission.username || 'account'} · ${submission.submitted_at || ''}`;
+            card.append(title, meta);
+            if (submission.kind === 'report') {
+                card.appendChild(field('Issue', submission.reason));
+            } else {
+                card.append(
+                    field('Description', submission.description),
+                    field('Hugging Face repository', submission.repository),
+                    field('GGUF file', submission.filename),
+                    field('Source', submission.source_url)
+                );
+            }
+            renderActions(card, `/api/models/moderation/submissions/${encodeURIComponent(submission.id)}`, 'Model');
+            return card;
+        }
+        function renderTheme(submission, index) {
+            const card = document.createElement('article');
+            card.className = 'submission';
+            card.style.animationDelay = `${Math.min(index * 35, 280)}ms`;
+            const theme = submission.theme || {};
+            const title = document.createElement('h2');
+            title.textContent = theme.name || 'Unnamed theme';
+            const meta = document.createElement('div');
+            meta.className = 'meta';
+            meta.textContent = `Submitted by ${submission.username || 'account'} · ${submission.submitted_at || ''}`;
+            card.append(title, meta, field('Description', theme.description));
+            const swatches = document.createElement('div');
+            swatches.className = 'swatches';
+            Object.values(theme.colors || {}).forEach(color => {
+                const swatch = document.createElement('span');
+                swatch.style.backgroundColor = color;
+                swatch.title = color;
+                swatches.appendChild(swatch);
+            });
+            card.appendChild(swatches);
+            card.appendChild(field('Validated layout controls', JSON.stringify(theme.styles || {})));
+            renderActions(card, `/api/themes/moderation/submissions/${encodeURIComponent(submission.id)}`, 'Theme');
+            return card;
+        }
+        async function loadQueue() {
+            const config = {
+                roleplay: ['/api/roleplay/moderation/submissions', renderRoleplay],
+                models: ['/api/models/moderation/submissions', renderModel],
+                themes: ['/api/themes/moderation/submissions', renderTheme]
+            }[currentQueue];
+            queue.replaceChildren();
+            try {
+                const submissions = await api(config[0]);
+                if (!submissions.length) {
+                    queue.innerHTML = '<div class="empty">This review queue is clear.</div>';
+                    return;
+                }
+                submissions.forEach((submission, index) => queue.appendChild(config[1](submission, index)));
+            } catch (error) {
+                status.textContent = error.message;
+                status.className = 'status-error';
+                queue.innerHTML = '<div class="empty">Could not load this review queue.</div>';
+            }
+        }
+        async function downloadModel(model, button, card) {
+            button.disabled = true;
+            status.className = '';
+            try {
+                const started = await api(`/api/models/moderation/submissions/${encodeURIComponent(model.submission_id)}/download`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}'
+                });
+                status.textContent = started.status === 'complete' ? 'Model file already exists.' : 'Downloading approved model…';
+                if (started.status === 'queued') {
+                    const poll = async () => {
+                        try {
+                            const job = await api(`/api/models/moderation/downloads/${encodeURIComponent(model.submission_id)}`);
+                            if (job.status === 'complete') {
+                                status.textContent = `Downloaded ${job.filename}. Load or import it in ${model.backend || 'your model backend'}, then refresh the model list.`;
+                                await loadApprovedModels();
+                            } else if (job.status === 'error') {
+                                throw new Error(job.error || 'Model download failed.');
+                            } else {
+                                status.textContent = `Downloading ${job.filename}…`;
+                                window.setTimeout(poll, 1800);
+                            }
+                        } catch (error) {
+                            status.textContent = error.message;
+                            status.className = 'status-error';
+                            button.disabled = false;
+                        }
+                    };
+                    window.setTimeout(poll, 1200);
+                    return;
+                }
+                await loadApprovedModels();
+            } catch (error) {
+                status.textContent = error.message;
+                status.className = 'status-error';
+                button.disabled = false;
+            }
+        }
+        async function loadApprovedModels() {
+            try {
+                const models = await api('/api/models/moderation/library');
+                approvedModels.replaceChildren();
+                if (!models.length) {
+                    approvedModels.innerHTML = '<div class="empty">Approved model submissions will appear here.</div>';
+                    return;
+                }
+                models.forEach(model => {
+                    const card = document.createElement('article');
+                    card.className = 'submission';
+                    const title = document.createElement('h2');
+                    title.textContent = model.model_id;
+                    const installed = model.downloaded ? 'File downloaded to the configured model folder.' : 'Not downloaded yet.';
+                    const backend = document.createElement('div');
+                    backend.className = 'meta';
+                    backend.textContent = installed;
+                    card.append(title, backend, field('Repository', model.repository), field('GGUF file', model.filename), field('Description', model.description));
+                    if (model.submission_id && !model.downloaded) {
+                        card.appendChild(actionButton('Download approved model', '', event => downloadModel(model, event.currentTarget, card)));
+                    }
+                    approvedModels.appendChild(card);
+                });
+            } catch (error) {
+                approvedModels.replaceChildren();
+                const empty = document.createElement('div');
+                empty.className = 'empty';
+                empty.textContent = error.message;
+                approvedModels.appendChild(empty);
+            }
+        }
+        document.querySelectorAll('[data-queue]').forEach(button => button.addEventListener('click', () => {
+            currentQueue = button.dataset.queue;
+            document.querySelectorAll('[data-queue]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+            status.textContent = '';
+            status.className = '';
+            loadQueue();
+        }));
+        loadQueue();
+        loadApprovedModels();
+    </script>
+</body>
+</html>

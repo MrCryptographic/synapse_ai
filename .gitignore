@@ -5,4 +5,15 @@ feedback.json
 /logs/
 __pycache__/
 /.vscode
-/static
+/static/*
+!/static/roleplay.js
+/user_fonts/
+/user_fonts.json
+/theme_profiles.json
+/theme_library.json
+/knowledge_data/
+roleplay_profiles.json
+roleplay_submissions.json
+roleplay_library.json
+urbanshade.org
+/unused.txt

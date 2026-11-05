@@ -2,11 +2,11 @@
 
 A self-hosted AI chat interface that runs on your machine and lets authorized users chat through a browser — no cloud, no subscriptions.
 
-Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is the front door to whatever models you have downloaded.
+Connects to the OpenAI-compatible local API server from [LM Studio](https://lmstudio.ai/) or [KoboldCpp](https://github.com/LostRuins/koboldcpp). Synapse is the front door to models served by either backend.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue?style=flat-square&logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.x-black?style=flat-square&logo=flask)
-![LM Studio](https://img.shields.io/badge/LM%20Studio-required-orange?style=flat-square)
+![Backends](https://img.shields.io/badge/backends-LM%20Studio%20%7C%20KoboldCpp-orange?style=flat-square)
 
 ---
 
@@ -17,18 +17,29 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 - **Chat history** — conversations are saved server-side in a JSON file, so they survive browser refreshes and cookie clears
 - **Conversation organization** — search conversations, pin important chats, and sort chats into named folders
 - **Conversation backups** — import and export conversations as Synapse JSON files; imports are assigned to the signed-in account
-- **Model switching** — swap between any model you have downloaded in LM Studio without touching the app
+- **Model switching** — use models exposed by either LM Studio or KoboldCpp, selected when Synapse starts
 - **Saved model profiles** — save a model together with its generation settings for quick reuse in this browser
 - **Prompt library** — save reusable prompt templates and insert them into the composer with one click
-- **Color themes** — choose Ember, Ocean, Forest, Violet, or Rose from Settings; your choice is saved in your browser
+- **Color themes** — choose Ember, Ocean, Forest, Violet, Rose, Midnight, Aurora, Sakura, Slate, or Daylight; your choice is saved in your browser
 - **Smooth response streaming** — responses stream with a paced reveal by default; click Stop to cancel a generation
 - **File attachments** — attach, remove, or update PNG/JPEG/WebP images, PDFs, or UTF-8 text files while composing or editing a message (up to five files per message; PDFs are limited to 30 pages)
 - **Optional web search** — search the web with Tavily and include cited result URLs in the model's context; the app reports free-credit usage and exhaustion
+- **Private knowledge library (RAG)** — import public website pages or selected TXT/Markdown/HTML/PDF files and retrieve relevant excerpts into chat context
 - **Model comparison** — stream responses from two different models side by side and keep both answers in the conversation
-- **Read aloud** — use your browser's speech synthesis to listen to assistant responses; no microphone or dictation is used
+- **Model thinking** — display model-provided reasoning in a collapsed section separate from the answer
+- **Roleplay Studio** — build AI and user characters, generate profile drafts with a local model, use `{char}` and `{user}` placeholders, and start persistent roleplay chats
+- **Community library** — browse approved characters, themes, and model listings; moderator review is required before shared publication
+- **Password-locked chats** — require a password to open a conversation; this gates access in Synapse but does not encrypt data stored on the host
+- **Interactive code blocks** — open code in a fullscreen viewer and download it as a file
+- **Custom themes** — design colors, layout density, message style, font, corner radius, chat width, sidebar position, and stats visibility; shared themes are reviewed and accept only validated settings (never executable CSS)
+- **Sound profiles** — choose Soft Tones, Typewriter, Arcade, or Warm Synth for generated interface and streaming sounds
+- **Uploaded fonts** — add WOFF2, WOFF, TTF, or OTF fonts (up to 10 MB each); they are saved on the server for your account and can be removed from Settings
 - **Editable prompts and attachments** — edit a user message, add or remove its attachments, discard later turns, and regenerate from the revised message
 - **Message copying** — copy user prompts or assistant responses from the message actions
+- **Response and model ratings** — rate individual answers with thumbs up/down; the picker and community library show aggregate ratings by exact model ID
+- **Token estimates** — see approximate per-message and conversation token counts plus estimated output tokens per second during generation
 - **Message appearance** — choose bubble, clean, or soft-card layouts and sans, serif, or monospace text
+- **Synthesized interface sounds** — click and toggle tones plus a typing tick for every streamed letter, generated in the browser with an on/off setting and no audio files
 - **Keyboard controls** — Enter sends, Ctrl+Enter regenerates the latest response, and Shift+Enter adds a line; Markdown shortcuts format selected text
 - **GPU memory monitoring** — reports VRAM when `nvidia-smi` or `rocm-smi` is available on the host
 - **Model nicknames** — give your models friendly names (e.g. rename `gemma-4-e4b-Q4_K_M` to `Basically Gemini`) — nicknames are per-browser and never leave your device
@@ -36,19 +47,22 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 - **Quick presets** — one-click Precise / Balanced / Creative configurations
 - **Markdown rendering** — user prompts and AI responses render with sanitized Markdown, including code blocks
 - **Optional Markdown toolbar** — show formatting buttons from Settings; keyboard shortcuts remain available when the toolbar is hidden
-- **Model picker** — search models in a pop-up selector; model IDs containing common uncensored/unfiltered terms are marked NSFW
+- **Model picker** — search models and approved descriptions, view aggregate ratings, submit model listings, or report a model issue
+- **Reviewed model downloads** — moderators can approve Hugging Face GGUF submissions and explicitly download approved files to the configured model folder
+- **Public landing page** — introduce Synapse before users sign in or create an account
 - **Live resource usage** — CPU and RAM displayed in the sidebar, updated in real time over WebSocket
 - **Host notifications** — desktop alerts on your machine whenever a generation starts, showing the model name and time
 - **Boop button** — lets any network user send a notification ping to the host machine
 - **Feedback system** — users can submit feedback with an optional name; saved to a local JSON file
 - **Model filtering** — hide specific models from the UI by keyword (useful for keeping private models private)
 - **Responsive design** — works on phones and tablets with a slide-out sidebar
+- **Conversation starters** — start quickly with reusable ideas for explanations, brainstorming, summaries, and planning
 
 ---
 
 ## Requirements
 
-- [LM Studio](https://lmstudio.ai/) installed with at least one model downloaded
+- Either [LM Studio](https://lmstudio.ai/) or [KoboldCpp](https://github.com/LostRuins/koboldcpp) installed and serving at least one model
 - Python 3.8 or higher
 - pip
 
@@ -59,14 +73,21 @@ Built on top of [LM Studio](https://lmstudio.ai/)'s local API server. Synapse is
 ```
 synapse_ai/
 ├── app.py                  # Flask backend
+├── knowledge.py            # Bounded website import and local RAG retrieval
+├── approvelibrary.py       # Moderator access control and review page
 ├── makeaccount.py          # Create an account from the terminal
 ├── requirements.txt        # Python dependencies
 ├── users.json              # Account password hashes, created on first signup
 ├── conversations.json      # Auto-created on first run
 ├── feedback.json           # Auto-created on first feedback submission
 ├── templates/
-│   └── index.html          # Frontend (single file)
+│   ├── index.html           # Chat frontend
+│   ├── landing.html         # Public welcome page
+│   ├── community_library.html # Approved community content
+│   ├── roleplay.html        # Character and scene editor
+│   └── approvelibrary.html  # Moderator review queues
 └── static/
+    ├── roleplay.js          # Roleplay Studio interactions
     └── icons/
         ├── regenerate.svg
         ├── feedback.svg
@@ -120,14 +141,16 @@ Pillow
 
 > **Note for Linux users:** `plyer` desktop notifications may require additional setup depending on your desktop environment. On headless servers, notifications will silently fail — everything else still works.
 
-### 3. Configure LM Studio
+### 3. Configure a model backend
 
-Open LM Studio and do the following:
+Start the backend you want to use. For LM Studio:
 
 1. Go to the **Local Server** tab (the `<->` icon on the left sidebar)
 2. Click **Start Server**
 3. Keep the **Host** dropdown at `localhost` when LM Studio and Synapse run on the same computer. Only use `0.0.0.0` when Synapse is on a different trusted computer.
 4. Leave the port at `1234` (default)
+
+For KoboldCpp, start its OpenAI-compatible API server (port `5001` by default) and enable Smart Context in KoboldCpp if you want its dynamic context handling.
 
 ### Optional: enable web search
 
@@ -147,7 +170,7 @@ python app.py
 
 Keep the key on the server and out of source control. Synapse checks Tavily usage before searching and displays the returned credit balance; availability and plan limits are controlled by Tavily. When the allowance is exhausted, search is disabled for that request and Synapse reports the quota state.
 
-When web search is enabled, the user's query is sent to Tavily and the returned source snippets and URLs are added to the prompt sent to the configured LM Studio server. Chat prompts and attachments are sent to LM Studio as part of normal inference. PDF text is extracted by Synapse before being sent; image data and extracted attachment text are saved with the account's conversation history in the local conversations file. Read-aloud uses browser speech synthesis.
+When web search is enabled, the user's query is sent to Tavily and the returned source snippets and URLs are added to the prompt sent to the configured model backend. Chat prompts and attachments are sent to that backend as normal inference. PDF text is extracted by Synapse before being sent; image data and extracted attachment text are saved with the account's conversation history in the local conversations file.
 
 ### 4. Run Synapse
 
@@ -157,13 +180,15 @@ Run the app:
 python app.py
 ```
 
+In an interactive terminal, choose **LM Studio** or **KoboldCpp** at startup (press Enter for LM Studio). For unattended launches, set `SYNAPSE_BACKEND=lm-studio` or `SYNAPSE_BACKEND=koboldcpp` before starting. The backend URLs default to `http://localhost:1234/v1` and `http://localhost:5001/v1`; override them with `SYNAPSE_LM_STUDIO_URL` or `SYNAPSE_KOBOLDCPP_URL`.
+
 Open `http://localhost:6767`, create an account with a unique password of at least 12 characters, and share the address with other intended users. Anyone who can reach the login page can create an account, but accounts cannot read, rename, or delete another user's conversations. Passwords are stored as salted PBKDF2 hashes, not plaintext. The first account registration removes any pre-existing shared conversations from the old version.
 
-Sign-in and account creation are separate pages (`/login` and `/register`). In the app, choose a color theme in **Settings → Appearance**; it is saved per browser.
+The public landing page appears before sign-in. Account pages remain available at `/login` and `/register`. In the app, choose a theme in **Settings → Appearance**; it is saved per browser.
 
 On sign-in, Synapse opens a welcome page with starter prompts instead of selecting a previous chat. Use the sidebar search and folder filter to find conversations; right-click a chat or open its **•••** menu to rename, pin, move, or delete it. The sidebar's **Export chats** button downloads a JSON backup of your conversations, and **Import chats** restores a Synapse JSON export (up to 50 MB and 100 conversations). Imported chats belong to the currently signed-in account.
 
-In Settings, you can choose message layout and font, save reusable prompts in **Prompt Library**, or save the active model and generation controls as a **Saved Model Profile**. These libraries and profiles are stored in browser storage and scoped to the signed-in account on that browser. The composer accepts up to five attachments per message; each file can be up to 5 MB and the combined image size is limited to 10 MB. PDFs are text-extracted on the Synapse server (30-page and 50,000-character limits); scanned PDFs without selectable text are not supported. Enable **Web search** or **Compare models** in the composer when needed. Hover over a text-only user message and choose **Edit** to revise it; later conversation turns are discarded and a new answer is generated. `Enter` sends a message, `Ctrl+Enter` regenerates the latest answer, and `Shift+Enter` inserts a line break. VRAM reporting uses the host's `nvidia-smi` or `rocm-smi` command-line utility; it displays `N/A` when neither tool can report GPU memory.
+In Settings, choose message layout and font, save reusable prompts in **Prompt Library**, or save the active model and generation controls as a **Saved Model Profile**. The desktop sidebar includes the model picker; on mobile it stays in Settings. Assistant replies can be rated with thumbs up/down; those counts are aggregated by model ID. Per-message and total conversation token counts, as well as tokens per second during generation, are estimates because compatible backends may not report tokenizer usage. The composer accepts up to five attachments per message; each file can be up to 5 MB and the combined image size is limited to 10 MB. PDFs are text-extracted on the Synapse server (30-page and 50,000-character limits); scanned PDFs without selectable text are not supported. Enable **Web search** or **Compare models** in the composer when needed. Hover over a text-only user message and choose **Edit** to revise it; later conversation turns are discarded and a new answer is generated. `Enter` sends a message, `Ctrl+Enter` regenerates the latest answer, and `Shift+Enter` inserts a line break. VRAM reporting uses the host's `nvidia-smi` or `rocm-smi` command-line utility; it displays `N/A` when neither tool can report GPU memory.
 
 The composer supports Markdown. Select text and use `Ctrl+B` for bold, `Ctrl+I` for italic, `Ctrl+K` for a link, `Ctrl+Shift+C` for inline code, `Ctrl+Shift+L` for a bullet list, or `Ctrl+Shift+M` for a fenced code block. The formatting toolbar has the same actions.
 
@@ -183,13 +208,51 @@ You should see output like:
 
 - **On your machine:** http://localhost:6767
 
-To allow other devices on your private network, set `SYNAPSE_HOST=0.0.0.0` before starting. For PowerShell use `$env:SYNAPSE_HOST = "0.0.0.0"`; for macOS/Linux use `export SYNAPSE_HOST=0.0.0.0`. Then open `http://YOUR_LOCAL_IP:6767` on the other device. Only do this on a trusted network.
+To allow other devices on your private network, enable LAN mode before starting. In PowerShell, run `$env:SYNAPSE_LAN_MODE = "1"`; on Linux, run `export SYNAPSE_LAN_MODE=1`. Synapse detects a private IPv4 address with `ipconfig` on Windows or `hostname -I` on Linux, binds to that address, and prints the URL to open on other devices. LAN mode overrides `SYNAPSE_HOST`; without it, Synapse remains bound to `127.0.0.1` by default. Only enable LAN mode on a trusted network.
 
 Do not expose this HTTP server directly to the public internet or use port forwarding without HTTPS. For remote access, put it behind a trusted HTTPS reverse proxy and set `SYNAPSE_COOKIE_SECURE=1` so the session cookie is only sent over HTTPS. Do not set `SYNAPSE_COOKIE_SECURE=1` when accessing Synapse over plain HTTP; the browser will omit the authenticated session cookie. Public sign-in and signup forms use short-lived signed CSRF tokens, but authenticated use still requires the browser to retain its session cookie. Open signup is intentional for a trusted group; anyone who can reach the server can register.
 
 To find your local IP:
 - **Windows:** run `ipconfig` in Command Prompt, look for `IPv4 Address`
-- **Mac/Linux:** run `ifconfig` or `ip addr`, look for something like `192.168.x.x`
+- **Linux:** run `hostname -I`
+- **macOS:** run `ifconfig` and look for the local address on your active network interface; set `SYNAPSE_HOST` manually because automatic LAN mode currently supports Windows and Linux.
+
+---
+
+## Roleplay Studio and community profiles
+
+Open **Roleplay Studio** from the chat sidebar to create AI and user character profiles. You can draft profiles yourself or ask a selected local model to generate a draft, then edit and save them privately. In a scene, switch either character or the model without losing history, choose a pacing style, save continuity notes, create a recap, or step out of character to discuss the story. You can also regenerate or stop replies and rate them. Use `{char}` and `{user}` placeholders in profile text. You can optionally password-lock a scene. A chat lock only controls access through Synapse and does not encrypt the conversation file on disk.
+
+Model selection, conversation import/export, appearance, generation controls, host information, and account actions are grouped in the full-screen **Settings** view. The conversation list remains the primary content of the mobile sidebar.
+
+Profiles submitted to the community library stay private until approved by a moderator. Configure moderators by setting `SYNAPSE_MODERATOR_IDS` to a comma-separated list of account IDs from `users.json` before starting Synapse, for example:
+
+```bash
+export SYNAPSE_MODERATOR_IDS="account-id-1,account-id-2"
+python app.py
+```
+
+Moderators can review characters, model submissions/reports, and themes at `/approvelibrary`. The user-facing **Community library** at `/library` contains approved characters, themes, and model listings.
+
+Model submissions include a Hugging Face repository and a single GGUF filename. A moderator must approve a submission before the host can explicitly download it. Downloads go to `downloaded_models/` by default; configure `SYNAPSE_MODEL_DOWNLOAD_DIR` to use another folder and `SYNAPSE_MODEL_DOWNLOAD_MAX_BYTES` to change the 30 GiB per-file limit. Synapse does not automatically load downloaded files: import or load the file in the selected backend, then refresh its model list.
+
+Profile and submission data is stored in `roleplay_profiles.json`, `roleplay_library.json`, `roleplay_submissions.json`, `model_library.json`, `model_submissions.json`, `theme_library.json`, and `theme_submissions.json` in the project directory.
+
+## Themes, fonts, and sound profiles
+
+In **Settings → Appearance**, create a theme by editing its colors, density, message style, font, corner radius, chat width, sidebar position, and host-stat visibility, or ask a selected local model to generate a palette. Themes can be saved privately or exported/imported as JSON. Publishing sends the theme to moderator review before it appears in the shared library. Themes use validated color and layout settings rather than executable CSS.
+
+Choose a sound profile to change the synthesized click, toggle, completion, and streamed-letter sounds. Uploaded fonts are private to the account that uploaded them and stored under `user_fonts/`; font metadata is stored in `user_fonts.json`. Only WOFF2, WOFF, TTF, and OTF files up to 10 MB are accepted. Deleting an account removes its private themes and uploaded font files.
+
+The three message layouts are intentionally distinct: **Bubbles** uses chat-style aligned bubbles, **Clean** uses open editorial text with a side rule, and **Soft cards** uses separated, shaded message cards. During generation, the chat follows the response while you stay near the bottom; scrolling upward pauses auto-follow until you return to the newest messages.
+
+## Website reading and private RAG
+
+Open **Settings → Knowledge Library** to import a public website or upload documents. Website imports are bounded to eight pages on the same hostname, standard HTTP/HTTPS ports, and 1 MB per page. Local/private-network addresses, cross-host redirects, and non-text content are blocked. There is no automatic filesystem crawl: a folder is read only after you explicitly select it with the folder-upload control. This lets you import a downloaded RP reference folder later without Synapse scanning or modifying it.
+
+Uploaded documents and retrieved excerpts are private to the account that added them. TXT, Markdown, HTML, and PDF files are supported (10 MB per file, with 200,000 extracted characters per source). Enable **Use my private knowledge library (RAG)** under Response settings to add the most relevant excerpts to a request. Imported text is treated as untrusted reference material, not model instructions. Knowledge data is stored in account-specific SQLite files under `knowledge_data/` and removed when the account is deleted.
+
+The System Prompt setting is sent with chat, streaming, comparison, and regeneration requests and saved in this browser. In roleplay chats, it is included alongside the generated roleplay instructions.
 
 ---
 
@@ -274,7 +337,7 @@ sudo systemctl start synapse
 LM Studio's server isn't running, or the model API isn't available at `localhost:1234`. If LM Studio runs on a different computer, configure its API host carefully on a trusted network.
 
 **Works on my machine but not on other devices**
-Set Synapse's `SYNAPSE_HOST` to `0.0.0.0` on a trusted local network and check that the firewall allows the configured Synapse port. For LM Studio, use `0.0.0.0` only if Synapse runs on a different machine; otherwise `localhost` is preferable.
+Enable LAN mode with `SYNAPSE_LAN_MODE=1` on a trusted local network and check that the firewall allows the configured Synapse port. If no private IPv4 address is detected, check the network connection and use `SYNAPSE_HOST` to configure the bind address manually. For LM Studio, use `0.0.0.0` only if Synapse runs on a different machine; otherwise `localhost` is preferable.
 
 **Sign-in or signup form says it is invalid or expired**
 Reload the login page and try again. If it persists, restart Synapse so it loads the latest code. If you can sign in but get sent back to login, check that `SYNAPSE_COOKIE_SECURE` is unset for `http://` links; authenticated sessions require the browser to retain its cookie. If signup still fails, stop the app and create the account with `python makeaccount.py`.
