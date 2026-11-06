@@ -198,6 +198,13 @@
             --user-border: rgba(170, 84, 44, 0.26);
             --ai-bubble: #faf7f1;
         }
+        :root[data-theme="rainbow"] {
+            --bg-deep: #101117; --bg-mid: #161720; --bg-surface: #20222c; --bg-raised: #2b2e3b;
+            --accent: #ff6b8a; --accent-dim: #dc4f70; --accent-glow: rgba(255, 107, 138, .15);
+            --accent-glow2: rgba(255, 107, 138, .06); --text-primary: #f3f1f5; --text-secondary: #b7b2c0;
+            --text-muted: #817a8b; --border: rgba(245, 235, 255, .08); --border-lit: rgba(255, 107, 138, .32);
+            --user-bubble: #292336; --user-border: rgba(255, 107, 138, .25); --ai-bubble: #191a23;
+        }
         :root[data-theme="daylight"] .ai-message code { background: rgba(0, 0, 0, 0.06); }
         :root[data-theme="custom"] {
             --accent-dim: color-mix(in srgb, var(--accent) 78%, #111);
@@ -246,6 +253,23 @@
             background: transparent !important; border: 0 !important;
             border-radius: 0 !important; box-shadow: none !important;
         }
+        :root[data-message-style="outline"] .message {
+            background: transparent !important;
+            border: 1px solid var(--border-lit) !important;
+            border-radius: 4px !important;
+            box-shadow: none !important;
+        }
+        :root[data-message-style="minimal"] .message {
+            background: transparent !important; border: 0 !important;
+            border-radius: 0 !important; box-shadow: none !important;
+        }
+        :root[data-message-style="minimal"] .message-container { margin-bottom: 14px; }
+        :root[data-message-style="terminal"] .message {
+            background: #080b0a !important; border: 1px solid #28633c !important;
+            border-radius: 3px !important; color: #b9f6c8;
+            font-family: var(--font-mono) !important; box-shadow: inset 0 0 18px rgba(0, 255, 90, .04) !important;
+        }
+        :root[data-message-style="terminal"] .message-role-label { color: #67d78b; font-family: var(--font-mono); }
         :root[data-theme-density="compact"] #chat-window { gap: 8px; }
         :root[data-theme-density="compact"] .message-container { margin-bottom: 12px; }
         :root[data-chat-width="wide"] .message-container { max-width: 1100px; }
@@ -263,6 +287,19 @@
             background: var(--bg-deep); color: var(--text-primary);
             overflow: hidden; -webkit-font-smoothing: antialiased;
         }
+        body {
+            background-image: linear-gradient(rgba(14, 15, 17, .58), rgba(14, 15, 17, .58)), var(--theme-background-image, none);
+            background-size: cover; background-position: center; background-attachment: fixed;
+        }
+        :root[data-rainbow-accent="true"] #send-btn,
+        :root[data-rainbow-accent="true"] .brand-icon,
+        :root[data-rainbow-accent="true"] .welcome-icon,
+        :root[data-rainbow-accent="true"] .response-rating button[aria-pressed="true"] {
+            color: #111; border-color: transparent;
+            background: linear-gradient(110deg, #ff4d6d, #ffb84d, #f8f64b, #4de58a, #49c9ff, #ac68ff, #ff4d6d);
+            background-size: 300% 100%; animation: rainbow-shift 7s linear infinite;
+        }
+        @keyframes rainbow-shift { to { background-position: 300% 0; } }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -529,7 +566,13 @@
         #main-content {
             flex-grow: 1; display: flex; flex-direction: column;
             min-width: 0;
-            background: radial-gradient(ellipse at 50% -20%, var(--accent-glow2), transparent 55%), var(--bg-deep);
+            background:
+                radial-gradient(ellipse at 50% -20%, var(--accent-glow2), transparent 55%),
+                linear-gradient(rgba(14, 15, 17, .58), rgba(14, 15, 17, .58)),
+                var(--theme-background-image, none),
+                var(--bg-deep);
+            background-size: auto, cover, cover, auto;
+            background-position: center;
             position: relative;
         }
         #main-content::before {
@@ -708,7 +751,15 @@
         .ai-message p:last-child  { margin-bottom: 0; }
         .ai-message h1,.ai-message h2,.ai-message h3 { font-family: var(--font-display); margin: 14px 0 6px; }
         .ai-message ul,.ai-message ol { padding-left: 20px; }
-        .ai-message li { margin-bottom: 4px; }
+        .ai-message ul { list-style: disc outside; }
+        .ai-message ol { list-style: decimal outside; }
+        .ai-message li { margin-bottom: 4px; padding-left: 3px; }
+        .ai-message li > p { margin: 0; }
+        .ai-message li > ul,.ai-message li > ol { margin-top: 5px; }
+        .ai-message pre { max-width: 100%; white-space: pre; tab-size: 4; }
+        .ai-message pre code { display: block; min-width: max-content; line-height: 1.55; }
+        .ai-message table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+        .ai-message th,.ai-message td { border: 1px solid var(--border); padding: 6px 9px; }
         .ai-message a { color: var(--accent); }
         .ai-message blockquote { border-left: 3px solid var(--border-lit); padding-left: 14px; color: var(--text-secondary); margin: 10px 0; }
         .message-attachment-image { display: block; max-width: min(100%, 480px); max-height: 360px; margin-top: 8px; border-radius: var(--radius-md); object-fit: contain; }
@@ -718,7 +769,53 @@
         .response-rating { display: flex; align-items: center; gap: 5px; margin-left: auto; }
         .response-rating button { padding: 3px 6px; color: var(--text-muted); background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; font: 0.75em var(--font-body); }
         .response-rating button:hover, .response-rating button[aria-pressed="true"] { color: var(--accent); border-color: var(--border-lit); background: var(--accent-glow2); }
+        .response-rating-hint { color: var(--text-muted); font: .64em var(--font-body); white-space: nowrap; }
         #conversation-token-summary { flex: 0 0 auto; padding: 0 22px 4px; color: var(--text-muted); text-align: right; font: 0.68em var(--font-mono); }
+        #conversation-summary-panel, #tracker-panel {
+            display: none; max-height: 30vh; overflow-y: auto; margin: 0 20px 8px; padding: 10px 12px;
+            background: var(--bg-surface); border: 1px solid var(--border-lit); border-radius: var(--radius-md);
+            color: var(--text-primary); line-height: 1.5; font-size: .84em;
+        }
+        #conversation-summary-panel.visible, #tracker-panel.visible { display: block; }
+        #conversation-summary-panel pre { white-space: pre-wrap; }
+        .tracker-row { display: grid; grid-template-columns: minmax(100px, .7fr) 1fr auto auto; gap: 7px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); }
+        .tracker-row:last-child { border-bottom: 0; }
+        .tracker-row button, .tracker-panel-actions button { padding: 4px 8px; color: var(--text-primary); background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+        .tracker-panel-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+        #composer-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 7px 2px; }
+        #composer-actions button {
+            padding: 5px 9px; color: var(--text-secondary); background: var(--bg-surface);
+            border: 1px solid var(--border); border-radius: 99px; cursor: pointer; font: 600 .72em var(--font-body);
+        }
+        #composer-actions button:hover { color: var(--accent); border-color: var(--border-lit); }
+        #composer-actions select {
+            max-width: min(220px, 42vw); padding: 5px 8px; color: var(--text-secondary);
+            background: var(--bg-surface); border: 1px solid var(--border); border-radius: 99px;
+        }
+        #assistant-action-dialog {
+            width: min(680px, calc(100vw - 28px)); max-height: min(80vh, 760px); margin: auto;
+            padding: 20px; color: var(--text-primary); background: var(--bg-mid);
+            border: 1px solid var(--border-lit); border-radius: var(--radius-xl);
+        }
+        #assistant-action-dialog::backdrop { background: rgba(0,0,0,.68); backdrop-filter: blur(4px); }
+        #assistant-action-result { max-height: 55vh; overflow: auto; white-space: pre-wrap; line-height: 1.55; padding: 12px; background: var(--bg-surface); border-radius: var(--radius-md); }
+        #assistant-action-dialog .modal-actions { margin-top: 12px; }
+        #host-boop-toast {
+            display: none; position: fixed; right: 18px; top: 18px; z-index: 4500; padding: 12px 16px;
+            color: var(--text-primary); background: var(--bg-raised); border: 1px solid var(--border-lit);
+            border-radius: var(--radius-md); box-shadow: 0 10px 30px #0008;
+        }
+        #host-boop-toast.visible { display: block; animation: fadeIn .2s ease; }
+        #selection-define {
+            position: fixed; z-index: 4200; padding: 6px 10px; color: var(--text-primary);
+            background: var(--bg-raised); border: 1px solid var(--border-lit); border-radius: var(--radius-sm);
+            box-shadow: 0 5px 16px #0008; cursor: pointer;
+        }
+        #selection-define[hidden] { display: none; }
+        #define-dialog { width: min(560px, calc(100vw - 28px)); max-height: 75vh; margin: auto; padding: 20px; color: var(--text-primary); background: var(--bg-mid); border: 1px solid var(--border-lit); border-radius: var(--radius-xl); }
+        #define-dialog::backdrop { background: rgba(0,0,0,.68); backdrop-filter: blur(4px); }
+        #define-term { margin: 10px 0; color: var(--accent); font-weight: 700; }
+        #define-result { max-height: 50vh; overflow: auto; line-height: 1.55; }
         #sidebar-model-picker-slot { padding: 12px 14px; border-bottom: 1px solid var(--border); }
         #sidebar-model-picker-slot #model-selector-container { min-width: 0; }
         #sidebar-model-picker-slot #active-model-label { font-size: 0.72em; }
@@ -1135,7 +1232,7 @@
             .chat-tab .more-options-btn { display: block; }
             .chat-tab { animation: none; }
             .message-actions { opacity: 1; }
-            #chat-window { padding: 52px 14px 20px; scroll-behavior: auto; }
+            #chat-window { padding: 52px 14px 20px; scroll-behavior: smooth; }
             #conversation-token-summary { padding: 0 14px 4px; }
             #input-area { padding: 10px 12px 14px; }
             #right-sidebar { height: 100dvh; }
@@ -1174,6 +1271,7 @@
                 </button>
                 <a id="roleplay-link" href="/roleplay">✦ Roleplay Studio</a>
                 <a id="community-library-link" href="/library">Community library</a>
+                <a id="profile-link" href="/profile">Profile & achievements</a>
                 {% if moderator %}<a id="moderation-link" href="/approvelibrary">Community moderation</a>{% endif %}
             </div>
             <div id="sidebar-model-picker-slot" aria-label="Model picker"></div>
@@ -1231,9 +1329,29 @@
                 </div>
             </div>
             <div id="conversation-token-summary" aria-live="polite">Approx. 0 tokens in conversation</div>
+            <section id="conversation-summary-panel" aria-live="polite" aria-label="Conversation summary"></section>
+            <section id="tracker-panel" aria-label="Conversation trackers">
+                <div class="tracker-panel-actions">
+                    <strong>Trackers</strong>
+                    <label><input id="tracker-auto-update" type="checkbox"> Auto-update after replies</label>
+                    <button id="tracker-add" type="button">Add tracker</button>
+                    <button id="tracker-refresh" type="button">Update from chat</button>
+                    <button id="tracker-close" type="button" aria-label="Close trackers">Close</button>
+                </div>
+                <div id="tracker-status" role="status" aria-live="polite"></div>
+                <div id="tracker-list"></div>
+            </section>
 
             <div id="input-area">
                 <div class="input-compose">
+                    <div id="composer-actions" aria-label="Roleplay and conversation tools">
+                        <button id="action-impersonate" type="button">Impersonate</button>
+                        <button id="action-continue" type="button">Continue</button>
+                        <button id="action-trackers" type="button">Trackers</button>
+                        <button id="action-summary" type="button">Summarize</button>
+                        <select id="conversation-soundtrack" aria-label="Choose soundtrack"></select>
+                        <button id="conversation-soundtrack-play" type="button">Play music</button>
+                    </div>
                     <div id="markdown-toolbar" role="toolbar" aria-label="Markdown formatting" hidden>
                         <button class="markdown-tool" type="button" data-markdown-action="bold" title="Bold (Ctrl+B)" aria-label="Bold"><strong>B</strong></button>
                         <button class="markdown-tool" type="button" data-markdown-action="italic" title="Italic (Ctrl+I)" aria-label="Italic"><em>I</em></button>
@@ -1280,6 +1398,7 @@
                         <button type="button" data-settings-target="settings-knowledge">Knowledge</button>
                         <button type="button" data-settings-target="settings-system-prompt">System prompt</button>
                         <button type="button" data-settings-target="settings-prompts">Prompt library</button>
+                        <button type="button" data-settings-target="settings-achievements">Achievements</button>
                         <button type="button" data-settings-target="settings-host">Host & account</button>
                     </nav>
 
@@ -1329,7 +1448,12 @@
                             <option value="sakura">Sakura</option>
                             <option value="slate">Slate</option>
                             <option value="daylight">Daylight</option>
+                            <option value="rainbow">Rainbow accent</option>
                         </select>
+                        <label class="streaming-setting" for="rainbow-accent-toggle" style="margin-top:8px;">
+                            <input id="rainbow-accent-toggle" type="checkbox">
+                            <span>Animate rainbow accents</span>
+                        </label>
                         <label for="theme-name-input" class="theme-label appearance-select">Create a custom theme</label>
                         <input id="theme-name-input" class="library-input" maxlength="50" placeholder="Theme name">
                         <input id="theme-description-input" class="library-input" maxlength="160" placeholder="Short community description" style="margin-top:7px;">
@@ -1347,7 +1471,7 @@
                         </div>
                         <div class="theme-tool-grid" id="theme-style-grid">
                             <label class="theme-style-field">Message style
-                                <select data-theme-style="message_style"><option value="bubble">Bubble</option><option value="clean">Clean</option><option value="paper">Soft cards</option></select>
+                                <select data-theme-style="message_style"><option value="bubble">Bubble</option><option value="clean">Clean</option><option value="paper">Soft cards</option><option value="outline">Outline</option><option value="minimal">Minimal</option><option value="terminal">Terminal</option></select>
                             </label>
                             <label class="theme-style-field">Layout density
                                 <select data-theme-style="density"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select>
@@ -1366,6 +1490,18 @@
                             </label>
                             <label class="theme-color-field"><input data-theme-style="show_sidebar_stats" type="checkbox" checked> Show host stats</label>
                         </div>
+                        <label class="theme-label" for="theme-background-input">Theme background image (PNG/JPEG/WebP, up to 2 MB)</label>
+                        <input id="theme-background-input" type="file" accept="image/png,image/jpeg,image/webp">
+                        <div id="theme-background-status" class="profile-hint">No custom background image.</div>
+                        <label class="theme-label" for="theme-audio-input">Theme soundtrack (up to 5 audio files, 10 MB total)</label>
+                        <input id="theme-audio-input" type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/webm,audio/mp4" multiple>
+                        <div class="theme-tool-grid">
+                            <select id="theme-audio-track" class="theme-selector" aria-label="Theme soundtrack"></select>
+                            <label class="theme-style-field">Volume <input id="theme-audio-volume" type="range" min="0" max="1" step="0.05" value="0.5"></label>
+                            <button id="theme-audio-play" type="button">Play soundtrack</button>
+                            <button id="theme-audio-remove" type="button">Remove selected track</button>
+                        </div>
+                        <audio id="theme-audio-player" hidden loop></audio>
                         <div class="appearance-actions">
                             <button id="generate-theme-btn" type="button">Generate with AI</button>
                             <button id="save-theme-btn" type="button">Save theme</button>
@@ -1384,6 +1520,9 @@
                             <option value="bubble">Bubbles</option>
                             <option value="clean">Clean</option>
                             <option value="paper">Soft cards</option>
+                            <option value="outline">Outline</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="terminal">Terminal</option>
                         </select>
                         <label for="message-font-selector" class="theme-label appearance-select">Message font</label>
                         <select id="message-font-selector" class="theme-selector">
@@ -1508,6 +1647,12 @@
                         </div>
                     </div>
 
+                    <div class="rs-section wide" id="settings-achievements">
+                        <div class="rs-section-title">Profile & achievements</div>
+                        <p class="appearance-hint">Track conversation milestones, model reply streaks, and character-specific achievements.</p>
+                        <div class="appearance-actions"><a class="action-btn" href="/profile">Open profile and achievements</a></div>
+                    </div>
+
                     <div class="rs-section" id="settings-generation">
                         <div class="rs-section-title">Generation</div>
 
@@ -1571,7 +1716,7 @@
                         <div id="nickname-list">
                             <div class="nickname-empty">Load models to set nicknames.</div>
                         </div>
-                        <div class="system-prompt-hint" style="margin-top:8px;">Nicknames are local to your browser session. The real model ID is sent to the configured model backend.</div>
+                        <div class="system-prompt-hint" style="margin-top:8px;">Nicknames are saved in this browser for your account. The real model ID is sent to the configured model backend.</div>
                     </div>
 
                     <div class="rs-section wide" id="settings-host">
@@ -1648,19 +1793,55 @@
             </form>
         </div>
     </div>
+    <div id="host-boop-toast" role="status" aria-live="polite"></div>
+    <button id="selection-define" type="button" hidden>Define</button>
+    <dialog id="assistant-action-dialog" aria-labelledby="assistant-action-title">
+        <h3 id="assistant-action-title">Conversation helper</h3>
+        <p id="assistant-action-description"></p>
+        <pre id="assistant-action-result"></pre>
+        <div class="modal-actions">
+            <button id="assistant-action-use" type="button">Use in message box</button>
+            <button id="assistant-action-close" type="button">Close</button>
+        </div>
+    </dialog>
+    <dialog id="define-dialog" aria-labelledby="define-title">
+        <h3 id="define-title">Define selected text</h3>
+        <p id="define-term"></p>
+        <div id="define-result"></div>
+        <div class="modal-actions"><button id="define-close" type="button">Close</button></div>
+    </dialog>
 
     <script src="{{ url_for('static', filename='vendor/marked.umd.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/purify.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
     <script>
-        const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose', 'midnight', 'aurora', 'sakura', 'slate', 'daylight'];
-        const AVAILABLE_MESSAGE_STYLES = ['bubble', 'clean', 'paper'];
+        const AVAILABLE_THEMES = ['ember', 'ocean', 'forest', 'violet', 'rose', 'midnight', 'aurora', 'sakura', 'slate', 'daylight', 'rainbow'];
+        const AVAILABLE_MESSAGE_STYLES = ['bubble', 'clean', 'paper', 'outline', 'minimal', 'terminal'];
         const AVAILABLE_MESSAGE_FONTS = ['sans', 'serif', 'mono'];
+        if (typeof marked.setOptions === 'function') {
+            marked.setOptions({ gfm: true, breaks: false, pedantic: false });
+        }
+        function renderMarkdown(content, streaming = false) {
+            let source = typeof content === 'string' ? content : '';
+            if (streaming) {
+                const fences = source.match(/^```/gm) || [];
+                if (fences.length % 2 === 1) source += '\n```';
+                source = source.replace(/(?:^|\n)(\s*\d+[.)]\s*)$/, '');
+            }
+            return DOMPurify.sanitize(marked.parse(source || ' '));
+        }
         const themeSelector = document.getElementById('theme-selector');
         const themeNameInput = document.getElementById('theme-name-input');
         const themeDescriptionInput = document.getElementById('theme-description-input');
         const themeIdeaInput = document.getElementById('theme-idea-input');
         const themeStatus = document.getElementById('theme-status');
+        const themeBackgroundInput = document.getElementById('theme-background-input');
+        const themeBackgroundStatus = document.getElementById('theme-background-status');
+        const themeAudioInput = document.getElementById('theme-audio-input');
+        const themeAudioTrackSelector = document.getElementById('theme-audio-track');
+        const conversationSoundtrackSelector = document.getElementById('conversation-soundtrack');
+        const themeAudioPlayer = document.getElementById('theme-audio-player');
+        const rainbowAccentToggle = document.getElementById('rainbow-accent-toggle');
         const themeColorInputs = [...document.querySelectorAll('[data-theme-color]')];
         const themeStyleInputs = [...document.querySelectorAll('[data-theme-style]')];
         const messageStyleSelector = document.getElementById('message-style-selector');
@@ -1685,6 +1866,9 @@
             const initialTheme = AVAILABLE_THEMES.includes(savedTheme) ? savedTheme : 'ember';
             document.documentElement.dataset.theme = initialTheme;
             themeSelector.value = initialTheme;
+            rainbowAccentToggle.checked = localStorage.getItem('synapse-rainbow-accent') === 'true'
+                || initialTheme === 'rainbow';
+            document.documentElement.dataset.rainbowAccent = String(rainbowAccentToggle.checked);
             const savedStyle = localStorage.getItem('synapse-message-style');
             const initialStyle = AVAILABLE_MESSAGE_STYLES.includes(savedStyle) ? savedStyle : 'bubble';
             document.documentElement.dataset.messageStyle = initialStyle;
@@ -1697,6 +1881,12 @@
             const savedSoundProfile = localStorage.getItem('synapse-sound-profile');
             soundProfileSelector.value = ['soft', 'typewriter', 'arcade', 'synth'].includes(savedSoundProfile)
                 ? savedSoundProfile : 'soft';
+            const savedMusicVolumeValue = localStorage.getItem('synapse-theme-audio-volume');
+            const savedMusicVolume = savedMusicVolumeValue === null ? NaN : Number(savedMusicVolumeValue);
+            if (Number.isFinite(savedMusicVolume)) {
+                document.getElementById('theme-audio-volume').value = String(Math.max(0, Math.min(1, savedMusicVolume)));
+            }
+            themeAudioPlayer.volume = Number(document.getElementById('theme-audio-volume').value);
             streamingToggle.checked = localStorage.getItem('synapse-streaming') !== 'false';
             useKnowledgeToggle.checked = localStorage.getItem('synapse-use-knowledge') === 'true';
             document.getElementById('system-prompt').value = localStorage.getItem('synapse-system-prompt') || '';
@@ -1719,6 +1909,16 @@
         }
         themeSelector.addEventListener('change', () => {
             selectTheme(themeSelector.value);
+            if (themeSelector.value === 'rainbow') rainbowAccentToggle.checked = true;
+            document.documentElement.dataset.rainbowAccent = String(rainbowAccentToggle.checked);
+        });
+        rainbowAccentToggle.addEventListener('change', () => {
+            document.documentElement.dataset.rainbowAccent = String(rainbowAccentToggle.checked);
+            try {
+                localStorage.setItem('synapse-rainbow-accent', String(rainbowAccentToggle.checked));
+            } catch (error) {
+                console.error('Could not save rainbow accent setting:', error);
+            }
         });
         webSearchToggle.addEventListener('change', () => {
             if (!webSearchToggle.checked) webSearchStatus.textContent = 'Web search is off.';
@@ -1895,6 +2095,14 @@
         const feedbackForm       = document.getElementById('feedback-form');
         const feedbackCancelBtn  = document.getElementById('feedback-cancel-btn');
         const feedbackSubmitBtn  = document.getElementById('feedback-submit-btn');
+        const summaryPanel = document.getElementById('conversation-summary-panel');
+        const trackerPanel = document.getElementById('tracker-panel');
+        const trackerList = document.getElementById('tracker-list');
+        const trackerStatus = document.getElementById('tracker-status');
+        const trackerAutoUpdate = document.getElementById('tracker-auto-update');
+        const assistantActionDialog = document.getElementById('assistant-action-dialog');
+        const selectionDefineButton = document.getElementById('selection-define');
+        const defineDialog = document.getElementById('define-dialog');
         const modelSelector      = document.getElementById('model-selector');
         const modelPickerTrigger = document.getElementById('model-picker-trigger');
         const modelPickerName    = document.getElementById('model-picker-name');
@@ -1953,6 +2161,13 @@
         const accountScope = document.querySelector('meta[name="account-id"]').content;
         const promptStorageKey = `synapse:${accountScope}:prompt-library`;
         const profileStorageKey = `synapse:${accountScope}:generation-profiles`;
+        const nicknameStorageKey = `synapse:${accountScope}:model-nicknames`;
+        const trackerAutoStorageKey = `synapse:${accountScope}:tracker-auto-update`;
+        try {
+            trackerAutoUpdate.checked = localStorage.getItem(trackerAutoStorageKey) === 'true';
+        } catch (error) {
+            console.warn('Could not load tracker automation preference:', error);
+        }
         let promptLibrary = [];
         let generationProfiles = [];
 
@@ -2010,6 +2225,15 @@
                 seed: Number.isInteger(seed) && seed >= -1 ? seed : -1,
                 system_prompt: systemPrompt.value.trim()
             };
+        }
+
+        function generationSettingsWithSoundtrack() {
+            const settings = readGenerationSettings();
+            if (!themeAudioTracks.length) return settings;
+            const tracks = themeAudioTracks.map(track => track.name).join(' | ');
+            const instruction = `\n\nOptional soundtrack control: available tracks are ${tracks}. During roleplay, when the mood meaningfully changes, you may emit exactly [[play:track name]] using one exact listed name. Do not emit this marker otherwise.`;
+            settings.system_prompt = `${settings.system_prompt.slice(0, Math.max(0, 10_000 - instruction.length))}${instruction}`;
+            return settings;
         }
 
         function applyGenerationSettings(settings) {
@@ -2273,6 +2497,17 @@
             lastStatsUpdate = Date.now();
         }
         socket.on('update_stats', updateResourceStats);
+        let hostBoopTimer = null;
+        socket.on('host_boop', event => {
+            const toast = document.getElementById('host-boop-toast');
+            toast.textContent = `${event.username || 'Someone'} booped the host!`;
+            toast.classList.add('visible');
+            if (hostBoopTimer !== null) clearTimeout(hostBoopTimer);
+            hostBoopTimer = setTimeout(() => {
+                toast.classList.remove('visible');
+                hostBoopTimer = null;
+            }, 5000);
+        });
         async function refreshResourceStats() {
             try {
                 const response = await fetch('/api/stats');
@@ -2460,6 +2695,25 @@
             ]));
         }
 
+        function renderThemeAudioTracks() {
+            themeAudioTrackSelector.replaceChildren();
+            conversationSoundtrackSelector.replaceChildren();
+            themeAudioTracks.forEach((track, index) => {
+                themeAudioTrackSelector.appendChild(new Option(track.name, String(index)));
+                conversationSoundtrackSelector.appendChild(new Option(track.name, String(index)));
+            });
+            themeAudioTrackSelector.disabled = !themeAudioTracks.length;
+            conversationSoundtrackSelector.disabled = !themeAudioTracks.length;
+            document.getElementById('theme-audio-play').disabled = !themeAudioTracks.length;
+            document.getElementById('theme-audio-remove').disabled = !themeAudioTracks.length;
+            if (!themeAudioTracks.length) {
+                themeAudioTrackSelector.appendChild(new Option('No soundtrack tracks', ''));
+                conversationSoundtrackSelector.appendChild(new Option('No theme music', ''));
+                themeAudioPlayer.pause();
+                themeAudioPlayer.removeAttribute('src');
+            }
+        }
+
         function readThemeEditor() {
             const styles = Object.fromEntries(themeStyleInputs.map(input => [
                 input.dataset.themeStyle,
@@ -2471,9 +2725,14 @@
                 name: themeNameInput.value.trim(),
                 description: themeDescriptionInput.value.trim(),
                 colors: Object.fromEntries(themeColorInputs.map(input => [input.dataset.themeColor, input.value])),
-                styles
+                styles,
+                background_image: themeBackgroundImage,
+                audio_tracks: themeAudioTracks
             };
         }
+
+        let themeBackgroundImage = '';
+        let themeAudioTracks = [];
 
         function setThemeEditor(theme) {
             themeEditingId = theme?.id || '';
@@ -2481,6 +2740,10 @@
             document.getElementById('delete-theme-btn').disabled = themeEditingScope !== 'user';
             themeNameInput.value = theme?.name || '';
             themeDescriptionInput.value = theme?.description || '';
+            themeBackgroundImage = typeof theme?.background_image === 'string' ? theme.background_image : '';
+            themeAudioTracks = Array.isArray(theme?.audio_tracks) ? theme.audio_tracks : [];
+            themeBackgroundStatus.textContent = themeBackgroundImage ? 'A custom background image is selected.' : 'No custom background image.';
+            renderThemeAudioTracks();
             const colors = theme?.colors || colorsFromCurrentTheme();
             themeColorInputs.forEach(input => {
                 if (colors[input.dataset.themeColor]) input.value = colors[input.dataset.themeColor];
@@ -2527,6 +2790,15 @@
             applyThemeStyles(styles);
         }
 
+        function applyThemeMedia(theme = {}) {
+            const background = typeof theme.background_image === 'string' && theme.background_image
+                ? `url("${theme.background_image}")`
+                : 'none';
+            document.documentElement.style.setProperty('--theme-background-image', background);
+            themeAudioTracks = Array.isArray(theme.audio_tracks) ? theme.audio_tracks : [];
+            renderThemeAudioTracks();
+        }
+
         function persistThemeSelection(value) {
             try {
                 localStorage.setItem('synapse-theme', value);
@@ -2552,6 +2824,7 @@
                     styles: currentStyles
                 });
                 applyThemeStyles(theme?.styles || currentStyles);
+                applyThemeMedia(theme || {});
             } else {
                 const theme = [...userThemes.map(item => ({ ...item, scope: 'user' })),
                     ...communityThemes.map(item => ({ ...item, scope: 'library' }))]
@@ -2562,6 +2835,7 @@
                 }
                 applyThemeColors(theme.colors, theme.styles);
                 setThemeEditor(theme);
+                applyThemeMedia(theme);
             }
             if (persist) persistThemeSelection(value);
         }
@@ -2583,6 +2857,131 @@
             themeStatus.textContent = message;
             themeStatus.style.color = isError ? '#ff9b9b' : '';
         }
+
+        function readFileAsDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        themeBackgroundInput.addEventListener('change', async () => {
+            const file = themeBackgroundInput.files[0];
+            themeBackgroundInput.value = '';
+            if (!file) return;
+            if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 2 * 1024 * 1024) {
+                setThemeStatus('Choose a PNG, JPEG, or WebP background image no larger than 2 MB.', true);
+                return;
+            }
+            try {
+                themeBackgroundImage = await readFileAsDataUrl(file);
+                themeBackgroundStatus.textContent = `${file.name} selected.`;
+                applyThemeMedia({ background_image: themeBackgroundImage, audio_tracks: themeAudioTracks });
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            }
+        });
+        themeAudioInput.addEventListener('change', async () => {
+            const files = Array.from(themeAudioInput.files);
+            themeAudioInput.value = '';
+            if (!files.length) return;
+            const allowedTypes = ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm', 'audio/mp4', 'audio/x-wav'];
+            const existingBytes = themeAudioTracks.reduce((total, track) => {
+                const encoded = track.data_url.split(',')[1] || '';
+                return total + Math.floor(encoded.length * 3 / 4);
+            }, 0);
+            if (themeAudioTracks.length + files.length > 5
+                || files.some(file => !allowedTypes.includes(file.type) || file.size > 5 * 1024 * 1024)
+                || existingBytes + files.reduce((total, file) => total + file.size, 0) > 10 * 1024 * 1024) {
+                setThemeStatus('Choose up to five MP3, OGG, WAV, WebM, or MP4 audio files; each is limited to 5 MB and the total to 10 MB.', true);
+                return;
+            }
+            try {
+                for (const file of files) {
+                    themeAudioTracks.push({ name: file.name.slice(0, 80), data_url: await readFileAsDataUrl(file) });
+                }
+                renderThemeAudioTracks();
+                setThemeStatus(`${files.length} soundtrack track${files.length === 1 ? '' : 's'} added.`);
+            } catch (error) {
+                setThemeStatus(error.message, true);
+            }
+        });
+        document.getElementById('theme-audio-volume').addEventListener('input', event => {
+            themeAudioPlayer.volume = Number(event.currentTarget.value);
+            try {
+                localStorage.setItem('synapse-theme-audio-volume', String(themeAudioPlayer.volume));
+            } catch (error) {
+                console.error('Could not save soundtrack volume:', error);
+            }
+        });
+        themeAudioTrackSelector.addEventListener('change', () => {
+            const track = themeAudioTracks[Number(themeAudioTrackSelector.value)];
+            if (track) {
+                themeAudioPlayer.src = track.data_url;
+                conversationSoundtrackSelector.value = themeAudioTrackSelector.value;
+            }
+        });
+        conversationSoundtrackSelector.addEventListener('change', () => {
+            const track = themeAudioTracks[Number(conversationSoundtrackSelector.value)];
+            if (track) {
+                themeAudioTrackSelector.value = conversationSoundtrackSelector.value;
+                themeAudioPlayer.src = track.data_url;
+            }
+        });
+        document.getElementById('theme-audio-play').addEventListener('click', async () => {
+            const track = themeAudioTracks[Number(themeAudioTrackSelector.value)];
+            if (!track) return;
+            if (themeAudioPlayer.src !== track.data_url) themeAudioPlayer.src = track.data_url;
+            themeAudioPlayer.volume = Number(document.getElementById('theme-audio-volume').value);
+            try {
+                if (themeAudioPlayer.paused) {
+                    await themeAudioPlayer.play();
+                    document.getElementById('theme-audio-play').textContent = 'Pause soundtrack';
+                } else {
+                    themeAudioPlayer.pause();
+                    document.getElementById('theme-audio-play').textContent = 'Play soundtrack';
+                }
+            } catch (error) {
+                setThemeStatus(`Could not play soundtrack: ${error.message}`, true);
+            }
+        });
+        themeAudioPlayer.addEventListener('ended', () => {
+            document.getElementById('theme-audio-play').textContent = 'Play soundtrack';
+            document.getElementById('conversation-soundtrack-play').textContent = 'Play music';
+        });
+        themeAudioPlayer.addEventListener('pause', () => {
+            document.getElementById('theme-audio-play').textContent = 'Play soundtrack';
+            document.getElementById('conversation-soundtrack-play').textContent = 'Play music';
+        });
+        themeAudioPlayer.addEventListener('play', () => {
+            document.getElementById('theme-audio-play').textContent = 'Pause soundtrack';
+            document.getElementById('conversation-soundtrack-play').textContent = 'Pause music';
+        });
+        document.getElementById('conversation-soundtrack-play').addEventListener('click', async event => {
+            const track = themeAudioTracks[Number(conversationSoundtrackSelector.value)];
+            if (!track) return;
+            if (themeAudioPlayer.src !== track.data_url) themeAudioPlayer.src = track.data_url;
+            themeAudioPlayer.volume = Number(document.getElementById('theme-audio-volume').value);
+            try {
+                if (themeAudioPlayer.paused) {
+                    await themeAudioPlayer.play();
+                    event.currentTarget.textContent = 'Pause music';
+                } else {
+                    themeAudioPlayer.pause();
+                    event.currentTarget.textContent = 'Play music';
+                }
+            } catch (error) {
+                setThemeStatus(`Could not play soundtrack: ${error.message}`, true);
+            }
+        });
+        document.getElementById('theme-audio-remove').addEventListener('click', () => {
+            const index = Number(themeAudioTrackSelector.value);
+            if (!Number.isInteger(index) || !themeAudioTracks[index]) return;
+            themeAudioTracks.splice(index, 1);
+            renderThemeAudioTracks();
+        });
 
         async function reloadThemes() {
             const result = await fetchAPI('/themes');
@@ -3039,7 +3438,7 @@
             if (body.dataset.rawMarkdown !== thinking) {
                 const previousVisibleLength = Array.from(body.textContent).length;
                 body.dataset.rawMarkdown = thinking;
-                body.innerHTML = DOMPurify.sanitize(marked.parse(thinking));
+                body.innerHTML = renderMarkdown(thinking, animate);
                 if (animate) {
                     const visibleAdded = Math.max(0, Array.from(body.textContent).length - previousVisibleLength);
                     if (visibleAdded) fadeInRecentText(body, visibleAdded);
@@ -3072,13 +3471,42 @@
             }
         }
 
+        const playedSoundtrackCommands = new Set();
+        function playThemeAudioTrack(name, commandKey) {
+            const index = themeAudioTracks.findIndex(track => track.name.toLowerCase() === name.trim().toLowerCase());
+            if (index < 0 || playedSoundtrackCommands.has(commandKey)) return;
+            playedSoundtrackCommands.add(commandKey);
+            themeAudioTrackSelector.value = String(index);
+            conversationSoundtrackSelector.value = String(index);
+            themeAudioPlayer.src = themeAudioTracks[index].data_url;
+            themeAudioPlayer.volume = Number(document.getElementById('theme-audio-volume').value);
+            themeAudioPlayer.play().then(() => {
+                document.getElementById('theme-audio-play').textContent = 'Pause soundtrack';
+                document.getElementById('conversation-soundtrack-play').textContent = 'Pause music';
+            }).catch(error => {
+                setThemeStatus(`The model requested “${themeAudioTracks[index].name}”, but playback could not start: ${error.message}`, true);
+            });
+        }
+
+        function assistantPresentationText(container, content, triggerAudio = false) {
+            const messageKey = `${activeConversationId || 'draft'}:${container.dataset.messageIndex || 'pending'}`;
+            let displayed = content.replace(/\[\[play:([^\]]{1,100})\]\]/gi, (marker, name) => {
+                const index = themeAudioTracks.findIndex(track => track.name.toLowerCase() === name.trim().toLowerCase());
+                if (index < 0) return marker;
+                if (triggerAudio) playThemeAudioTrack(name, `${messageKey}:${index}`);
+                return '';
+            });
+            if (triggerAudio) displayed = displayed.replace(/\[\[play:[^\]]*$/i, '');
+            return displayed;
+        }
+
         function updateStreamingMessage(container, content, thinking = '', animate = false) {
             updateThinkingBlock(container, thinking, animate);
             const message = container.querySelector('.message');
             const previousVisibleLength = Array.from(message.textContent).length;
             const previousRaw = message.dataset.rawMarkdown || '';
             message.dataset.rawMarkdown = content;
-            message.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
+            message.innerHTML = renderMarkdown(assistantPresentationText(container, content, true), animate);
             enhanceCodeBlocks(message);
             if (animate) {
                 const visibleAdded = Math.max(0, Array.from(message.textContent).length - previousVisibleLength);
@@ -3127,9 +3555,9 @@
                 `Approx. ${total.toLocaleString()} tokens in conversation`;
         }
 
-        function renderMessageContent(element, content) {
+        function renderMessageContent(element, content, container) {
             if (typeof content === 'string') {
-                element.innerHTML = DOMPurify.sanitize(marked.parse(content || ' '));
+                element.innerHTML = renderMarkdown(assistantPresentationText(container, content));
                 enhanceCodeBlocks(element);
                 return;
             }
@@ -3137,7 +3565,7 @@
             content.forEach(part => {
                 if (part && part.type === 'text' && typeof part.text === 'string') {
                     const text = document.createElement('div');
-                    text.innerHTML = DOMPurify.sanitize(marked.parse(part.text));
+                    text.innerHTML = renderMarkdown(part.text);
                     element.appendChild(text);
                 } else if (
                     part && part.type === 'image_url' && part.image_url
@@ -3247,6 +3675,8 @@
             const label = document.createElement('div');
             label.className = 'message-role-label';
             const exactModelId = modelName || (messageData && messageData.model);
+            if (exactModelId) c.dataset.modelId = exactModelId;
+            if (messageData && typeof messageData.rating === 'string') c.dataset.currentVote = messageData.rating;
             label.textContent = role === 'user' ? 'You' : exactModelId || 'Assistant';
             c.appendChild(label);
             if (role === 'assistant' && messageData && typeof messageData.thinking === 'string') {
@@ -3258,7 +3688,7 @@
                 m.innerHTML = `<div class="loading-dots"><span></span><span></span><span></span></div>`;
             } else {
                 m.dataset.rawMarkdown = getPlainMessageText(content);
-                renderMessageContent(m, content);
+                renderMessageContent(m, content, c);
             }
             c.appendChild(m);
             if (role === 'assistant') {
@@ -3308,6 +3738,23 @@
                 action.className = 'action-btn';
                 action.type = 'button';
                 if (role === 'assistant') {
+                    if (messageIndex !== undefined && messageIndex !== null) {
+                        const editAssistantButton = document.createElement('button');
+                        editAssistantButton.className = 'action-btn';
+                        editAssistantButton.type = 'button';
+                        editAssistantButton.textContent = 'Edit';
+                        editAssistantButton.addEventListener('click', () =>
+                            editAssistantMessage(c, messageIndex, getPlainMessageText(content))
+                        );
+                        const deleteAssistantButton = document.createElement('button');
+                        deleteAssistantButton.className = 'action-btn';
+                        deleteAssistantButton.type = 'button';
+                        deleteAssistantButton.textContent = 'Delete';
+                        deleteAssistantButton.addEventListener('click', () =>
+                            deleteAssistantMessage(messageIndex)
+                        );
+                        a.append(editAssistantButton, deleteAssistantButton);
+                    }
                     if (!comparisonId) {
                         action.title = 'Regenerate response';
                         action.setAttribute('aria-label', 'Regenerate response');
@@ -3331,6 +3778,10 @@
                             voteButton.addEventListener('click', () => rateAssistantResponse(c, vote));
                             rating.appendChild(voteButton);
                         });
+                        const hint = document.createElement('span');
+                        hint.className = 'response-rating-hint';
+                        hint.textContent = 'model totals';
+                        rating.appendChild(hint);
                         a.appendChild(rating);
                     }
                 } else if (role === 'user') {
@@ -3375,10 +3826,14 @@
                     down: result.down,
                     score: result.up - result.down
                 });
-                container.querySelectorAll('.response-rating [data-vote]').forEach(button => {
-                    const buttonVote = button.dataset.vote;
-                    button.setAttribute('aria-pressed', String(result.vote === buttonVote));
-                    button.textContent = `${buttonVote === 'up' ? '👍' : '👎'} ${result[buttonVote]}`;
+                container.dataset.currentVote = result.vote || '';
+                chatWindow.querySelectorAll('.message-container.ai-message').forEach(messageContainer => {
+                    if (messageContainer.dataset.modelId !== result.model_id) return;
+                    messageContainer.querySelectorAll('.response-rating [data-vote]').forEach(button => {
+                        const buttonVote = button.dataset.vote;
+                        button.setAttribute('aria-pressed', String(messageContainer.dataset.currentVote === buttonVote));
+                        button.textContent = `${buttonVote === 'up' ? '👍' : '👎'} ${result[buttonVote]}`;
+                    });
                 });
                 renderModelPickerOptions();
             } catch (error) {
@@ -3421,6 +3876,258 @@
             updateConversationTokenSummary();
             scrollToBottom();
         }
+
+        function setTrackerStatus(message, isError = false) {
+            trackerStatus.textContent = message;
+            trackerStatus.style.color = isError ? '#ff9b9b' : '';
+        }
+
+        function renderTrackers(trackers) {
+            trackerList.replaceChildren();
+            if (!trackers.length) {
+                const empty = document.createElement('p');
+                empty.textContent = 'No trackers yet. Add one or update them from the conversation.';
+                trackerList.appendChild(empty);
+                return;
+            }
+            trackers.forEach(tracker => {
+                const row = document.createElement('div');
+                row.className = 'tracker-row';
+                const name = document.createElement('strong');
+                name.textContent = tracker.name;
+                const value = document.createElement('span');
+                value.textContent = tracker.value || '—';
+                const edit = document.createElement('button');
+                edit.type = 'button';
+                edit.textContent = 'Edit';
+                edit.addEventListener('click', () => editTracker(tracker));
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.textContent = 'Delete';
+                remove.addEventListener('click', () => removeTracker(tracker.id));
+                row.append(name, value, edit, remove);
+                trackerList.appendChild(row);
+            });
+        }
+
+        async function loadTrackers() {
+            if (!activeConversationId) {
+                setTrackerStatus('Open or create a conversation to use trackers.', true);
+                trackerPanel.classList.add('visible');
+                return;
+            }
+            try {
+                renderTrackers(await fetchAPI(`/conversations/${encodeURIComponent(activeConversationId)}/trackers`));
+                setTrackerStatus('');
+            } catch (error) {
+                setTrackerStatus(`Could not load trackers: ${error.message}`, true);
+            }
+        }
+
+        async function saveTracker(id, name, value) {
+            if (!activeConversationId) return;
+            try {
+                const tracker = await fetchAPI(`/conversations/${encodeURIComponent(activeConversationId)}/trackers`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, value })
+                });
+                const trackers = await fetchAPI(`/conversations/${encodeURIComponent(activeConversationId)}/trackers`);
+                renderTrackers(trackers);
+                setTrackerStatus(`${tracker.name} saved.`);
+            } catch (error) {
+                setTrackerStatus(`Could not save tracker: ${error.message}`, true);
+            }
+        }
+
+        function createTracker() {
+            const name = prompt('Tracker name (for example: Inventory or Gold):');
+            if (name === null) return;
+            const value = prompt('Current value:') || '';
+            saveTracker(undefined, name, value);
+        }
+
+        function editTracker(tracker) {
+            const name = prompt('Tracker name:', tracker.name);
+            if (name === null) return;
+            const value = prompt('Tracker value:', tracker.value || '');
+            if (value === null) return;
+            saveTracker(tracker.id, name, value);
+        }
+
+        async function removeTracker(id) {
+            if (!activeConversationId || !confirm('Delete this tracker?')) return;
+            try {
+                const result = await fetchAPI(
+                    `/conversations/${encodeURIComponent(activeConversationId)}/trackers/${encodeURIComponent(id)}`,
+                    { method: 'DELETE' }
+                );
+                renderTrackers(result.trackers);
+            } catch (error) {
+                setTrackerStatus(`Could not delete tracker: ${error.message}`, true);
+            }
+        }
+
+        async function updateTrackersFromConversation() {
+            if (!activeConversationId) {
+                setTrackerStatus('Open or create a conversation first.', true);
+                return;
+            }
+            const model = modelSelector.value;
+            if (!model) {
+                setTrackerStatus('Select a model before updating trackers.', true);
+                return;
+            }
+            setTrackerStatus('Reviewing the conversation for tracker updates…');
+            try {
+                const result = await fetchAPI(
+                    `/conversations/${encodeURIComponent(activeConversationId)}/assistant-actions`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'update_trackers',
+                            model,
+                            params: readGenerationSettings()
+                        })
+                    }
+                );
+                renderTrackers(result.trackers);
+                setTrackerStatus('Trackers updated from supported facts in the conversation.');
+            } catch (error) {
+                setTrackerStatus(`Could not update trackers: ${error.message}`, true);
+            }
+        }
+
+        async function maybeAutoUpdateTrackers() {
+            if (!trackerAutoUpdate.checked || !activeConversationId) return;
+            trackerPanel.classList.add('visible');
+            await updateTrackersFromConversation();
+        }
+
+        async function runAssistantAction(action) {
+            if (!activeConversationId) {
+                alert('Open or create a conversation first.');
+                return;
+            }
+            const model = modelSelector.value;
+            if (!model) {
+                alert('Select a model first.');
+                return;
+            }
+            if (action === 'summary') {
+                summaryPanel.classList.add('visible');
+                summaryPanel.textContent = 'Summarizing conversation…';
+            }
+            try {
+                const result = await fetchAPI(
+                    `/conversations/${encodeURIComponent(activeConversationId)}/assistant-actions`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action,
+                            model,
+                            params: readGenerationSettings()
+                        })
+                    }
+                );
+                if (action === 'summary') {
+                    summaryPanel.innerHTML = renderMarkdown(result.content || 'No summary was returned.');
+                    return;
+                }
+                if (action === 'continue') {
+                    await renderConversationMessagesFromCurrent();
+                    await refreshTabs();
+                    await maybeAutoUpdateTrackers();
+                    return;
+                }
+                const dialogTitle = action === 'impersonate' ? 'Suggested user response' : 'Conversation helper';
+                const description = action === 'impersonate'
+                    ? 'This suggestion is not added to the conversation. Use it in the composer if you want to send it.'
+                    : '';
+                document.getElementById('assistant-action-title').textContent = dialogTitle;
+                document.getElementById('assistant-action-description').textContent = description;
+                document.getElementById('assistant-action-result').textContent = result.content;
+                document.getElementById('assistant-action-use').hidden = action !== 'impersonate';
+                assistantActionDialog.showModal();
+            } catch (error) {
+                if (action === 'summary') summaryPanel.textContent = `Could not summarize: ${error.message}`;
+                else alert(`Could not run the conversation action: ${error.message}`);
+            }
+        }
+
+        document.getElementById('action-summary').addEventListener('click', () => runAssistantAction('summary'));
+        document.getElementById('action-continue').addEventListener('click', () => runAssistantAction('continue'));
+        document.getElementById('action-impersonate').addEventListener('click', () => runAssistantAction('impersonate'));
+        document.getElementById('action-trackers').addEventListener('click', () => {
+            trackerPanel.classList.toggle('visible');
+            if (trackerPanel.classList.contains('visible')) loadTrackers();
+        });
+        document.getElementById('tracker-close').addEventListener('click', () => trackerPanel.classList.remove('visible'));
+        document.getElementById('tracker-add').addEventListener('click', createTracker);
+        document.getElementById('tracker-refresh').addEventListener('click', updateTrackersFromConversation);
+        trackerAutoUpdate.addEventListener('change', () => {
+            try {
+                localStorage.setItem(trackerAutoStorageKey, String(trackerAutoUpdate.checked));
+                setTrackerStatus(trackerAutoUpdate.checked
+                    ? 'Trackers will update after assistant replies.'
+                    : 'Automatic tracker updates are off.');
+            } catch (error) {
+                setTrackerStatus(`Could not save tracker preference: ${error.message}`, true);
+            }
+        });
+        document.getElementById('assistant-action-close').addEventListener('click', () => assistantActionDialog.close());
+        document.getElementById('assistant-action-use').addEventListener('click', () => {
+            userInput.value = document.getElementById('assistant-action-result').textContent;
+            userInput.dispatchEvent(new Event('input', { bubbles: true }));
+            assistantActionDialog.close();
+            userInput.focus();
+        });
+
+        let selectedDefinitionTerm = '';
+        const defineDialogClose = document.getElementById('define-close');
+        defineDialog.addEventListener('cancel', event => event.preventDefault());
+        defineDialogClose.addEventListener('click', () => defineDialog.close());
+        selectionDefineButton.addEventListener('mousedown', event => event.preventDefault());
+        selectionDefineButton.addEventListener('click', async () => {
+            selectionDefineButton.hidden = true;
+            const term = selectedDefinitionTerm;
+            if (!term || !activeConversationId) return;
+            document.getElementById('define-term').textContent = term;
+            document.getElementById('define-result').textContent = 'Looking up the meaning…';
+            defineDialog.showModal();
+            try {
+                const result = await fetchAPI(
+                    `/conversations/${encodeURIComponent(activeConversationId)}/assistant-actions`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'define', term, model: modelSelector.value, params: readGenerationSettings() })
+                    }
+                );
+                document.getElementById('define-result').innerHTML = renderMarkdown(result.content || 'No definition was returned.');
+            } catch (error) {
+                document.getElementById('define-result').textContent = `Could not define this text: ${error.message}`;
+            }
+        });
+        function updateSelectionDefineButton() {
+            const selection = window.getSelection();
+            const term = selection?.toString().trim() || '';
+            const anchor = selection?.anchorNode?.parentElement?.closest('.ai-message .message');
+            if (!term || term.length > 300 || !anchor || !activeConversationId) {
+                selectionDefineButton.hidden = true;
+                return;
+            }
+            selectedDefinitionTerm = term;
+            const range = selection.getRangeAt(0).getBoundingClientRect();
+            selectionDefineButton.style.left = `${Math.max(8, Math.min(range.left, window.innerWidth - 80))}px`;
+            selectionDefineButton.style.top = `${Math.max(8, range.top - 38)}px`;
+            selectionDefineButton.hidden = false;
+        }
+        document.addEventListener('mouseup', () => setTimeout(updateSelectionDefineButton, 0));
+        document.addEventListener('keyup', updateSelectionDefineButton);
+        document.addEventListener('scroll', () => { selectionDefineButton.hidden = true; }, true);
 
         function renderAttachmentItems(tray, attachments, onChange) {
             tray.replaceChildren();
@@ -3644,8 +4351,106 @@
             editor.setSelectionRange(editor.value.length, editor.value.length);
         }
 
+        function editAssistantMessage(container, messageIndex, content) {
+            const message = container.querySelector('.message');
+            const actions = container.querySelector('.message-actions');
+            const editor = document.createElement('textarea');
+            editor.className = 'message-editor';
+            editor.value = content;
+            message.replaceWith(editor);
+            actions.replaceChildren();
+            const saveButton = document.createElement('button');
+            saveButton.className = 'action-btn';
+            saveButton.type = 'button';
+            saveButton.textContent = 'Save edit';
+            const cancelButton = document.createElement('button');
+            cancelButton.className = 'action-btn';
+            cancelButton.type = 'button';
+            cancelButton.textContent = 'Cancel';
+            actions.append(saveButton, cancelButton);
+            cancelButton.addEventListener('click', () => renderConversationMessagesFromCurrent());
+            const save = async () => {
+                saveButton.disabled = true;
+                try {
+                    const result = await fetchAPI(
+                        `/conversations/${encodeURIComponent(activeConversationId)}/messages/${messageIndex}/assistant`,
+                        {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ content: editor.value })
+                        }
+                    );
+                    renderConversationMessages(result.messages);
+                    await refreshModelRatings();
+                    await refreshTabs();
+                } catch (error) {
+                    alert(`Could not edit assistant message: ${error.message}`);
+                    saveButton.disabled = false;
+                }
+            };
+            saveButton.addEventListener('click', save);
+            editor.addEventListener('keydown', event => {
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    cancelButton.click();
+                } else if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                    event.preventDefault();
+                    save();
+                }
+            });
+            editor.focus();
+            editor.setSelectionRange(editor.value.length, editor.value.length);
+        }
+
+        async function renderConversationMessagesFromCurrent() {
+            if (!activeConversationId) return;
+            try {
+                const messages = await fetchAPI(`/conversations/${encodeURIComponent(activeConversationId)}`);
+                renderConversationMessages(messages);
+            } catch (error) {
+                alert(`Could not restore the message: ${error.message}`);
+            }
+        }
+
+        async function deleteAssistantMessage(messageIndex) {
+            if (!activeConversationId || !confirm('Delete this assistant message? Any rating on it will also be removed.')) return;
+            try {
+                const result = await fetchAPI(
+                    `/conversations/${encodeURIComponent(activeConversationId)}/messages/${messageIndex}`,
+                    { method: 'DELETE' }
+                );
+                renderConversationMessages(result.messages);
+                await refreshModelRatings();
+                await refreshTabs();
+            } catch (error) {
+                alert(`Could not delete assistant message: ${error.message}`);
+            }
+        }
+
+        async function refreshModelRatings() {
+            try {
+                const catalog = await fetchAPI('/model-catalog');
+                modelCatalogById = new Map((catalog.models || []).map(model => [model.id, model]));
+                renderModelPickerOptions();
+            } catch (error) {
+                console.error('Could not refresh model rating totals:', error);
+            }
+        }
+
         // ── Nickname map: modelId -> display string (empty = use default label)
-        const nicknames = {};
+        let nicknames = {};
+        try {
+            const savedNicknames = JSON.parse(localStorage.getItem(nicknameStorageKey) || '{}');
+            if (savedNicknames && typeof savedNicknames === 'object' && !Array.isArray(savedNicknames)) {
+                nicknames = Object.fromEntries(
+                    Object.entries(savedNicknames).filter(([id, name]) =>
+                        typeof id === 'string' && typeof name === 'string' && name.length <= 80
+                    )
+                );
+            }
+        } catch (error) {
+            console.warn('Could not load saved model nicknames:', error);
+        }
         let modelCatalogById = new Map();
 
         function defaultLabel(id) {
@@ -3801,6 +4606,11 @@
                 inp.addEventListener('input', () => {
                     nicknames[id] = inp.value;
                     refreshModelSelector();
+                    try {
+                        localStorage.setItem(nicknameStorageKey, JSON.stringify(nicknames));
+                    } catch (error) {
+                        console.error('Could not save model nickname:', error);
+                    }
                 });
 
                 const clearBtn = document.createElement('button');
@@ -3811,6 +4621,11 @@
                     inp.value = '';
                     nicknames[id] = '';
                     refreshModelSelector();
+                    try {
+                        localStorage.setItem(nicknameStorageKey, JSON.stringify(nicknames));
+                    } catch (error) {
+                        console.error('Could not clear model nickname:', error);
+                    }
                 });
 
                 row.appendChild(idSpan);
@@ -4057,8 +4872,15 @@
                 if (followStreamToBottom) chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
             }, 50);
         }
+        let streamingScrollFrame = null;
         function followStreamingOutput() {
-            if (followStreamToBottom) chatWindow.scrollTop = chatWindow.scrollHeight;
+            if (!followStreamToBottom || streamingScrollFrame !== null) return;
+            streamingScrollFrame = requestAnimationFrame(() => {
+                streamingScrollFrame = null;
+                if (followStreamToBottom) {
+                    chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+                }
+            });
         }
         chatWindow.addEventListener('scroll', () => {
             followStreamToBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 72;
@@ -4131,6 +4953,7 @@
                 loadingEl = comparisonGrid;
             } else {
                 loadingEl = createMessageContainer('assistant', '__loading__');
+                loadingEl.dataset.messageIndex = String(messageIndex + 1);
             }
             chatWindow.appendChild(loadingEl); scrollToBottom();
             const controller = new AbortController();
@@ -4173,7 +4996,7 @@
                         `[${index + 1}] ${result.title}\n${result.url}\n${result.content}`
                     ).join('\n\n');
                 }
-                genParams = readGenerationSettings();
+                genParams = generationSettingsWithSoundtrack();
                 const payload = {
                     conversation_id: conversationId,
                     prompt: p,
@@ -4205,6 +5028,7 @@
                     ));
                 }
                 await refreshTabs();
+                await maybeAutoUpdateTrackers();
             } catch (error) {
                 if (activeConversationId !== conversationId) return;
                 if (controller.signal.aborted) {
@@ -4303,8 +5127,9 @@
             const assistantIndex = original && original.dataset.messageIndex
                 ? original.dataset.messageIndex
                 : chatWindow.querySelectorAll('.message-container[data-message-index]').length;
-            genParams = readGenerationSettings();
+            genParams = generationSettingsWithSoundtrack();
             const loadingEl = createMessageContainer('assistant', '__loading__');
+            loadingEl.dataset.messageIndex = String(assistantIndex);
             if (original) original.replaceWith(loadingEl);
             else chatWindow.appendChild(loadingEl);
             scrollToBottom();
@@ -4323,6 +5148,7 @@
                 loadingEl.replaceWith(createMessageContainer(
                     'assistant', result.content, assistantIndex, m, null, result
                 ));
+                await maybeAutoUpdateTrackers();
             } catch (error) {
                 if (activeConversationId !== conversationId) return;
                 if (controller.signal.aborted) {
@@ -4364,6 +5190,7 @@
                         activeConversationId = null; chatWindow.innerHTML = ''; chatWindow.appendChild(welcomeScreen);
                         await initialize();
                     } else { await refreshTabs(); }
+                    await refreshModelRatings();
                 } catch(e) { alert(`Could not delete: ${e.message}`); }
             }
         }

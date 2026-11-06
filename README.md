@@ -36,7 +36,9 @@ Connects to the OpenAI-compatible local API server from [LM Studio](https://lmst
 - **Uploaded fonts** — add WOFF2, WOFF, TTF, or OTF fonts (up to 10 MB each); they are saved on the server for your account and can be removed from Settings
 - **Editable prompts and attachments** — edit a user message, add or remove its attachments, discard later turns, and regenerate from the revised message
 - **Message copying** — copy user prompts or assistant responses from the message actions
-- **Response and model ratings** — rate individual answers with thumbs up/down; the picker and community library show aggregate ratings by exact model ID
+- **Response and model ratings** — rate individual answers with thumbs up/down; votes stay attached to each answer, and the picker and community library show aggregate ratings by exact model ID
+- **Conversation helpers** — summarize without adding to history, generate an optional continuation or user-perspective reply, define selected assistant text, and manage manual or model-updated trackers
+- **Profile achievements** — track message, estimated-token, model-reply, and roleplay character/model milestones
 - **Token estimates** — see approximate per-message and conversation token counts plus estimated output tokens per second during generation
 - **Message appearance** — choose bubble, clean, or soft-card layouts and sans, serif, or monospace text
 - **Synthesized interface sounds** — click and toggle tones plus a typing tick for every streamed letter, generated in the browser with an on/off setting and no audio files
@@ -223,6 +225,8 @@ To find your local IP:
 
 Open **Roleplay Studio** from the chat sidebar to create AI and user character profiles. You can draft profiles yourself or ask a selected local model to generate a draft, then edit and save them privately. In a scene, switch either character or the model without losing history, choose a pacing style, save continuity notes, create a recap, or step out of character to discuss the story. You can also regenerate or stop replies and rate them. Use `{char}` and `{user}` placeholders in profile text. You can optionally password-lock a scene. A chat lock only controls access through Synapse and does not encrypt the conversation file on disk.
 
+The normal chat composer also includes roleplay helpers: summarize a conversation without saving the summary, generate a user-perspective reply or continuation, define selected assistant text, and create trackers manually or update them with the current model. Assistant replies can be edited or deleted. Visit **Profile & achievements** to see conversation milestones and unlocked dates.
+
 Model selection, conversation import/export, appearance, generation controls, host information, and account actions are grouped in the full-screen **Settings** view. The conversation list remains the primary content of the mobile sidebar.
 
 Profiles submitted to the community library stay private until approved by a moderator. Configure moderators by setting `SYNAPSE_MODERATOR_IDS` to a comma-separated list of account IDs from `users.json` before starting Synapse, for example:
@@ -240,7 +244,7 @@ Profile and submission data is stored in `roleplay_profiles.json`, `roleplay_lib
 
 ## Themes, fonts, and sound profiles
 
-In **Settings → Appearance**, create a theme by editing its colors, density, message style, font, corner radius, chat width, sidebar position, and host-stat visibility, or ask a selected local model to generate a palette. Themes can be saved privately or exported/imported as JSON. Publishing sends the theme to moderator review before it appears in the shared library. Themes use validated color and layout settings rather than executable CSS.
+In **Settings → Appearance**, create a theme by editing its colors, density, message style, font, corner radius, chat width, sidebar position, and host-stat visibility, or ask a selected local model to generate a palette. Themes can optionally include a background image and up to five audio tracks with adjustable playback volume; soundtrack cues may be requested during roleplay. Themes can be saved privately or exported/imported as JSON. Publishing sends the theme to moderator review before it appears in the shared library. Themes use validated color and layout settings rather than executable CSS.
 
 Choose a sound profile to change the synthesized click, toggle, completion, and streamed-letter sounds. Uploaded fonts are private to the account that uploaded them and stored under `user_fonts/`; font metadata is stored in `user_fonts.json`. Only WOFF2, WOFF, TTF, and OTF files up to 10 MB are accepted. Deleting an account removes its private themes and uploaded font files.
 

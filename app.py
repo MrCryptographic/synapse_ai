@@ -54,6 +54,7 @@ MODEL_DOWNLOAD_MAX_BYTES = int(os.environ.get("SYNAPSE_MODEL_DOWNLOAD_MAX_BYTES"
 THEME_PROFILES_FILE = APP_DIR / "theme_profiles.json"
 THEME_LIBRARY_FILE = APP_DIR / "theme_library.json"
 THEME_SUBMISSIONS_FILE = APP_DIR / "theme_submissions.json"
+ACHIEVEMENTS_DB_FILE = APP_DIR / "user_achievements.json"
 FONT_METADATA_FILE = APP_DIR / "user_fonts.json"
 FONT_UPLOAD_DIR = APP_DIR / "user_fonts"
 KNOWLEDGE_DATA_DIR = APP_DIR / "knowledge_data"
@@ -155,6 +156,7 @@ theme_db_lock = threading.Lock()
 model_db_lock = threading.Lock()
 model_download_lock = threading.Lock()
 model_download_jobs = {}
+achievement_db_lock = threading.Lock()
 font_db_lock = threading.Lock()
 vram_cache = {"checked_at": 0.0, "value": None}
 vram_cache_lock = threading.Lock()
@@ -569,7 +571,7 @@ def normalize_theme(theme):
     for field, allowed in {
         "density": ("comfortable", "compact"),
         "sidebar_position": ("left", "right"),
-        "message_style": ("bubble", "clean", "paper"),
+        "message_style": ("bubble", "clean", "paper", "outline", "minimal", "terminal"),
         "font": ("sans", "serif", "mono"),
         "chat_width": ("normal", "wide"),
     }.items():
@@ -581,12 +583,63 @@ def normalize_theme(theme):
         if not isinstance(styles["show_sidebar_stats"], bool):
             raise ValueError("Sidebar stats visibility must be true or false.")
         normalized_styles["show_sidebar_stats"] = styles["show_sidebar_stats"]
+
+    background_image = theme.get("background_image", "")
+    if not isinstance(background_image, str):
+        raise ValueError("Theme background images must be encoded image files.")
+    if background_image:
+        image_match = re.fullmatch(
+            r"data:image/(?:png|jpeg|webp);base64,([A-Za-z0-9+/]+=*)",
+            background_image,
+        )
+        if not image_match:
+            raise ValueError("Theme backgrounds must be PNG, JPEG, or WebP images.")
+        try:
+            image_bytes = base64.b64decode(image_match.group(1), validate=True)
+        except ValueError as error:
+            raise ValueError("The theme background image is invalid.") from error
+        if not image_bytes or len(image_bytes) > 2 * 1024 * 1024:
+            raise ValueError("Theme background images must be 2 MB or smaller.")
+
+    audio_tracks = theme.get("audio_tracks", [])
+    if not isinstance(audio_tracks, list) or len(audio_tracks) > 5:
+        raise ValueError("Themes can include up to five audio tracks.")
+    normalized_tracks = []
+    total_audio_bytes = 0
+    for track in audio_tracks:
+        if not isinstance(track, dict):
+            raise ValueError("Each theme audio track must be an object.")
+        track_name = track.get("name")
+        data_url = track.get("data_url")
+        if not isinstance(track_name, str) or not track_name.strip() or len(track_name.strip()) > 80:
+            raise ValueError("Audio track names must contain 1 to 80 characters.")
+        if not isinstance(data_url, str):
+            raise ValueError("Theme audio tracks must be encoded audio files.")
+        audio_match = re.fullmatch(
+            r"data:audio/(?:mpeg|ogg|wav|webm|mp4|x-wav);base64,([A-Za-z0-9+/]+=*)",
+            data_url,
+            re.IGNORECASE,
+        )
+        if not audio_match:
+            raise ValueError("Theme audio must be MP3, OGG, WAV, WebM, or MP4 audio.")
+        try:
+            audio_bytes = base64.b64decode(audio_match.group(1), validate=True)
+        except ValueError as error:
+            raise ValueError("A theme audio track is invalid.") from error
+        if not audio_bytes or len(audio_bytes) > 5 * 1024 * 1024:
+            raise ValueError("Each theme audio track must be 5 MB or smaller.")
+        total_audio_bytes += len(audio_bytes)
+        normalized_tracks.append({"name": track_name.strip(), "data_url": data_url})
+    if total_audio_bytes > 10 * 1024 * 1024:
+        raise ValueError("Theme audio tracks must total 10 MB or less.")
     return {
         "id": theme.get("id") if isinstance(theme.get("id"), str) else str(uuid.uuid4()),
         "name": name.strip(),
         "description": description.strip(),
         "colors": normalized_colors,
         "styles": normalized_styles,
+        "background_image": background_image,
+        "audio_tracks": normalized_tracks,
     }
 
 
@@ -1120,6 +1173,11 @@ def roleplay():
 @app.route("/library")
 def community_library_page():
     return render_template("community_library.html", csrf_token=csrf_token())
+
+
+@app.route("/profile")
+def profile_page():
+    return render_template("profile.html", csrf_token=csrf_token())
 
 
 @app.route('/api/stats', methods=['GET'])
@@ -1698,6 +1756,8 @@ def manage_themes():
     if request.method == "GET":
         return jsonify({"themes": themes_for_user(user_id), "library": themes_for_library()})
 
+    if request.content_length is not None and request.content_length > 16 * 1024 * 1024:
+        return jsonify({"error": "A theme must be smaller than 16 MB, including image and audio assets."}), 413
     data = request.get_json(silent=True)
     try:
         theme = normalize_theme(data)
@@ -1723,6 +1783,8 @@ def manage_themes():
 
 @app.route("/api/themes/library", methods=["POST"])
 def publish_theme():
+    if request.content_length is not None and request.content_length > 16 * 1024 * 1024:
+        return jsonify({"error": "A theme must be smaller than 16 MB, including image and audio assets."}), 413
     data = request.get_json(silent=True)
     try:
         theme = normalize_theme(data)
@@ -2212,11 +2274,16 @@ def review_roleplay_submission(submission_id):
 
 @app.route('/api/boop', methods=['POST'])
 def boop():
+    username = username_for_user_id(session["user_id"])
+    socketio.emit("host_boop", {
+        "username": username,
+        "timestamp": datetime.datetime.utcnow().isoformat(),
+    })
     send_host_notification(
         title="BEEP BEEP! You've been booped!",
-        message="Someone on the network pressed the Boop button."
+        message=f"{username} on the network pressed the Boop button."
     )
-    return jsonify({"success": True})
+    return jsonify({"success": True, "message": "The host has been notified."})
 
 
 def get_tavily_usage(api_key):
@@ -3683,6 +3750,327 @@ def get_conversation_details(conv_id):
     return jsonify(messages_for_user(conversation.get('messages', []), session["user_id"]))
 
 
+def conversation_plain_text(content):
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(
+            part["text"] for part in content
+            if isinstance(part, dict) and part.get("type") == "text" and isinstance(part.get("text"), str)
+        )
+    return ""
+
+
+@app.route("/api/conversations/<conv_id>/assistant-actions", methods=["POST"])
+def run_conversation_assistant_action(conv_id):
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Choose a conversation action."}), 400
+    action = data.get("action")
+    if action not in ("continue", "impersonate", "summary", "define", "update_trackers"):
+        return jsonify({"error": "Choose a supported conversation action."}), 400
+    model = data.get("model")
+    if not isinstance(model, str) or not model.strip() or len(model) > 200:
+        return jsonify({"error": "Choose an available local model."}), 400
+    params = data.get("params", {})
+    if not isinstance(params, dict):
+        return jsonify({"error": "Generation parameters are invalid."}), 400
+    system_prompt = params.get("system_prompt", "")
+    if not isinstance(system_prompt, str) or len(system_prompt) > 10_000:
+        return jsonify({"error": "System instructions must be text of at most 10,000 characters."}), 400
+
+    conversations = load_json_db(CONV_DB_FILE)
+    conversation = get_owned_conversation(conversations, conv_id)
+    if conversation is None:
+        return jsonify({"error": "Conversation not found."}), 404
+    access_error = conversation_access_error(conv_id, conversation)
+    if access_error:
+        return access_error
+    history = conversation.get("messages", [])
+    if not isinstance(history, list) or not history:
+        return jsonify({"error": "This conversation does not have any messages yet."}), 400
+
+    prompts = {
+        "continue": (
+            "Continue directly from the final assistant message. Write only the continuation, "
+            "without repeating the preceding text or adding a preamble."
+        ),
+        "impersonate": (
+            "Write a plausible next response from the user's point of view, using the conversation "
+            "and any roleplay character context. Return only the response text; do not claim to be the assistant."
+        ),
+        "summary": (
+            "Summarize the conversation so far. Preserve important facts, decisions, character details, "
+            "open questions, and unresolved tasks. Use concise Markdown."
+        ),
+        "update_trackers": (
+            "Update the conversation's trackers from facts stated in the chat. Return only a JSON object "
+            'with a "trackers" array of objects with "name" and "value" string fields. Preserve existing '
+            "tracker names, update values only when the conversation supports it, and add newly relevant "
+            "inventory, currency, relationship, objective, or status trackers. Do not invent values."
+        ),
+    }
+    if action == "define":
+        term = data.get("term")
+        if not isinstance(term, str) or not term.strip() or len(term.strip()) > 300:
+            return jsonify({"error": "Select a word or phrase of 1 to 300 characters."}), 400
+        prompts["define"] = (
+            "Define the selected word or phrase clearly and briefly in the context of this conversation. "
+            "If it is ambiguous, explain the most likely meaning. Selected text: "
+            + json.dumps(term.strip(), ensure_ascii=False)
+        )
+
+    try:
+        model_history = build_conversation_model_history(
+            conversation, session["user_id"], system_prompt
+        )
+        if action == "update_trackers":
+            model_history.append({
+                "role": "system",
+                "content": "Current trackers:\n" + json.dumps(conversation.get("trackers", []), ensure_ascii=False),
+            })
+        model_history.append({"role": "user", "content": prompts[action]})
+        answer, _ = get_ai_response(
+            model_history,
+            model.strip(),
+            params.get("temperature", 0.7),
+            params.get("top_p", 1.0),
+            min(max(int(params.get("max_tokens", 2048)), 128), 8192),
+            params.get("frequency_penalty", 0.0),
+            params.get("presence_penalty", 0.0),
+        )
+    except (requests.RequestException, OSError, ValueError, TypeError, KeyError) as error:
+        return jsonify({"error": f"Could not run that conversation action: {error}"}), 502
+
+    if action == "continue":
+        roleplay = conversation.get("roleplay")
+        speaker = roleplay.get("character", {}).get("name") if isinstance(roleplay, dict) else None
+        message = assistant_message(
+            answer,
+            model=model.strip(),
+            **({"speaker": speaker} if isinstance(speaker, str) else {}),
+        )
+        with conversation_db_lock:
+            latest = load_json_db(CONV_DB_FILE)
+            owned = get_owned_conversation(latest, conv_id)
+            if owned is None:
+                return jsonify({"error": "Conversation not found."}), 404
+            owned.setdefault("messages", []).append(message)
+            save_json_db(latest, CONV_DB_FILE)
+        return jsonify({"action": action, "content": answer, "model": model.strip(), "message": message})
+
+    if action == "update_trackers":
+        try:
+            parsed = parse_generated_json_object(answer)
+        except ValueError as error:
+            return jsonify({"error": f"The model returned invalid tracker data: {error}"}), 502
+        candidates = parsed.get("trackers")
+        if not isinstance(candidates, list) or len(candidates) > 30:
+            return jsonify({"error": "The model returned an invalid tracker list."}), 502
+        with conversation_db_lock:
+            latest = load_json_db(CONV_DB_FILE)
+            owned = get_owned_conversation(latest, conv_id)
+            if owned is None:
+                return jsonify({"error": "Conversation not found."}), 404
+            trackers = owned.get("trackers", [])
+            if not isinstance(trackers, list):
+                trackers = []
+            by_name = {
+                item["name"].casefold(): item for item in trackers
+                if isinstance(item, dict) and isinstance(item.get("name"), str)
+            }
+            for candidate in candidates:
+                if (
+                    not isinstance(candidate, dict)
+                    or not isinstance(candidate.get("name"), str)
+                    or not candidate["name"].strip()
+                    or len(candidate["name"].strip()) > 80
+                    or not isinstance(candidate.get("value"), str)
+                    or len(candidate["value"]) > 1000
+                ):
+                    return jsonify({"error": "The model returned an invalid tracker entry."}), 502
+                name = candidate["name"].strip()
+                existing = by_name.get(name.casefold())
+                if existing is not None:
+                    existing["value"] = candidate["value"]
+                elif len(trackers) < 30:
+                    tracker = {"id": str(uuid.uuid4()), "name": name, "value": candidate["value"]}
+                    trackers.append(tracker)
+                    by_name[name.casefold()] = tracker
+            owned["trackers"] = trackers
+            save_json_db(latest, CONV_DB_FILE)
+        return jsonify({"action": action, "trackers": trackers, "model": model.strip()})
+    return jsonify({"action": action, "content": answer, "model": model.strip()})
+
+
+@app.route("/api/conversations/<conv_id>/trackers", methods=["GET", "POST"])
+def manage_conversation_trackers(conv_id):
+    if request.method == "GET":
+        conversations = load_json_db(CONV_DB_FILE)
+        conversation = get_owned_conversation(conversations, conv_id)
+        if conversation is None:
+            return jsonify({"error": "Conversation not found."}), 404
+        access_error = conversation_access_error(conv_id, conversation)
+        if access_error:
+            return access_error
+        trackers = conversation.get("trackers", [])
+        return jsonify(trackers if isinstance(trackers, list) else [])
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "Tracker details are required."}), 400
+    name = data.get("name")
+    value = data.get("value", "")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+        return jsonify({"error": "Tracker names must contain 1 to 80 characters."}), 400
+    if not isinstance(value, str) or len(value) > 1000:
+        return jsonify({"error": "Tracker values must be text of at most 1,000 characters."}), 400
+    with conversation_db_lock:
+        conversations = load_json_db(CONV_DB_FILE)
+        conversation = get_owned_conversation(conversations, conv_id)
+        if conversation is None:
+            return jsonify({"error": "Conversation not found."}), 404
+        access_error = conversation_access_error(conv_id, conversation)
+        if access_error:
+            return access_error
+        trackers = conversation.setdefault("trackers", [])
+        if not isinstance(trackers, list):
+            trackers = []
+            conversation["trackers"] = trackers
+        tracker_id = data.get("id")
+        tracker = next(
+            (item for item in trackers if isinstance(item, dict) and item.get("id") == tracker_id),
+            None,
+        ) if isinstance(tracker_id, str) else None
+        if tracker is None:
+            if len(trackers) >= 30:
+                return jsonify({"error": "A conversation can have up to 30 trackers."}), 400
+            tracker = {"id": str(uuid.uuid4())}
+            trackers.append(tracker)
+        tracker.update({"name": name.strip(), "value": value})
+        save_json_db(conversations, CONV_DB_FILE)
+    return jsonify(tracker), 201
+
+
+@app.route("/api/conversations/<conv_id>/trackers/<tracker_id>", methods=["DELETE"])
+def delete_conversation_tracker(conv_id, tracker_id):
+    with conversation_db_lock:
+        conversations = load_json_db(CONV_DB_FILE)
+        conversation = get_owned_conversation(conversations, conv_id)
+        if conversation is None:
+            return jsonify({"error": "Conversation not found."}), 404
+        access_error = conversation_access_error(conv_id, conversation)
+        if access_error:
+            return access_error
+        trackers = conversation.get("trackers", [])
+        if not isinstance(trackers, list):
+            trackers = []
+        updated = [item for item in trackers if not isinstance(item, dict) or item.get("id") != tracker_id]
+        if len(updated) == len(trackers):
+            return jsonify({"error": "Tracker not found."}), 404
+        conversation["trackers"] = updated
+        save_json_db(conversations, CONV_DB_FILE)
+    return jsonify({"success": True, "trackers": updated})
+
+
+def user_achievement_progress(conversations, user_id):
+    progress = {
+        "conversation_messages": 0,
+        "conversation_tokens": 0,
+        "model_messages": {},
+        "character_model_messages": {},
+    }
+    for conversation in conversations.values():
+        if not isinstance(conversation, dict) or conversation.get("owner_id") != user_id:
+            continue
+        messages = conversation.get("messages", [])
+        if not isinstance(messages, list):
+            continue
+        message_count = len(messages)
+        token_count = sum(
+            max(1, (len(conversation_plain_text(message.get("content"))) + 3) // 4)
+            for message in messages if isinstance(message, dict)
+        )
+        progress["conversation_messages"] = max(progress["conversation_messages"], message_count)
+        progress["conversation_tokens"] = max(progress["conversation_tokens"], token_count)
+        roleplay = conversation.get("roleplay")
+        character = roleplay.get("character", {}).get("name") if isinstance(roleplay, dict) else None
+        model_counts = {}
+        character_counts = {}
+        for message in messages:
+            if not isinstance(message, dict) or message.get("role") != "assistant":
+                continue
+            model_id = message.get("model")
+            if not isinstance(model_id, str) or not model_id:
+                continue
+            model_counts[model_id] = model_counts.get(model_id, 0) + 1
+            if isinstance(character, str) and character:
+                key = f"{model_id}\u0000{character}"
+                character_counts[key] = character_counts.get(key, 0) + 1
+        for model_id, count in model_counts.items():
+            progress["model_messages"][model_id] = max(progress["model_messages"].get(model_id, 0), count)
+        for key, count in character_counts.items():
+            progress["character_model_messages"][key] = max(
+                progress["character_model_messages"].get(key, 0), count
+            )
+    return progress
+
+
+@app.route("/api/achievements", methods=["GET"])
+def get_user_achievements():
+    conversations = load_json_db(CONV_DB_FILE)
+    progress = user_achievement_progress(conversations, session["user_id"])
+    definitions = [
+        ("conversation_messages", "Century of messages", "Reach 100 messages in one conversation.", 100),
+        ("conversation_tokens", "Deep conversation", "Reach approximately 100,000 tokens in one conversation.", 100_000),
+    ]
+    for model_id, count in progress["model_messages"].items():
+        definitions.append((f"model:{model_id}", f"Century with {model_id}", "Reach 100 assistant replies from this model in one conversation.", 100))
+    for key, count in progress["character_model_messages"].items():
+        model_id, character = key.split("\u0000", 1)
+        definitions.append((
+            f"character-model:{hashlib.sha256(key.encode('utf-8')).hexdigest()[:16]}",
+            f"{character} and {model_id}",
+            "Reach 100 assistant replies from this model in a scene with this character.",
+            100,
+        ))
+
+    unlocked = {}
+    values = {
+        "conversation_messages": progress["conversation_messages"],
+        "conversation_tokens": progress["conversation_tokens"],
+    }
+    values.update({f"model:{key}": count for key, count in progress["model_messages"].items()})
+    values.update({
+        f"character-model:{hashlib.sha256(key.encode('utf-8')).hexdigest()[:16]}": count
+        for key, count in progress["character_model_messages"].items()
+    })
+    with achievement_db_lock:
+        earned_db = read_roleplay_data(ACHIEVEMENTS_DB_FILE, {})
+        if not isinstance(earned_db, dict):
+            return jsonify({"error": "The achievement record is unavailable."}), 500
+        earned = earned_db.get(session["user_id"], {})
+        if not isinstance(earned, dict):
+            earned = {}
+        for achievement_id, title, description, target in definitions:
+            value = values.get(achievement_id, 0)
+            is_unlocked = value >= target
+            if is_unlocked and achievement_id not in earned:
+                earned[achievement_id] = datetime.datetime.utcnow().isoformat()
+            unlocked[achievement_id] = {
+                "id": achievement_id,
+                "title": title,
+                "description": description,
+                "unlocked": achievement_id in earned,
+                "unlocked_at": earned.get(achievement_id),
+                "progress": min(target, value),
+                "target": target,
+            }
+        earned_db[session["user_id"]] = earned
+        save_json_db(earned_db, ACHIEVEMENTS_DB_FILE)
+    return jsonify({"achievements": list(unlocked.values())})
+
+
 @app.route("/api/conversations/<conv_id>/messages/<int:message_index>/rating", methods=["POST"])
 def rate_assistant_response(conv_id, message_index):
     data = request.get_json(silent=True)
@@ -3805,17 +4193,62 @@ def edit_user_message(conv_id, message_index):
     messages[message_index]["prompt"] = edit_prompt
     messages[message_index]["attachments"] = edit_attachments
     conversation["messages"] = messages[:message_index + 1]
-    first_user_message = next(
-        (message for message in conversation["messages"] if message.get("role") == "user"),
-        None,
-    )
-    title = first_user_message.get("prompt") if first_user_message else None
-    if not isinstance(title, str):
-        legacy_content = first_user_message.get("content") if first_user_message else None
-        title = legacy_content if isinstance(legacy_content, str) else edit_prompt
-    conversation["title"] = title
     save_json_db(convs, CONV_DB_FILE)
     return jsonify({"messages": conversation["messages"]})
+
+
+@app.route('/api/conversations/<conv_id>/messages/<int:message_index>/assistant', methods=['PUT'])
+def edit_assistant_message(conv_id, message_index):
+    data = request.get_json(silent=True)
+    content = data.get("content") if isinstance(data, dict) else None
+    if not isinstance(content, str) or not content.strip() or len(content) > 100_000:
+        return jsonify({"error": "Assistant messages must contain 1 to 100,000 characters."}), 400
+    with conversation_db_lock:
+        conversations = load_json_db(CONV_DB_FILE)
+        conversation = get_owned_conversation(conversations, conv_id)
+        if conversation is None:
+            return jsonify({"error": "Conversation not found."}), 404
+        access_error = conversation_access_error(conv_id, conversation)
+        if access_error:
+            return access_error
+        messages = conversation.get("messages", [])
+        if (
+            not isinstance(messages, list)
+            or message_index < 0
+            or message_index >= len(messages)
+            or not isinstance(messages[message_index], dict)
+            or messages[message_index].get("role") != "assistant"
+        ):
+            return jsonify({"error": "Only assistant messages can be edited."}), 400
+        messages[message_index]["content"] = content.strip()
+        messages[message_index].pop("thinking", None)
+        messages[message_index].pop("ratings", None)
+        save_json_db(conversations, CONV_DB_FILE)
+    return jsonify({"messages": messages_for_user(messages, session["user_id"])})
+
+
+@app.route('/api/conversations/<conv_id>/messages/<int:message_index>', methods=['DELETE'])
+def delete_conversation_message(conv_id, message_index):
+    with conversation_db_lock:
+        conversations = load_json_db(CONV_DB_FILE)
+        conversation = get_owned_conversation(conversations, conv_id)
+        if conversation is None:
+            return jsonify({"error": "Conversation not found."}), 404
+        access_error = conversation_access_error(conv_id, conversation)
+        if access_error:
+            return access_error
+        messages = conversation.get("messages", [])
+        if (
+            not isinstance(messages, list)
+            or message_index < 0
+            or message_index >= len(messages)
+            or not isinstance(messages[message_index], dict)
+            or messages[message_index].get("role") != "assistant"
+        ):
+            return jsonify({"error": "Only assistant messages can be deleted."}), 400
+        del messages[message_index]
+        save_json_db(conversations, CONV_DB_FILE)
+    return jsonify({"messages": messages_for_user(messages, session["user_id"])})
 
 
 def get_lan_ip(system=None):

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>Profile & Achievements · Synapse</title>
+    <style>
+        :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #101216; color: #eef0f4; }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, #25202a, #101216 55%); }
+        main { width: min(940px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 56px; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+        a, button { color: #f0b653; }
+        a { text-decoration: none; }
+        button { padding: 9px 13px; background: #242831; border: 1px solid #444957; border-radius: 8px; cursor: pointer; }
+        h1 { margin: 0; font-size: clamp(1.5rem, 5vw, 2.2rem); }
+        #achievement-status { color: #a7adbb; min-height: 1.5em; }
+        #achievement-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+        .achievement { padding: 16px; background: #1b1e25; border: 1px solid #353a46; border-radius: 12px; }
+        .achievement.unlocked { border-color: #b98332; box-shadow: inset 0 0 20px #b9833215; }
+        .achievement h2 { margin: 0 0 8px; font-size: 1rem; }
+        .achievement p { margin: 0 0 12px; color: #a7adbb; line-height: 1.45; }
+        .progress { height: 7px; overflow: hidden; background: #2b2f38; border-radius: 99px; }
+        .progress span { display: block; height: 100%; background: #e8a838; transition: width .3s ease; }
+        .achievement small { display: block; margin-top: 8px; color: #8e95a4; }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <div><a href="/">← Back to Synapse</a><h1>Profile & achievements</h1></div>
+            <button id="refresh-achievements" type="button">Refresh</button>
+        </header>
+        <p id="achievement-status" role="status" aria-live="polite">Loading achievements…</p>
+        <section id="achievement-list" aria-label="Achievements"></section>
+    </main>
+    <script>
+        const status = document.getElementById('achievement-status');
+        const list = document.getElementById('achievement-list');
+        async function loadAchievements() {
+            status.textContent = 'Loading achievements…';
+            try {
+                const response = await fetch('/api/achievements');
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+                list.replaceChildren();
+                const achievements = result.achievements || [];
+                achievements.forEach(item => {
+                    const card = document.createElement('article');
+                    card.className = `achievement${item.unlocked ? ' unlocked' : ''}`;
+                    const heading = document.createElement('h2');
+                    heading.textContent = `${item.unlocked ? '🏆 ' : ''}${item.title}`;
+                    const description = document.createElement('p');
+                    description.textContent = item.description;
+                    const progress = document.createElement('div');
+                    progress.className = 'progress';
+                    const bar = document.createElement('span');
+                    bar.style.width = `${item.target ? Math.min(100, item.progress / item.target * 100) : 0}%`;
+                    progress.appendChild(bar);
+                    const detail = document.createElement('small');
+                    detail.textContent = item.unlocked
+                        ? `Unlocked ${new Date(item.unlocked_at).toLocaleDateString()}`
+                        : `${Number(item.progress).toLocaleString()} / ${Number(item.target).toLocaleString()} progress`;
+                    card.append(heading, description, progress, detail);
+                    list.appendChild(card);
+                });
+                status.textContent = achievements.length
+                    ? `${achievements.filter(item => item.unlocked).length} achievements unlocked`
+                    : 'Start a conversation to begin earning achievements.';
+            } catch (error) {
+                status.textContent = `Could not load achievements: ${error.message}`;
+            }
+        }
+        document.getElementById('refresh-achievements').addEventListener('click', loadAchievements);
+        loadAchievements();
+    </script>
+</body>
+</html>
